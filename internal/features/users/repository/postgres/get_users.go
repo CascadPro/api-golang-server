@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Svat-dev/golang-todo/internal/core/domain"
+	core_postgres_pool "github.com/Svat-dev/golang-todo/internal/core/repository/postgres/pool"
 )
 
 func (r *UsersRepository) GetUsers(ctx context.Context, limit *int, offset *int) ([]domain.User, error) {
@@ -31,6 +32,8 @@ func (r *UsersRepository) GetUsers(ctx context.Context, limit *int, offset *int)
 
 		err := rows.Scan(&userModel.ID, &userModel.Version, &userModel.FullName, &userModel.PhoneNumber)
 		if err != nil {
+			err = core_postgres_pool.MapErrors(err)
+
 			return nil, fmt.Errorf("scan users: %w", err)
 		}
 
