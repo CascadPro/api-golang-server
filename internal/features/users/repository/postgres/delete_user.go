@@ -12,7 +12,7 @@ func (r *UsersRepository) DeleteUser(ctx context.Context, id int) error {
 	defer cancel()
 
 	query := `
-		DELETE from todoapp.users
+		DELETE FROM todoapp.users
 		WHERE id = $1;
 	`
 
