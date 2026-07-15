@@ -7,15 +7,13 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      # - ${PROJECT_ROOT}/out/pgdata:/var/lib/postgresql
-      - C:/Users/Svat/Documents/Github/golang-todo/out/pgdata:/var/lib/postgresql/data
+      - ${PROJECT_ROOT}/out/pgdata:/var/lib/postgresql
     restart: always
 
   todo-app-postgres-migrate:
     image: migrate/migrate:v4.19.1
     volumes:
-      # - ${PROJECT_ROOT}/migrations:/migrations
-      - C:/Users/Svat/Documents/Github/golang-todo/migrations:/migrations
+      - ${PROJECT_ROOT}/migrations:/migrations
 
   port-forwarder:
     image: alpine/socat:1.8.0.3

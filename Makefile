@@ -2,7 +2,8 @@ include .env
 export
 
 
-export PROJECT_ROOT=$(shell pwd)
+# export PROJECT_ROOT=$(shell pwd)
+export PROJECT_ROOT=C:/Users/Svat/Documents/Github/golang-todo
 
 
 env-up:
@@ -14,7 +15,7 @@ env-down:
 env-cleanup:
 	@read -p "Are you sure you want to cleanup? [y/N]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-		docker compose down todo-app-postgres && \
+		docker compose down todo-app-postgres port-forwarder && \
 		rm -rf out/pgdata && \
 		echo "Cleanup complete"; \
 	else \
@@ -54,3 +55,11 @@ migrate-action:
 		-path /migrations \
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@todo-app-postgres:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable \
 		"$(action)"
+
+app-run-win:
+	@go run cmd/main.go
+
+app-run:
+	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	go mod tidy && \
+	go run cmd/main.go
