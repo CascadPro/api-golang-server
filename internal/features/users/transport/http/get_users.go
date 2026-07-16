@@ -19,7 +19,7 @@ func (h *UsersHttpHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
 
 	limit, offset, err := getQueryParams(r)
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to get 'limit' / 'offset' query param")
+		responseHandler.ErrorResponse(err, "failed to get limit/offset query param")
 
 		return
 	}
