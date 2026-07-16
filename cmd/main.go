@@ -6,12 +6,16 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	core_config "github.com/Svat-dev/golang-todo/internal/core/config"
 	core_logger "github.com/Svat-dev/golang-todo/internal/core/logger"
 	core_postgres_pool "github.com/Svat-dev/golang-todo/internal/core/repository/postgres/pool"
 	core_http_middleware "github.com/Svat-dev/golang-todo/internal/core/transport/http/middleware"
 	core_http_server "github.com/Svat-dev/golang-todo/internal/core/transport/http/server"
+	tasks_postgres_repository "github.com/Svat-dev/golang-todo/internal/features/tasks/repository/postgres"
+	tasks_service "github.com/Svat-dev/golang-todo/internal/features/tasks/service"
+	tasks_transport_http "github.com/Svat-dev/golang-todo/internal/features/tasks/transport/http"
 	users_postgres_repository "github.com/Svat-dev/golang-todo/internal/features/users/repository/postgres"
 	users_service "github.com/Svat-dev/golang-todo/internal/features/users/service"
 	users_transport_http "github.com/Svat-dev/golang-todo/internal/features/users/transport/http"
@@ -55,6 +59,17 @@ func main() {
 		usersRoutes = httpTransport.Routes()
 	}
 
+	var tasksRoutes []core_http_server.Route
+	{
+		logger.Debug("initializing feature", zap.String("feature", "tasks"))
+
+		repo := tasks_postgres_repository.NewTasksRepository(pool)
+		service := tasks_service.NewTasksService(repo)
+		httpTransport := tasks_transport_http.NewTasksHttpHandler(service)
+
+		tasksRoutes = httpTransport.Routes()
+	}
+
 	logger.Debug("initializing http server")
 
 	httpServer := core_http_server.NewHttpServer(
@@ -68,6 +83,7 @@ func main() {
 
 	apiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
 	apiVersionRouter.RegisterRouter(usersRoutes...)
+	apiVersionRouter.RegisterRouter(tasksRoutes...)
 
 	httpServer.RegisterApiRouters(apiVersionRouter)
 
