@@ -1,4 +1,27 @@
 services:
+  todo-app:
+    build:
+      context: ${PROJECT_ROOT}
+      dockerfile: ${PROJECT_ROOT}/Dockerfile
+    container_name: todo-app
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      - HTTP_ADDR=:8080
+      - HTTP_SHUTDOWN_TIMEOUT=${HTTP_SHUTDOWN_TIMEOUT}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=todo-app-postgres
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_TIMEOUT=${POSTGRES_TIMEOUT}
+      - LOGGER_LEVEL=${LOGGER_LEVEL}
+      - LOGGER_FOLDER=/app/out/logs
+      - TIME_ZONE=${TIME_ZONE}
+    volumes:
+      - ${PROJECT_ROOT}/out/logs:/app/out/logs
+
   todo-app-postgres:
     image: postgres:16
     container_name: todo-app-env-postgres

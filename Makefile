@@ -96,3 +96,6 @@ app-run:
 app-run-win:
 	@go mod tidy | \
 	go run cmd/main.go
+
+app-deploy:
+	@docker compose up -d --build todo-app
