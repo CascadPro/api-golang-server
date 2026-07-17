@@ -13,6 +13,9 @@ import (
 	core_postgres_pool "github.com/Svat-dev/golang-todo/internal/core/repository/postgres/pool"
 	core_http_middleware "github.com/Svat-dev/golang-todo/internal/core/transport/http/middleware"
 	core_http_server "github.com/Svat-dev/golang-todo/internal/core/transport/http/server"
+	statistics_postgres_repository "github.com/Svat-dev/golang-todo/internal/features/statistics/repository/postgres"
+	statistics_service "github.com/Svat-dev/golang-todo/internal/features/statistics/service"
+	statistics_transport_http "github.com/Svat-dev/golang-todo/internal/features/statistics/transport/http"
 	tasks_postgres_repository "github.com/Svat-dev/golang-todo/internal/features/tasks/repository/postgres"
 	tasks_service "github.com/Svat-dev/golang-todo/internal/features/tasks/service"
 	tasks_transport_http "github.com/Svat-dev/golang-todo/internal/features/tasks/transport/http"
@@ -48,9 +51,11 @@ func main() {
 	}
 	defer pool.Close()
 
+	const featureInitKey = "initializing feature"
+
 	var usersRoutes []core_http_server.Route
 	{
-		logger.Debug("initializing feature", zap.String("feature", "users"))
+		logger.Debug(featureInitKey, zap.String("feature", "users"))
 
 		repo := users_postgres_repository.NewUsersRepository(pool)
 		service := users_service.NewUsersService(repo)
@@ -61,13 +66,24 @@ func main() {
 
 	var tasksRoutes []core_http_server.Route
 	{
-		logger.Debug("initializing feature", zap.String("feature", "tasks"))
+		logger.Debug(featureInitKey, zap.String("feature", "tasks"))
 
 		repo := tasks_postgres_repository.NewTasksRepository(pool)
 		service := tasks_service.NewTasksService(repo)
 		httpTransport := tasks_transport_http.NewTasksHttpHandler(service)
 
 		tasksRoutes = httpTransport.Routes()
+	}
+
+	var statisticsRoutes []core_http_server.Route
+	{
+		logger.Debug(featureInitKey, zap.String("feature", "statistics"))
+
+		repo := statistics_postgres_repository.NewStatisticsRepository(pool)
+		service := statistics_service.NewStatisticsService(repo)
+		httpTransport := statistics_transport_http.NewStatisticsHttpHandler(service)
+
+		statisticsRoutes = httpTransport.Routes()
 	}
 
 	logger.Debug("initializing http server")
@@ -84,6 +100,7 @@ func main() {
 	apiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
 	apiVersionRouter.RegisterRouter(usersRoutes...)
 	apiVersionRouter.RegisterRouter(tasksRoutes...)
+	apiVersionRouter.RegisterRouter(statisticsRoutes...)
 
 	httpServer.RegisterApiRouters(apiVersionRouter)
 
