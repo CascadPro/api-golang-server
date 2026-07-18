@@ -74,9 +74,9 @@ func (h *HttpResponseHandler) PanicResponse(p any, msg string) {
 }
 
 func (h *HttpResponseHandler) errorResponse(statusCode int, err error, msg string) {
-	body := map[string]string{
-		"message": msg,
-		"error":   err.Error(),
+	body := ErrorResponse{
+		Error:   err.Error(),
+		Message: msg,
 	}
 
 	h.JsonResponse(body, statusCode)
