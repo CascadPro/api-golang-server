@@ -12,6 +12,18 @@ import (
 
 type GetUsersResponse []users_http_dto.UserDtoResponse
 
+// GetUsers 		godoc
+// @Summary 		Get users
+// @Description Get users from the system
+// @Tags 				users
+// @Produce 		json
+// @Param       limit query int false "Limit of users"
+// @Param       offset query int false "Offset of users"
+// @Success 		200 {object} GetUsersResponse "Successfully got users"
+// @Failure 		401 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure 		409 {object} core_http_response.ErrorResponse "Conflict error"
+// @Failure		 	500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router		 	/users [get]
 func (h *UsersHttpHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
