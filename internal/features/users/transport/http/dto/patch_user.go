@@ -7,6 +7,11 @@ import (
 	core_http_types "github.com/Svat-dev/golang-todo/internal/core/transport/http/types"
 )
 
+type PatchUserRequestSwagger struct {
+	FN string `json:"full_name" example:"John Doe"`
+	PH string `json:"phone_number" example:"+79999999999"`
+}
+
 type PatchUserRequest struct {
 	FullName    core_http_types.Nullable[string] `json:"full_name"`
 	PhoneNumber core_http_types.Nullable[string] `json:"phone_number"`

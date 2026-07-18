@@ -10,7 +10,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 go build -o /app/cmd/exe /app/cmd
 
-FROM alpine:3.23 
+FROM alpine:3.23
 
 WORKDIR /app
 

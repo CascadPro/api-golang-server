@@ -1,5 +1,6 @@
 /out
 /postman
+/docs
 
 .env
 .cmd.win

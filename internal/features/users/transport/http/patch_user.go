@@ -14,6 +14,19 @@ type PatchUserRequest users_http_dto.PatchUserRequest
 
 type PatchUserResponse users_http_dto.UserDtoResponse
 
+// PatchUser 		godoc
+// @Summary 		Patch a user
+// @Description Patch a user in the system
+// @Tags 				users
+// @Accept 			json
+// @Produce 		json
+// @Param       id path int true "User ID"
+// @Param 			request body users_http_dto.PatchUserRequestSwagger true "PatchUser body request"
+// @Success 		200 {object} PatchUserResponse "Successfully patched user"
+// @Failure 		401 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure 		409 {object} core_http_response.ErrorResponse "Conflict error"
+// @Failure		 	500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router		 	/users/{id} [patch]
 func (h *UsersHttpHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
