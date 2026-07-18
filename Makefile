@@ -89,6 +89,14 @@ logs-cleanup-win:
 	@rmdir /s /q "${LOGGER_FOLDER}" | \
 	echo Cleanup complete
 
+swagger-gen:
+	@docker compose run --rm swagger \
+		init \
+		-g cmd/main.go \
+		-o docs \
+		--parseInternal \
+		--parseDependency
+
 app-run:
 	@export go mod tidy && \
 	go run cmd/main.go
