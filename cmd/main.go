@@ -23,6 +23,8 @@ import (
 	users_service "github.com/Svat-dev/golang-todo/internal/features/users/service"
 	users_transport_http "github.com/Svat-dev/golang-todo/internal/features/users/transport/http"
 	"go.uber.org/zap"
+
+	_ "github.com/Svat-dev/golang-todo/docs"
 )
 
 func main() {
@@ -103,6 +105,7 @@ func main() {
 	apiVersionRouter.RegisterRouter(statisticsRoutes...)
 
 	httpServer.RegisterApiRouters(apiVersionRouter)
+	httpServer.RegisterSwagger()
 
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("http server run error", zap.Error(err))
