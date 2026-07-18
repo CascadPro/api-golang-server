@@ -11,13 +11,25 @@ import (
 )
 
 type CreateTaskRequest struct {
-	Title       string  `json:"title" validate:"required,min=1,max=100"`
-	Description *string `json:"description" validate:"omitempty,min=1,max=1000"`
-	AuthorID    int     `json:"author_id" validate:"required"`
+	Title       string  `json:"title" validate:"required,min=1,max=100" example:"New Task"`
+	Description *string `json:"description" validate:"omitempty,min=1,max=1000" example:"A simple new task!"`
+	AuthorID    int     `json:"author_id" validate:"required" example:"1"`
 }
 
 type CreateTaskResponse tasks_http_dto.TaskDtoResponse
 
+// CreateTask 	godoc
+// @Summary 		Create a task
+// @Description Create a new task in the system
+// @Tags 				tasks
+// @Accept 			json
+// @Produce 		json
+// @Param 			request body CreateTaskRequest true "CreateTask body request"
+// @Success 		200 {object} CreateTaskResponse "Successfully created task"
+// @Failure 		401 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure 		409 {object} core_http_response.ErrorResponse "Conflict error"
+// @Failure		 	500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router		 	/tasks [post]
 func (h *TasksHttpHandler) CreateTask(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

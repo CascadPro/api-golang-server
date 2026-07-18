@@ -14,6 +14,19 @@ type PatchTaskRequest tasks_http_dto.PatchTaskRequest
 
 type PatchTaskResponse tasks_http_dto.TaskDtoResponse
 
+// PatchTask 		godoc
+// @Summary 		Patch a task
+// @Description Patch a task in the system
+// @Tags 				tasks
+// @Accept 			json
+// @Produce 		json
+// @Param       id path int true "Task ID"
+// @Param 			request body tasks_http_dto.PatchTaskRequestSwagger true "PatchTask body request"
+// @Success 		200 {object} PatchTaskResponse "Successfully patched task"
+// @Failure 		401 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure 		409 {object} core_http_response.ErrorResponse "Conflict error"
+// @Failure		 	500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router		 	/tasks/{id} [patch]
 func (h *TasksHttpHandler) PatchTask(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

@@ -6,6 +6,12 @@ import (
 	core_http_types "github.com/Svat-dev/golang-todo/internal/core/transport/http/types"
 )
 
+type PatchTaskRequestSwagger struct {
+	T string `json:"title" example:"Another new task"`
+	D string `json:"description" example:"Another simple description"`
+	C bool   `json:"completed" example:"true"`
+}
+
 type PatchTaskRequest struct {
 	Title       core_http_types.Nullable[string] `json:"title"`
 	Description core_http_types.Nullable[string] `json:"description"`

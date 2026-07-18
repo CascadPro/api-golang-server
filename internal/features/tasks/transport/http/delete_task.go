@@ -8,6 +8,16 @@ import (
 	core_http_response "github.com/Svat-dev/golang-todo/internal/core/transport/http/response"
 )
 
+// DeleteTask		godoc
+// @Summary 		Delete task
+// @Description Delete a task in the system
+// @Tags 				tasks
+// @Param       id path int true "Task ID"
+// @Success 		204 "No content response"
+// @Failure 		401 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure 		409 {object} core_http_response.ErrorResponse "Conflict error"
+// @Failure		 	500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router		 	/tasks/{id} [delete]
 func (h *TasksHttpHandler) DeleteTask(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
