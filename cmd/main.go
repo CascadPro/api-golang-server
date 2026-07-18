@@ -27,6 +27,11 @@ import (
 	_ "github.com/Svat-dev/golang-todo/docs"
 )
 
+// @title 				Golang ToDo API
+// @version 			1.0
+// @description 	ToDo Application REST-API scheme
+// @host 					127.0.0.1:8080
+// @BasePath 			/api/v1
 func main() {
 	cfg := core_config.NewConfigMust()
 	time.Local = cfg.TimeZone
