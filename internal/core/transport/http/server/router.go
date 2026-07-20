@@ -11,8 +11,6 @@ type ApiVersion string
 
 const (
 	ApiVersion1 = ApiVersion("v1")
-	ApiVersion2 = ApiVersion("v2")
-	ApiVersion3 = ApiVersion("v3")
 )
 
 type ApiVersionRouter struct {

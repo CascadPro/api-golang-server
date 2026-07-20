@@ -1,7 +1,0 @@
-workspace:
-  id: e59b1083-9612-4f65-8edb-1c3404c2f05b
-cloudResources:
-  collections:
-    ../postman/collections/Golang Todo: 56263633-ab25e83b-5016-404c-95f1-97245d539222
-  environments:
-    ../postman/environments/golang-todo-app.environment.yaml: 56263633-94326c8d-ea3a-48e1-97f4-193f9e5963ce
