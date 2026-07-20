@@ -1,9 +1,9 @@
 services:
-  todo-app:
+  [APP_NAME]:
     build:
       context: ${PROJECT_ROOT}
       dockerfile: ${PROJECT_ROOT}/Dockerfile
-    container_name: todo-app
+    container_name: [CONTAINER_NAME]
     ports:
       - "8080:8080"
     restart: always
@@ -12,7 +12,7 @@ services:
       - HTTP_SHUTDOWN_TIMEOUT=${HTTP_SHUTDOWN_TIMEOUT}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_HOST=todo-app-postgres
+      - POSTGRES_HOST=[POSTGRES_SERVICE_NAME]
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_TIMEOUT=${POSTGRES_TIMEOUT}
@@ -22,9 +22,9 @@ services:
     volumes:
       - ${PROJECT_ROOT}/out/logs:/app/out/logs
 
-  todo-app-postgres:
+  [POSTGRES_SERVICE_NAME]:
     image: postgres:16
-    container_name: todo-app-env-postgres
+    container_name: [CONTAINER_NAME]
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -33,15 +33,15 @@ services:
       - ${PROJECT_ROOT}/out/pgdata:/var/lib/postgresql
     restart: always
 
-  todo-app-postgres-migrate:
+  [MIGRATE_SERVICE_NAME]:
     image: migrate/migrate:v4.19.1
     volumes:
       - ${PROJECT_ROOT}/migrations:/migrations
 
   port-forwarder:
     image: alpine/socat:1.8.0.3
-    container_name: todo-app-env-port-forwarder
-    command: tcp-listen:5432,fork,reuseaddr tcp-connect:todo-app-postgres:5432
+    container_name: [CONTAINER_NAME]
+    command: tcp-listen:5432,fork,reuseaddr tcp-connect:[POSTGRES_SERVICE_NAME]:5432
     ports:
       - 127.0.0.1:5432:5432
 
