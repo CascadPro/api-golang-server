@@ -14,6 +14,8 @@ type Pool interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+
+	Begin(ctx context.Context) (pgx.Tx, error)
 	Close()
 
 	OpTimeout() time.Duration
@@ -45,6 +47,7 @@ func NewConnectionPool(ctx context.Context, config Config) (*ConnectionPool, err
 	}
 
 	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
 		return nil, fmt.Errorf("pgxpool ping: %w", err)
 	}
 
