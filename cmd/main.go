@@ -12,6 +12,7 @@ import (
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/pool"
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
+	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/repository/s3/pool"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
 	test_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/test/repository/postgres"
@@ -65,7 +66,11 @@ func main() {
 	// <<< Redis connect end
 
 	// >>> S3 connect start
-	// ...
+	logger.Debug("initializing S3 AWS connection pool")
+	_, err = core_s3_pool.NewConnectionPool(ctx, core_s3_pool.NewConfigMust())
+	if err != nil {
+		logger.Fatal("failed to init S3 AWS connection pool", zap.Error(err))
+	}
 	// <<< S3 connect end
 
 	const featureInitKey = "initializing feature"

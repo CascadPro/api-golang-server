@@ -9,8 +9,8 @@ import (
 
 type Config struct {
 	Host     string `envconfig:"HOST" required:"true"`
-	Port     string `envconfig:"PORT" default:"5432"`
-	Password string `envconfig:"PASSWORD" required:"true"`
+	Port     string `envconfig:"PORT" default:"6379"`
+	Password string `envconfig:"PASSWORD" required:"false"`
 	Database int    `envconfig:"DB" required:"true"`
 
 	PoolSize     int           `envconfig:"POOL_SIZE" required:"true"`
