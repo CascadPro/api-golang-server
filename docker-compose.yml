@@ -8,17 +8,27 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - HTTP_ADDR=:8080
+      - HTTP_ADDR=:8000
       - HTTP_SHUTDOWN_TIMEOUT=${HTTP_SHUTDOWN_TIMEOUT}
+      - HTTP_DOMAIN=${HTTP_DOMAIN}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_HOST=cascade-app-postgres
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_TIMEOUT=${POSTGRES_TIMEOUT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - S3_REGION=${S3_REGION}
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
       - LOGGER_LEVEL=${LOGGER_LEVEL}
       - LOGGER_FOLDER=/app/out/logs
-      - TIME_ZONE=${TIME_ZONE}
+      - CORE_TIME_ZONE=${CORE_TIME_ZONE}
+      - CORE_CONNECTION=${CORE_CONNECTION}
     depends_on:
       cascade-app-postgres:
         condition: service_healthy
@@ -49,7 +59,7 @@ services:
       timeout: 10s
       retries: 5
     volumes:
-      - ${PROJECT_ROOT}/out/pg_data:/var/lib/postgresql
+      - ${PROJECT_ROOT}/out/pg_data:/var/lib/postgresql/data
     networks:
       - cascade-pro
 
