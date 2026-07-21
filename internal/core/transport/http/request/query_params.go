@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	core_errors "github.com/Svat-dev/golang-todo/internal/core/errors"
+	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 )
 
 func GetIntQueryParam(r *http.Request, key string) (*int, error) {

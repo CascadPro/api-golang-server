@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	core_errors "github.com/Svat-dev/golang-todo/internal/core/errors"
-	core_logger "github.com/Svat-dev/golang-todo/internal/core/logger"
+	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	"go.uber.org/zap"
 )
 

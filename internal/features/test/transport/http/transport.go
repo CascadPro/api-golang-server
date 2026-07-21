@@ -3,7 +3,7 @@ package test_transport_http
 import (
 	"net/http"
 
-	core_http_server "github.com/Svat-dev/golang-todo/internal/core/transport/http/server"
+	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
 )
 
 type TestHttpHandler struct {

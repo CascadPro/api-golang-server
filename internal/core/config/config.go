@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/kelseyhightower/envconfig"
 )
 
 type Config struct {
-	TimeZone *time.Location
+	TimeZone   *time.Location
+	Connection string `envconfig:"CONNECTION" default:"online"`
 }
 
 func NewConfig() (*Config, error) {
-	tz := os.Getenv("TIME_ZONE")
+	tz := os.Getenv("CORE_TIME_ZONE")
 	if tz == "" {
 		tz = time.UTC.String()
 	}
@@ -21,9 +24,15 @@ func NewConfig() (*Config, error) {
 		return nil, fmt.Errorf("load time zone: %s: %w", tz, err)
 	}
 
-	return &Config{
-		TimeZone: zone,
-	}, nil
+	var config Config
+
+	if err := envconfig.Process("CORE", &config); err != nil {
+		return &Config{}, fmt.Errorf("process envconfig: %w", err)
+	}
+
+	config.TimeZone = zone
+
+	return &config, nil
 }
 
 func NewConfigMust() *Config {

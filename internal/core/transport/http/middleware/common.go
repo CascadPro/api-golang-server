@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	core_logger "github.com/Svat-dev/golang-todo/internal/core/logger"
-	core_http_response "github.com/Svat-dev/golang-todo/internal/core/transport/http/response"
+	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
+	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )

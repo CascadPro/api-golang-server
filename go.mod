@@ -1,4 +1,4 @@
-module github.com/Svat-dev/golang-todo
+module github.com/CascadePro/api-golang-server
 
 go 1.25.10
 
