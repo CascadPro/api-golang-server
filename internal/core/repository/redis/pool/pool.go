@@ -8,9 +8,16 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const (
+	SessionFolder   string = "cascade__session"
+	CacheFolder     string = "cascade__cache"
+	RateLimitFolder string = "cascade__rate_limit"
+)
+
 type Pool interface {
 	Get(ctx context.Context, key string) (string, error)
 	Set(ctx context.Context, key string, value any, expiration time.Duration) error
+	Eval(ctx context.Context, script string, keys []string, args ...any) (any, error)
 	Close()
 
 	OpTimeout() time.Duration

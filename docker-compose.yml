@@ -20,6 +20,10 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+      - REDIS_DB=${REDIS_DB}
+      - REDIS_POOL_SIZE=${REDIS_POOL_SIZE}
+      - REDIS_MIN_IDLE_CONNS=${REDIS_MIN_IDLE_CONNS}
+      - REDIS_TIMEOUT=${REDIS_TIMEOUT}
       - S3_REGION=${S3_REGION}
       - S3_ENDPOINT=${S3_ENDPOINT}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME}
@@ -67,6 +71,8 @@ services:
     container_name: cascade-app-redis-database
     image: redis:5.0
     restart: unless-stopped
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     ports:
       - 6379:6379
     healthcheck:
@@ -74,7 +80,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    command: redis-server
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - ${PROJECT_ROOT}/out/redis_data:/data
     networks:

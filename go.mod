@@ -49,7 +49,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
-	github.com/redis/go-redis/v9 v9.21.0 // indirect
+	github.com/redis/go-redis/v9 v9.21.0
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe // indirect
 	go.uber.org/atomic v1.11.0 // indirect

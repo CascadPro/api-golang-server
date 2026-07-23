@@ -48,6 +48,14 @@ func (p *ConnectionPool) Set(ctx context.Context, key string, value any, expirat
 	return MapErrors(err)
 }
 
+func (p *ConnectionPool) Eval(ctx context.Context, script string, keys []string, args ...any) (any, error) {
+	ctx, cancel := context.WithTimeout(ctx, p.timeout)
+	defer cancel()
+
+	res, err := p.client.Eval(ctx, script, keys, args...).Result()
+	return res, MapErrors(err)
+}
+
 func (p *ConnectionPool) Close() {
 	_ = p.client.Close()
 }
