@@ -3,7 +3,7 @@ package core_http_server
 import (
 	"net/http"
 
-	core_http_middleware "github.com/Svat-dev/golang-todo/internal/core/transport/http/middleware"
+	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 )
 
 type Route struct {

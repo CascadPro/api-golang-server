@@ -1,6 +1,7 @@
 package core_postgres_pool
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -33,4 +34,39 @@ func MapErrors(err error) error {
 	}
 
 	return fmt.Errorf("%v: %w", err, ErrUnknown)
+}
+
+func (p *ConnectionPool) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	ctx, cancel := context.WithTimeout(ctx, p.timeout)
+	defer cancel()
+
+	rows, err := p.Pool.Query(ctx, sql, args...)
+	return rows, MapErrors(err)
+}
+
+func (p *ConnectionPool) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
+	ctx, cancel := context.WithTimeout(ctx, p.timeout)
+	defer cancel()
+
+	return p.Pool.QueryRow(ctx, sql, args...)
+}
+
+func (p *ConnectionPool) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
+	ctx, cancel := context.WithTimeout(ctx, p.timeout)
+	defer cancel()
+
+	tag, err := p.Pool.Exec(ctx, sql, arguments...)
+	return tag, MapErrors(err)
+}
+
+func (p *ConnectionPool) Begin(ctx context.Context) (pgx.Tx, error) {
+	ctx, cancel := context.WithTimeout(ctx, p.timeout)
+	defer cancel()
+
+	tx, err := p.Pool.Begin(ctx)
+	return tx, MapErrors(err)
+}
+
+func (p *ConnectionPool) Close() {
+	p.Pool.Close()
 }

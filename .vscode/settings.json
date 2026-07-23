@@ -1,4 +1,8 @@
 {
 	"makefile.configureOnOpen": false,
-	"cSpell.words": ["Validatable"]
+	"cSpell.words": ["Validatable"],
+	"sonarlint.connectedMode.project": {
+		"connectionId": "CascadePro SonarQude Connection",
+		"projectKey": "CascadPro_api-golang-server"
+	}
 }

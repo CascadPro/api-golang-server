@@ -3,7 +3,7 @@ package core_http_types
 import (
 	"encoding/json"
 
-	"github.com/Svat-dev/golang-todo/internal/core/domain"
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
 )
 
 type Nullable[T any] struct {

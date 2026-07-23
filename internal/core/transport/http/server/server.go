@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Svat-dev/golang-todo/docs"
-	core_logger "github.com/Svat-dev/golang-todo/internal/core/logger"
-	core_http_middleware "github.com/Svat-dev/golang-todo/internal/core/transport/http/middleware"
+	"github.com/CascadePro/api-golang-server/docs"
+	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
+	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 )

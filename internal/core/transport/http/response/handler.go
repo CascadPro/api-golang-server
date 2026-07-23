@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
-	core_errors "github.com/Svat-dev/golang-todo/internal/core/errors"
-	core_logger "github.com/Svat-dev/golang-todo/internal/core/logger"
+	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	"go.uber.org/zap"
 )
 
@@ -46,12 +47,24 @@ func (h *HttpResponseHandler) ErrorResponse(err error, msg string) {
 		statusCode = http.StatusBadRequest
 		logFunc = h.log.Warn
 
+	case errors.Is(err, core_errors.ErrUnauthorized):
+		statusCode = http.StatusUnauthorized
+		logFunc = h.log.Warn
+
+	case errors.Is(err, core_errors.ErrForbidden):
+		statusCode = http.StatusForbidden
+		logFunc = h.log.Warn
+
 	case errors.Is(err, core_errors.ErrNotFound):
 		statusCode = http.StatusNotFound
 		logFunc = h.log.Debug
 
 	case errors.Is(err, core_errors.ErrConflict):
 		statusCode = http.StatusConflict
+		logFunc = h.log.Warn
+
+	case errors.Is(err, core_errors.ErrTooManyRequests):
+		statusCode = http.StatusTooManyRequests
 		logFunc = h.log.Warn
 
 	default:
@@ -75,8 +88,9 @@ func (h *HttpResponseHandler) PanicResponse(p any, msg string) {
 
 func (h *HttpResponseHandler) errorResponse(statusCode int, err error, msg string) {
 	body := ErrorResponse{
-		Error:   err.Error(),
-		Message: msg,
+		Error:     err.Error(),
+		Message:   msg,
+		Timestamp: time.Now().UTC(),
 	}
 
 	h.JsonResponse(body, statusCode)
