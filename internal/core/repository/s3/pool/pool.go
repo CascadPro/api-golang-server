@@ -37,6 +37,7 @@ func NewConnectionPool(ctx context.Context, cfg Config) (*ConnectionPool, error)
 
 	awsCfg, err := config.LoadDefaultConfig(
 		ctx,
+		config.WithBaseEndpoint(cfg.Endpoint),
 		config.WithRegion(cfg.Region),
 		config.WithCredentialsProvider(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
 			return aws.Credentials{

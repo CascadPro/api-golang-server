@@ -8,14 +8,14 @@ import (
 )
 
 type Config struct {
-	Region          string
-	Bucket          string
-	Endpoint        string
-	AccessKeyID     string
-	SecretAccessKey string
-	SessionToken    string
+	Region          string `envconfig:"S3_REGION" required:"true"`
+	Bucket          string `envconfig:"S3_BUCKET" required:"true"`
+	Endpoint        string `envconfig:"S3_ENDPOINT" required:"true"`
+	AccessKeyID     string `envconfig:"S3_ACCESS_KEY_ID" required:"true"`
+	SecretAccessKey string `envconfig:"S3_SECRET_ACCESS_KEY" required:"true"`
+	SessionToken    string `envconfig:"S3_SESSION_TOKEN" required:"false"`
 
-	Timeout time.Duration
+	Timeout time.Duration `envconfig:"S3_TIMEOUT" required:"true"`
 }
 
 func NewConfig() (Config, error) {
