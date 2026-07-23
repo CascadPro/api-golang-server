@@ -25,35 +25,13 @@ type JwtAccessClaims struct {
 }
 
 func (t *JwtAccessClaims) Validate() error {
-	issuedAt, err := t.GetIssuedAt()
-	if err != nil {
-		return fmt.Errorf("`IssuedAt` is empty: %w", core_errors.ErrInvalidArgument)
+	if err := validateCommonClaims(&t.RegisteredClaims, t.SessionID, t.UserID); err != nil {
+		return fmt.Errorf("access token validation: %w", err)
 	}
 
-	issuer, err := t.GetIssuer()
-	if err != nil {
-		return fmt.Errorf("`Issuer` is empty: %w", core_errors.ErrInvalidArgument)
-	}
-
-	if issuer != AuthTokenIssuer {
-		return fmt.Errorf("`Issuer` is invalid: %w", core_errors.ErrInvalidArgument)
-	}
-
-	if t.ExpiresAt.Before(issuedAt.Time) {
-		return fmt.Errorf("token is expired: %w", core_errors.ErrUnauthorized)
-	}
-
-	if t.SessionID == "" {
-		return fmt.Errorf("`SessionID` is empty: %w", core_errors.ErrInvalidArgument)
-	}
-
-	if _, err := uuid.Parse(fmt.Sprint(t.UserID)); err != nil {
-		return fmt.Errorf("`UserID` is invalid: %w", core_errors.ErrInvalidArgument)
-	}
-
-	roles := map[domain.UserRole]struct{}{}
-	for _, role := range domain.Roles {
-		roles[role] = struct{}{}
+	roles := make(map[domain.UserRole]struct{}, len(domain.Roles))
+	for _, r := range domain.Roles {
+		roles[r] = struct{}{}
 	}
 
 	if _, ok := roles[t.Role]; !ok {
@@ -71,32 +49,41 @@ type JwtRefreshClaims struct {
 }
 
 func (t *JwtRefreshClaims) Validate() error {
-	issuedAt, err := t.GetIssuedAt()
+	if err := validateCommonClaims(&t.RegisteredClaims, t.SessionID, t.UserID); err != nil {
+		return fmt.Errorf("refresh token validation: %w", err)
+	}
+
+	return nil
+}
+
+func validateCommonClaims(rc *jwt.RegisteredClaims, sessionID string, userID uuid.UUID) error {
+	issuedAt, err := rc.GetIssuedAt()
 	if err != nil {
 		return fmt.Errorf("`IssuedAt` is empty: %w", core_errors.ErrInvalidArgument)
 	}
 
-	issuer, err := t.GetIssuer()
+	issuer, err := rc.GetIssuer()
 	if err != nil {
 		return fmt.Errorf("`Issuer` is empty: %w", core_errors.ErrInvalidArgument)
 	}
-
 	if issuer != AuthTokenIssuer {
 		return fmt.Errorf("`Issuer` is invalid: %w", core_errors.ErrInvalidArgument)
 	}
 
-	if t.ExpiresAt.Before(issuedAt.Time) {
+	if rc.ExpiresAt == nil {
+		return fmt.Errorf("`ExpiresAt` is missing: %w", core_errors.ErrInvalidArgument)
+	}
+	if rc.ExpiresAt.Before(issuedAt.Time) {
 		return fmt.Errorf("token is expired: %w", core_errors.ErrUnauthorized)
 	}
 
-	if t.SessionID == "" {
+	if sessionID == "" {
 		return fmt.Errorf("`SessionID` is empty: %w", core_errors.ErrInvalidArgument)
 	}
 
-	if _, err := uuid.Parse(fmt.Sprint(t.UserID)); err != nil {
+	if _, err := uuid.Parse(fmt.Sprint(userID)); err != nil {
 		return fmt.Errorf("`UserID` is invalid: %w", core_errors.ErrInvalidArgument)
 	}
-
 	return nil
 }
 
@@ -111,7 +98,6 @@ func IssueTokens(userID uuid.UUID, sessionID string, role domain.UserRole) (*Jwt
 			Issuer:    AuthTokenIssuer,
 		},
 	}
-
 	if err := accessToken.Validate(); err != nil {
 		return nil, nil, fmt.Errorf("issue tokens: %w", err)
 	}
@@ -125,7 +111,6 @@ func IssueTokens(userID uuid.UUID, sessionID string, role domain.UserRole) (*Jwt
 			Issuer:    AuthTokenIssuer,
 		},
 	}
-
 	if err := refreshToken.Validate(); err != nil {
 		return nil, nil, fmt.Errorf("issue tokens: %w", err)
 	}
