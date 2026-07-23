@@ -33,6 +33,8 @@ services:
       - S3_TIMEOUT=${S3_TIMEOUT}
       - LOGGER_LEVEL=${LOGGER_LEVEL}
       - LOGGER_FOLDER=/app/out/logs
+      - SECRET_KEY_JWT=${SECRET_KEY_JWT}
+      - SECRET_KEY_UPLOAD=${SECRET_KEY_UPLOAD}
       - CORE_TIME_ZONE=${CORE_TIME_ZONE}
       - CORE_CONNECTION=${CORE_CONNECTION}
     depends_on:
