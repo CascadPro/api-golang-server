@@ -9,8 +9,9 @@ import (
 )
 
 type Config struct {
-	TimeZone   *time.Location
-	Connection string `envconfig:"CONNECTION" default:"online"`
+	TimeZone       *time.Location
+	Connection     string `envconfig:"CONNECTION" default:"online"`
+	AllowedOrigins string `envconfig:"ALLOWED_ORIGINS" default:""`
 }
 
 func NewConfig() (*Config, error) {

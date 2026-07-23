@@ -37,6 +37,7 @@ services:
       - SECRET_KEY_UPLOAD=${SECRET_KEY_UPLOAD}
       - CORE_TIME_ZONE=${CORE_TIME_ZONE}
       - CORE_CONNECTION=${CORE_CONNECTION}
+      - CORE_ALLOWED_ORIGINS=${CORE_ALLOWED_ORIGINS}
     depends_on:
       cascade-app-postgres:
         condition: service_healthy

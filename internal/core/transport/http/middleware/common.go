@@ -2,7 +2,6 @@ package core_http_middleware
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
@@ -12,32 +11,6 @@ import (
 )
 
 const requestIDHeader = "X-Request-ID"
-
-func CORS() Middleware {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			allowedOrigins := map[string]struct{}{
-				"http://localhost:8080": {},
-			}
-			allowedMethods := []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"}
-
-			origin := r.Header.Get("Origin")
-
-			if _, ok := allowedOrigins[origin]; ok {
-				w.Header().Set("Access-Control-Allow-Origin", origin)
-				w.Header().Set("Access-Control-Allow-Methods", strings.Join(allowedMethods, ", "))
-				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			}
-
-			if r.Method == http.MethodOptions {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-
-			next.ServeHTTP(w, r)
-		})
-	}
-}
 
 func RequestID() Middleware {
 	return func(next http.Handler) http.Handler {
