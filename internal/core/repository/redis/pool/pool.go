@@ -8,16 +8,29 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+type RedisFolderName string
+
 const (
-	SessionFolder   string = "cascade__session"
-	CacheFolder     string = "cascade__cache"
-	RateLimitFolder string = "cascade__rate_limit"
+	SessionFolder   = RedisFolderName("cascade__session")
+	CacheFolder     = RedisFolderName("cascade__cache")
+	RateLimitFolder = RedisFolderName("cascade__rate_limit")
 )
 
 type Pool interface {
 	Get(ctx context.Context, key string) (string, error)
+	GetKeys(ctx context.Context, cursor uint64, match string, count int64) ([]string, error)
 	Set(ctx context.Context, key string, value any, expiration time.Duration) error
+	Del(ctx context.Context, keys ...string) error
 	Eval(ctx context.Context, script string, keys []string, args ...any) (any, error)
+
+	HGet(ctx context.Context, key, field string) (string, error)
+	HGetAll(ctx context.Context, key string) *redis.MapStringStringCmd
+	HSet(ctx context.Context, key string, values ...any) error
+	HDel(ctx context.Context, key string, fields ...string) error
+
+	Pipeline() redis.Pipeliner
+	TxPipeline() redis.Pipeliner
+
 	Close()
 
 	OpTimeout() time.Duration
@@ -28,16 +41,16 @@ type ConnectionPool struct {
 	timeout time.Duration
 }
 
-func NewConnectionPool(ctx context.Context, config Config) (*ConnectionPool, error) {
-	addr := fmt.Sprintf("%s:%s", config.Host, config.Port)
+func NewConnectionPool(ctx context.Context, cfg Config) (*ConnectionPool, error) {
+	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     addr,
-		Password: config.Password,
-		DB:       config.Database,
+		Password: cfg.Password,
+		DB:       cfg.Database,
 
-		PoolSize:     config.PoolSize,
-		MinIdleConns: config.MinIdleConns,
+		PoolSize:     cfg.PoolSize,
+		MinIdleConns: cfg.MinIdleConns,
 
 		DialTimeout:  5 * time.Second,
 		ReadTimeout:  3 * time.Second,
@@ -51,7 +64,7 @@ func NewConnectionPool(ctx context.Context, config Config) (*ConnectionPool, err
 
 	return &ConnectionPool{
 		client:  rdb,
-		timeout: config.Timeout,
+		timeout: cfg.Timeout,
 	}, nil
 }
 
