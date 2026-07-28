@@ -10,13 +10,15 @@ import (
 )
 
 const (
-	ViolatesForeignKeyErrorCode = "23503"
+	ViolatesForeignKeyErrorCode       = "23503"
+	ViolatesUniqueConstraintErrorCode = "23505"
 )
 
 var (
-	ErrNoRows             = errors.New("no rows")
-	ErrViolatesForeignKey = errors.New("violates foreign key")
-	ErrUnknown            = errors.New("unknown")
+	ErrNoRows                   = errors.New("no rows")
+	ErrViolatesForeignKey       = errors.New("violates foreign key")
+	ErrViolatesUniqueConstraint = errors.New("violates unique constraint")
+	ErrUnknown                  = errors.New("unknown")
 )
 
 func MapErrors(err error) error {
@@ -27,8 +29,11 @@ func MapErrors(err error) error {
 
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			if pgErr.Code == ViolatesForeignKeyErrorCode {
+			switch pgErr.Code {
+			case ViolatesForeignKeyErrorCode:
 				return fmt.Errorf("%v: %w", pgErr.Message, ErrViolatesForeignKey)
+			case ViolatesUniqueConstraintErrorCode:
+				return fmt.Errorf("%v: %w", pgErr.Message, ErrViolatesUniqueConstraint)
 			}
 		}
 	}
@@ -37,34 +42,37 @@ func MapErrors(err error) error {
 }
 
 func (p *ConnectionPool) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
-	ctx, cancel := context.WithTimeout(ctx, p.timeout)
-	defer cancel()
-
 	rows, err := p.Pool.Query(ctx, sql, args...)
-	return rows, MapErrors(err)
+
+	if err != nil {
+		return nil, MapErrors(err)
+	}
+
+	return rows, nil
 }
 
 func (p *ConnectionPool) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
-	ctx, cancel := context.WithTimeout(ctx, p.timeout)
-	defer cancel()
-
 	return p.Pool.QueryRow(ctx, sql, args...)
 }
 
 func (p *ConnectionPool) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
-	ctx, cancel := context.WithTimeout(ctx, p.timeout)
-	defer cancel()
-
 	tag, err := p.Pool.Exec(ctx, sql, arguments...)
-	return tag, MapErrors(err)
+
+	if err != nil {
+		return tag, MapErrors(err)
+	}
+
+	return tag, nil
 }
 
 func (p *ConnectionPool) Begin(ctx context.Context) (pgx.Tx, error) {
-	ctx, cancel := context.WithTimeout(ctx, p.timeout)
-	defer cancel()
-
 	tx, err := p.Pool.Begin(ctx)
-	return tx, MapErrors(err)
+
+	if err != nil {
+		return nil, MapErrors(err)
+	}
+
+	return tx, nil
 }
 
 func (p *ConnectionPool) Close() {
