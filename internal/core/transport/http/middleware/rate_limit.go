@@ -51,12 +51,19 @@ var luaScript string = `
 	return {1, limit - new_count, ttl}
 `
 
-func RateLimit(config RateLimitConfig) Middleware {
+func NewRateLimitConfig(limit int64, window time.Duration) *RateLimitConfig {
+	return &RateLimitConfig{
+		Limit:  limit,
+		Window: window,
+	}
+}
+
+func (cfg *RateLimitConfig) Middleware() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			log := core_logger.FromContext(ctx)
-			responseHandler := core_http_response.NewHttpResponseHandler(log, rw)
+			responseHandler := core_http_response.NewResponseHandler(log, rw)
 
 			clientIP, err := core_http_utils.ClientIP(r)
 			if err != nil {
@@ -79,8 +86,8 @@ func RateLimit(config RateLimitConfig) Middleware {
 				r.Context(),
 				luaScript,
 				[]string{key},
-				config.Limit,
-				int64(config.Window.Seconds()),
+				cfg.Limit,
+				int64(cfg.Window.Seconds()),
 			)
 			if err != nil {
 				responseHandler.ErrorResponse(err, "failed to execute redis query")
@@ -95,12 +102,12 @@ func RateLimit(config RateLimitConfig) Middleware {
 
 			resetTime := time.Now().Add(time.Duration(ttl) * time.Second).Unix()
 
-			r.Header.Set("X-RateLimit-Limit", strconv.FormatInt(config.Limit, 10))
-			r.Header.Set("X-RateLimit-Remaining", strconv.FormatInt(remaining, 10))
-			r.Header.Set("X-RateLimit-Reset", strconv.FormatInt(resetTime, 10))
+			rw.Header().Add("X-RateLimit-Limit", strconv.FormatInt(cfg.Limit, 10))
+			rw.Header().Add("X-RateLimit-Remaining", strconv.FormatInt(remaining, 10))
+			rw.Header().Add("X-RateLimit-Reset", strconv.FormatInt(resetTime, 10))
 
 			if !allowed {
-				msg := fmt.Sprintf("try again after %s", time.Duration(ttl).String())
+				msg := fmt.Sprintf("try again after %v seconds", ttl)
 				responseHandler.ErrorResponse(core_errors.ErrTooManyRequests, msg)
 
 				return
