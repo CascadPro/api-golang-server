@@ -26,14 +26,14 @@ type ConnectionPool struct {
 	timeout time.Duration
 }
 
-func NewConnectionPool(ctx context.Context, config Config) (*ConnectionPool, error) {
+func NewConnectionPool(ctx context.Context, cfg Config) (*ConnectionPool, error) {
 	connString := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		config.User,
-		config.Password,
-		config.Host,
-		config.Port,
-		config.Database,
+		cfg.User,
+		cfg.Password,
+		cfg.Host,
+		cfg.Port,
+		cfg.Database,
 	)
 
 	pgxconfig, err := pgxpool.ParseConfig(connString)
@@ -53,7 +53,7 @@ func NewConnectionPool(ctx context.Context, config Config) (*ConnectionPool, err
 
 	return &ConnectionPool{
 		Pool:    pool,
-		timeout: config.Timeout,
+		timeout: cfg.Timeout,
 	}, nil
 }
 
