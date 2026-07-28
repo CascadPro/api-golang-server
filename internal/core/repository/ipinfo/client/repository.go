@@ -12,6 +12,7 @@ type Repository struct {
 }
 
 type RepositoryMethods interface {
+	Lookup(context.Context, net.IP) (InfoModel, error)
 }
 
 func NewRepository(pool core_ipinfo_pool.Pool) *Repository {
