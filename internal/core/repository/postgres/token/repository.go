@@ -12,6 +12,10 @@ type Repository struct {
 	pool core_postgres_pool.Pool
 }
 
+type RepositoryMethods interface {
+	CreateToken(ctx context.Context, token domain.Token) (domain.Token, error)
+}
+
 func NewRepository(pool core_postgres_pool.Pool) *Repository {
 	return &Repository{
 		pool: pool,
