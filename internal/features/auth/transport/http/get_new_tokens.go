@@ -19,7 +19,6 @@ type GetNewTokensResponse struct {
 // @Description  Get new JWT‑access token using refresh token from cookie
 // @Tags         auth
 // @Produce      json
-// @Param        refresh_token cookie string true "Refresh token"
 // @Success      200 {object} GetNewTokensResponse "New access token"
 // @Failure      400 {object} core_http_response.ErrorResponse "Bad request"
 // @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"
