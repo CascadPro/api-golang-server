@@ -85,7 +85,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    command: redis-server
+    # command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - ${PROJECT_ROOT}/out/redis_data:/data
     networks:
