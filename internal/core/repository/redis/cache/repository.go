@@ -13,6 +13,10 @@ type Repository struct {
 	expiration time.Duration
 }
 
+type RepositoryMethods interface {
+	GetCache(ctx context.Context, key string) (string, error)
+}
+
 func NewRepository(pool core_redis_pool.Pool, prefix string, expiration time.Duration) *Repository {
 	return &Repository{
 		pool:       pool,
