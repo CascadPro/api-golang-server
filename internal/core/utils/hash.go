@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -19,35 +20,29 @@ var (
 	parallelism uint8  = 2
 )
 
-func GenerateHash(password string) (string, error) {
-	// 1. Генерируем случайную соль
+func GenerateHash(str string) (string, error) {
 	salt := make([]byte, saltLength)
 	if _, err := rand.Read(salt); err != nil {
-		return "", err
+		return "", fmt.Errorf("generate random salt: %w", err)
 	}
 
-	// 2. Вычисляем хеш с помощью Argon2id (наиболее безопасный режим)
-	hash := argon2.IDKey([]byte(password), salt, iterations, memory, parallelism, keyLength)
+	hash := argon2.IDKey([]byte(str), salt, iterations, memory, parallelism, keyLength)
 
-	// 3. Кодируем соль и хеш в base64 для хранения в БД
 	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
 	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
 
-	// 4. Собираем итоговую строку в формате PHP
 	encodedHash := fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s",
 		argon2.Version, memory, iterations, parallelism, b64Salt, b64Hash)
 
 	return encodedHash, nil
 }
 
-func ComparePasswordAndHash(password, encodedHash string) (bool, error) {
-	// 1. Разбираем строку на части
+func CompareStringAndHash(compare, encodedHash string) (bool, error) {
 	parts := strings.Split(encodedHash, "$")
 	if len(parts) != 6 {
-		return false, fmt.Errorf("неверный формат хеша")
+		return false, fmt.Errorf("`encodeHash` invalid hash format: %w", core_errors.ErrInvalidArgument)
 	}
 
-	// 2. Парсим параметры версии и памяти/итераций/параллелизма
 	var version int
 	var memoryParam, iterationsParam, parallelismParam int
 
@@ -56,7 +51,7 @@ func ComparePasswordAndHash(password, encodedHash string) (bool, error) {
 		return false, err
 	}
 	if version != argon2.Version {
-		return false, fmt.Errorf("несовместимая версия argon2")
+		return false, fmt.Errorf("incompatible argon2 version: %w", core_errors.ErrInvalidArgument)
 	}
 
 	_, err = fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &memoryParam, &iterationsParam, &parallelismParam)
@@ -75,7 +70,7 @@ func ComparePasswordAndHash(password, encodedHash string) (bool, error) {
 	}
 
 	// 3. Вычисляем хеш из введенного пароля с теми же параметрами
-	computedHash := argon2.IDKey([]byte(password), salt, uint32(iterationsParam), uint32(memoryParam), uint8(parallelismParam), uint32(keyLength))
+	computedHash := argon2.IDKey([]byte(compare), salt, uint32(iterationsParam), uint32(memoryParam), uint8(parallelismParam), uint32(keyLength))
 
 	// 4. Сравниваем хеши. Используем subtle.ConstantTimeCompare для защиты от атак по времени.
 	if subtle.ConstantTimeCompare(existingHash, computedHash) == 1 {

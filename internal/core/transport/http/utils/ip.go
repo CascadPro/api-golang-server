@@ -5,13 +5,17 @@ import (
 	"net"
 	"net/http"
 	"strings"
+
+	core_config "github.com/CascadePro/api-golang-server/internal/core/config"
 )
+
+var PskovIP net.IP = ParseIP("109.207.190.162")
 
 // ParseIP проверяет, что строка действительно IP (IPv4 или IPv6)
 func ParseIP(s string) net.IP {
 	s = strings.TrimSpace(s)
 
-	if strings.Contains(s, ":") && strings.Count(s, ":") == 1 { // IPv4+port
+	if strings.Contains(s, ":") && strings.Count(s, ":") == 1 {
 		host, _, _ := net.SplitHostPort(s)
 		s = host
 	}
@@ -27,6 +31,15 @@ func ParseIP(s string) net.IP {
 //  2. X-Real-IP
 //  3. RemoteAddr
 func ClientIP(r *http.Request) (net.IP, error) {
+	cfg, err := core_config.NewConfig()
+	if err != nil {
+		return nil, fmt.Errorf("get core config: %w", err)
+	}
+
+	if cfg.Connection == core_config.ConnectionOffline || cfg.EnvMode == core_config.EnvModeDev {
+		return PskovIP, nil
+	}
+
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
 		parts := strings.Split(xff, ",")
 		if len(parts) > 0 {
