@@ -22,3 +22,18 @@ type UserModel struct {
 
 	LastActiveAt time.Time
 }
+
+func domainFromModel(model UserModel) domain.User {
+	return domain.User{
+		ID:           model.ID,
+		Version:      model.Version,
+		Activated:    model.Activated,
+		Email:        model.Email,
+		PasswordHash: model.PasswordHash,
+		Role:         model.Role,
+		Name:         model.Name,
+		Surname:      model.Surname,
+		LastName:     model.LastName,
+		LastActiveAt: model.LastActiveAt,
+	}
+}
