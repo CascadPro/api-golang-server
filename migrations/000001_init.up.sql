@@ -1,0 +1,9 @@
+CREATE SCHEMA base;
+
+CREATE OR REPLACE FUNCTION base.update_table_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
