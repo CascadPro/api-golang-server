@@ -10,7 +10,7 @@ type Validatable interface {
 	Validate() error
 }
 
-func InitValidator[T ~string](roles []T) error {
+func InitValidator[T ~string](roles []T, byteLength int) error {
 	Validation = validator.New()
 
 	err := Validation.RegisterValidation("pwd", func(fl validator.FieldLevel) bool {
@@ -54,7 +54,7 @@ func InitValidator[T ~string](roles []T) error {
 	err = Validation.RegisterValidation("sid", func(fl validator.FieldLevel) bool {
 		sid := fl.Field().String()
 
-		if err := ValidateID(sid, 24); err != nil {
+		if err := ValidateID(sid, byteLength); err != nil {
 			return false
 		}
 		return true

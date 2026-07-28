@@ -17,6 +17,8 @@ const (
 	SessionLifetime90d = SessionLifetime(SessionLifetime30d * 3)
 )
 
+const SessionIDByteLength = 12
+
 type Session struct {
 	ID             string
 	CreatedAt      time.Time

@@ -3,6 +3,7 @@ package sessions_transport_http
 import (
 	"net/http"
 
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_request "github.com/CascadePro/api-golang-server/internal/core/transport/http/request"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
@@ -26,7 +27,7 @@ func (h *HttpHandler) DeleteSession(rw http.ResponseWriter, r *http.Request) {
 	log := core_logger.FromContext(ctx)
 	responseHandler := core_http_response.NewResponseHandler(log, rw)
 
-	sessionID, err := core_http_request.GetIDPathValue(r, "id", 24)
+	sessionID, err := core_http_request.GetIDPathValue(r, "id", domain.SessionIDByteLength)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get session id path value")
 

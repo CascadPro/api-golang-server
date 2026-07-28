@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 )
 
 func (s *Service) DeleteSession(ctx context.Context, sessionID string) error {
-	if err := core_validation.ValidateID(sessionID, 24); err != nil {
+	if err := core_validation.ValidateID(sessionID, domain.SessionIDByteLength); err != nil {
 		return fmt.Errorf("validate session id: %w", err)
 	}
 

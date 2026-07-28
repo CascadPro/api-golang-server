@@ -14,7 +14,7 @@ func (s *Service) GetUserSessions(ctx context.Context) ([]domain.Session, error)
 		return nil, fmt.Errorf("parse userID from context: %w", err)
 	}
 
-	sessionID, err := core_utils.ParseIDStingFromContext(ctx, "sessionID", 24)
+	sessionID, err := core_utils.ParseIDStingFromContext(ctx, "sessionID", domain.SessionIDByteLength)
 	if err != nil {
 		return nil, fmt.Errorf("parse session id from context: %w", err)
 	}
