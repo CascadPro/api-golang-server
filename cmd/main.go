@@ -20,6 +20,9 @@ import (
 	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/repository/s3/pool"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
+	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
+	auth_service "github.com/CascadePro/api-golang-server/internal/features/auth/service"
+	auth_transport_http "github.com/CascadePro/api-golang-server/internal/features/auth/transport/http"
 	root_transport_http "github.com/CascadePro/api-golang-server/internal/features/root/transport/http"
 	sessions_redis_repository "github.com/CascadePro/api-golang-server/internal/features/sessions/repository/redis"
 	session_service "github.com/CascadePro/api-golang-server/internal/features/sessions/service"
@@ -120,6 +123,16 @@ func main() {
 	sessionsHttpHandler := sessions_transport_http.NewHttpHandler(sessionsService)
 
 	sessionsRouter.RegisterRoutes(sessionsHttpHandler.Routes()...)
+
+	// Auth routes
+	logger.Debug(featureInitMsg, zap.String("feature", "auth"), zap.String("path", "/auth/*"))
+	authRouter := core_http_server.NewRouter("/auth")
+
+	authService := auth_service.NewService(userPostgresRepository, tokenPostgresRepository,
+		ipInfoRepository, sessionsRedisRepo)
+	authHttpHandler := auth_transport_http.NewHttpHandler(authService)
+
+	authRouter.RegisterRoutes(authHttpHandler.Routes()...)
 
 	// Base app setup
 	logger.Debug("initializing http server")
