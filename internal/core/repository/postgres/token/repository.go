@@ -14,6 +14,7 @@ type Repository struct {
 
 type RepositoryMethods interface {
 	CreateToken(ctx context.Context, token domain.Token) (domain.Token, error)
+	GetToken(ctx context.Context, token domain.Token) (domain.Token, error)
 	DeleteToken(ctx context.Context, id uuid.UUID) error
 }
 

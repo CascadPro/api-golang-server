@@ -17,3 +17,14 @@ type TokenModel struct {
 	ExpiresAt time.Time
 	UserID    uuid.UUID
 }
+
+func domainFromModel(model TokenModel) domain.Token {
+	return domain.Token{
+		ID:        model.ID,
+		Version:   model.Version,
+		Token:     model.Token,
+		Type:      model.Type,
+		ExpiresAt: model.ExpiresAt,
+		UserID:    model.UserID,
+	}
+}
