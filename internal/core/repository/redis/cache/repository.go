@@ -15,6 +15,7 @@ type Repository struct {
 
 type RepositoryMethods interface {
 	GetCache(ctx context.Context, key string) (string, error)
+	SetCache(ctx context.Context, key string, dest any) error
 }
 
 func NewRepository(pool core_redis_pool.Pool, prefix string, expiration time.Duration) *Repository {
