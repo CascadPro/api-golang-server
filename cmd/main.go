@@ -109,7 +109,7 @@ func main() {
 	// Root routes
 	logger.Debug(featureInitMsg, zap.String("feature", "root"), zap.String("path", "/*"))
 	rootRateLimit := core_http_middleware.NewRateLimitConfig(100, time.Minute*5)
-	rootRouter := core_http_server.NewRouter("/", rootRateLimit.Middleware())
+	rootRouter := core_http_server.NewRouter("", rootRateLimit.Middleware())
 
 	rootHttpHandler := root_transport_http.NewHttpHandler()
 	rootRouter.RegisterRoutes(rootHttpHandler.Routes()...)
