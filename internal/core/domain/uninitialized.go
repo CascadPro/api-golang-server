@@ -1,6 +1,11 @@
 package domain
 
-const (
-	UninitializedID      = -1
-	UninitializedVersion = -1
+import "github.com/google/uuid"
+
+var (
+	UninitializedUUID      = uuid.Nil
+	UninitializedID        = ""
+	UninitializedVersion   = -1
+	UninitializedRole      = RoleRegular
+	UninitializedTokenType = TokenTypeNil
 )
