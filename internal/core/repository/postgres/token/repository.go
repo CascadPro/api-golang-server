@@ -14,6 +14,7 @@ type Repository struct {
 
 type RepositoryMethods interface {
 	CreateToken(ctx context.Context, token domain.Token) (domain.Token, error)
+	DeleteToken(ctx context.Context, id uuid.UUID) error
 }
 
 func NewRepository(pool core_postgres_pool.Pool) *Repository {
