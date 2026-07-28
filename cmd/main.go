@@ -95,7 +95,7 @@ func main() {
 	// <<< IP Info connect end
 
 	logger.Debug("initializing app validator")
-	err = core_validation.InitValidator(domain.Roles)
+	err = core_validation.InitValidator(domain.Roles, domain.SessionIDByteLength)
 	if err != nil {
 		logger.Fatal("failed to inti validator", zap.Error(err))
 	}

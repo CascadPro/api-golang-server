@@ -8,4 +8,5 @@ var (
 	UninitializedVersion   = -1
 	UninitializedRole      = RoleRegular
 	UninitializedTokenType = TokenTypeNil
+	UninitializedFileTag   = FileTagNil
 )
