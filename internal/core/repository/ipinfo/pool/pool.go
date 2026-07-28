@@ -12,6 +12,8 @@ import (
 )
 
 type Pool interface {
+	GetIPInfo(net.IP) (*ipinfo.Core, error)
+
 	OpTimeout() time.Duration
 }
 
