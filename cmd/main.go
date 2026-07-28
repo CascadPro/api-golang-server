@@ -21,6 +21,9 @@ import (
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
 	root_transport_http "github.com/CascadePro/api-golang-server/internal/features/root/transport/http"
+	sessions_redis_repository "github.com/CascadePro/api-golang-server/internal/features/sessions/repository/redis"
+	session_service "github.com/CascadePro/api-golang-server/internal/features/sessions/service"
+	sessions_transport_http "github.com/CascadePro/api-golang-server/internal/features/sessions/transport/http"
 	"go.uber.org/zap"
 
 	_ "github.com/CascadePro/api-golang-server/docs"
@@ -94,10 +97,11 @@ func main() {
 		logger.Fatal("failed to inti validator", zap.Error(err))
 	}
 
+	const featureInitMsg = "initialing feature"
 
 	userPostgresRepository := core_postgres_user.NewRepository(pgPool)
 	tokenPostgresRepository := core_postgres_token.NewRepository(pgPool)
-	clientIpInfoRepository := core_ipinfo_client.NewRepository(ipInfoPool)
+	ipInfoRepository := core_ipinfo_client.NewRepository(ipInfoPool)
 
 	// Root routes
 	logger.Debug(featureInitMsg, zap.String("feature", "root"), zap.String("path", "/*"))
@@ -106,6 +110,16 @@ func main() {
 
 	rootHttpHandler := root_transport_http.NewHttpHandler()
 	rootRouter.RegisterRoutes(rootHttpHandler.Routes()...)
+
+	// Sessions route
+	logger.Debug(featureInitMsg, zap.String("feature", "sessions"), zap.String("path", "/sessions/*"))
+	sessionsRouter := core_http_server.NewRouter("/sessions", core_http_middleware.Authorization())
+
+	sessionsRedisRepo := sessions_redis_repository.NewRepository(rdbPool)
+	sessionsService := session_service.NewService(sessionsRedisRepo)
+	sessionsHttpHandler := sessions_transport_http.NewHttpHandler(sessionsService)
+
+	sessionsRouter.RegisterRoutes(sessionsHttpHandler.Routes()...)
 
 	// Base app setup
 	logger.Debug("initializing http server")
@@ -121,6 +135,7 @@ func main() {
 	)
 
 	apiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
+	apiVersionRouter.RegisterRouters(sessionsRouter, authRouter)
 
 	httpServer.RegisterRouters(rootRouter)
 	httpServer.RegisterApiRouters(apiVersionRouter)
