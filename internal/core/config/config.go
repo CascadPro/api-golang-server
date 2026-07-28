@@ -8,10 +8,21 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
+type EnvMode string
+type Connection string
+
+const (
+	EnvModeDev        = EnvMode("dev")
+	EnvModeProd       = EnvMode("prod")
+	ConnectionOnline  = Connection("online")
+	ConnectionOffline = Connection("offline")
+)
+
 type Config struct {
 	TimeZone       *time.Location
-	Connection     string `envconfig:"CONNECTION" default:"online"`
-	AllowedOrigins string `envconfig:"ALLOWED_ORIGINS" default:""`
+	Connection     Connection `envconfig:"CONNECTION" default:"online"`
+	EnvMode        EnvMode    `envconfig:"ENV_MODE" default:"dev"`
+	AllowedOrigins string     `envconfig:"ALLOWED_ORIGINS" default:""`
 }
 
 func NewConfig() (*Config, error) {
