@@ -6,14 +6,8 @@ import (
 	"net/http"
 
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
-	"github.com/go-playground/validator/v10"
+	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 )
-
-var validation = validator.New()
-
-type validatable interface {
-	Validate() error
-}
 
 func DecodeAndValidate(r *http.Request, dest any) error {
 	if err := json.NewDecoder(r.Body).Decode(dest); err != nil {
@@ -22,11 +16,14 @@ func DecodeAndValidate(r *http.Request, dest any) error {
 
 	var err error
 
-	v, ok := dest.(validatable)
+	v, ok := dest.(core_validation.Validatable)
 	if ok {
 		err = v.Validate()
 	} else {
-		err = validation.Struct(dest)
+		if e := core_validation.Validation.Struct(dest); e != nil {
+			errs := core_validation.MapErrors(e)
+			err = errs[0]
+		}
 	}
 
 	if err != nil {

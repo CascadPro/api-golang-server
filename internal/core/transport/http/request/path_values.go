@@ -3,27 +3,20 @@ package core_http_request
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 )
 
-func GetIntPathValue(r *http.Request, key string) (int, error) {
+func GetIDPathValue(r *http.Request, key string, length int) (string, error) {
 	pathValue := r.PathValue(key)
 	if pathValue == "" {
-		return 0, fmt.Errorf("no key='%s' in path values: %w", key, core_errors.ErrInvalidArgument)
+		return "", fmt.Errorf("no key='%s' in path values: %w", key, core_errors.ErrInvalidArgument)
 	}
 
-	val, err := strconv.Atoi(pathValue)
-	if err != nil {
-		return 0, fmt.Errorf(
-			"path value='%s' by key %s not a valid integer: %v: %w",
-			pathValue,
-			key,
-			err,
-			core_errors.ErrInvalidArgument,
-		)
+	if err := core_validation.ValidateID(pathValue, length); err != nil {
+		return "", fmt.Errorf("key='%s' in path values is not valid ID: %w", key, core_errors.ErrInvalidArgument)
 	}
 
-	return val, nil
+	return pathValue, nil
 }
