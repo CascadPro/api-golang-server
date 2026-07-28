@@ -10,15 +10,15 @@ import (
 func CORS() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			config, err := core_config.NewConfig()
+			cfg, err := core_config.NewConfig()
 			if err != nil {
-				config.AllowedOrigins = ""
+				cfg.AllowedOrigins = ""
 			}
 
 			allowedOrigins := map[string]struct{}{}
 			allowedMethods := []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"}
 
-			for allowedOrigin := range strings.SplitSeq(config.AllowedOrigins, ",") {
+			for allowedOrigin := range strings.SplitSeq(cfg.AllowedOrigins, ",") {
 				allowedOrigins[strings.TrimSpace(allowedOrigin)] = struct{}{}
 			}
 
