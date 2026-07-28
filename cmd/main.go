@@ -9,15 +9,18 @@ import (
 	"time"
 
 	core_config "github.com/CascadePro/api-golang-server/internal/core/config"
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
+	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/repository/ipinfo/client"
+	core_ipinfo_pool "github.com/CascadePro/api-golang-server/internal/core/repository/ipinfo/pool"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/pool"
+	core_postgres_token "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/token"
+	core_postgres_user "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/user"
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
 	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/repository/s3/pool"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
-	test_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/test/repository/postgres"
-	test_service "github.com/CascadePro/api-golang-server/internal/features/test/service"
-	test_transport_http "github.com/CascadePro/api-golang-server/internal/features/test/transport/http"
+	root_transport_http "github.com/CascadePro/api-golang-server/internal/features/root/transport/http"
 	"go.uber.org/zap"
 
 	_ "github.com/CascadePro/api-golang-server/docs"
@@ -44,6 +47,10 @@ func main() {
 		os.Exit(1)
 	}
 	defer logger.Close()
+
+	logger.Debug("application environment mode", zap.Any("mode", cfg.EnvMode))
+
+	logger.Debug("application connection", zap.Any("connection", cfg.Connection))
 
 	logger.Debug("application time zone", zap.Any("zone", cfg.TimeZone))
 
@@ -73,19 +80,34 @@ func main() {
 	}
 	// <<< S3 connect end
 
-	const featureInitKey = "initializing feature"
+	// >>> IP Info connect start
+	logger.Debug("initializing IP Info connection pool")
+	ipInfoPool, err := core_ipinfo_pool.NewConnectionPool(ctx, core_ipinfo_pool.NewConfigMust(), rdbPool)
+	if err != nil {
+		logger.Fatal("failed to init IP Info connection pool", zap.Error(err))
+	}
+	// <<< IP Info connect end
 
-	var testRoutes []core_http_server.Route
-	{
-		logger.Debug(featureInitKey, zap.String("feature", "statistics"))
-
-		repo := test_postgres_repository.NewTestRepository(pgPool)
-		service := test_service.NewTestService(repo)
-		httpTransport := test_transport_http.NewTestHttpHandler(service)
-
-		testRoutes = httpTransport.Routes()
+	logger.Debug("initializing app validator")
+	err = core_validation.InitValidator(domain.Roles)
+	if err != nil {
+		logger.Fatal("failed to inti validator", zap.Error(err))
 	}
 
+
+	userPostgresRepository := core_postgres_user.NewRepository(pgPool)
+	tokenPostgresRepository := core_postgres_token.NewRepository(pgPool)
+	clientIpInfoRepository := core_ipinfo_client.NewRepository(ipInfoPool)
+
+	// Root routes
+	logger.Debug(featureInitMsg, zap.String("feature", "root"), zap.String("path", "/*"))
+	rootRateLimit := core_http_middleware.NewRateLimitConfig(100, time.Minute*5)
+	rootRouter := core_http_server.NewRouter("/", rootRateLimit.Middleware())
+
+	rootHttpHandler := root_transport_http.NewHttpHandler()
+	rootRouter.RegisterRoutes(rootHttpHandler.Routes()...)
+
+	// Base app setup
 	logger.Debug("initializing http server")
 
 	httpServer := core_http_server.NewHttpServer(
@@ -99,8 +121,8 @@ func main() {
 	)
 
 	apiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRouter(testRoutes...)
 
+	httpServer.RegisterRouters(rootRouter)
 	httpServer.RegisterApiRouters(apiVersionRouter)
 	httpServer.RegisterSwagger()
 
