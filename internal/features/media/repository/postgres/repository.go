@@ -12,7 +12,7 @@ type Repository struct {
 }
 
 type RepositoryMethods interface {
-	CreateFile(ctx context.Context, file domain.File) (domain.File, error)
+	CreateFile(ctx context.Context, file *domain.File) (domain.File, error)
 	GetFile(ctx context.Context, fileID string) (domain.File, error)
 	PatchFile(ctx context.Context, fileID string, file domain.File) (domain.File, error)
 	DeleteFile(ctx context.Context, fileID string) error

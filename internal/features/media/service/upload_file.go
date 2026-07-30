@@ -5,21 +5,21 @@ import (
 	"fmt"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
+	core_media_utils "github.com/CascadePro/api-golang-server/internal/core/utils/media"
 )
 
-func (s *Service) UploadFile(ctx context.Context, file domain.File, content []byte) (domain.File, error) {
-	if err := file.Validate(); err != nil {
+func (s *Service) UploadFile(ctx context.Context, dtoFile *domain.File, content []byte) (domain.File, error) {
+	if err := dtoFile.Validate(); err != nil {
 		return domain.File{}, fmt.Errorf("validate file: %w", err)
 	}
 
-	file, err := s.mediaPostgresRepo.CreateFile(ctx, file)
+	file, err := s.mediaPostgresRepo.CreateFile(ctx, dtoFile)
 	if err != nil {
 		return domain.File{}, fmt.Errorf("create file at repository: %w", err)
 	}
 
 	if file.Tag == domain.FileTagAvatars {
-		content, err = core_utils.ResizeAny(
+		content, err = core_media_utils.ResizeAny(
 			content,
 			domain.FileAvatarS3Size,
 			domain.FileAvatarS3Size,

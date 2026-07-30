@@ -11,14 +11,14 @@ import (
 	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
 )
 
-func (r *Repository) CreateFile(ctx context.Context, file domain.File) (domain.File, error) {
+func (r *Repository) CreateFile(ctx context.Context, file *domain.File) (domain.File, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
 	query := `
-		INSERT INTO media.files (id, tag, filename, content_type, size)
-		VALUES($1, $2, $3, $4, $5)
-		RETURNING id, version, tag, filename, content_type, size, created_at;
+		INSERT INTO media.files (id, tag, filename, mime_type, size, placeholder)
+		VALUES($1, $2, $3, $4, $5, $6)
+		RETURNING id, version, tag, filename, mime_type, size, created_at;
 	`
 
 	id, err := core_utils.GenerateID(domain.FileIDByteLength)
@@ -26,7 +26,7 @@ func (r *Repository) CreateFile(ctx context.Context, file domain.File) (domain.F
 		return domain.File{}, fmt.Errorf("generate id: %w", err)
 	}
 
-	row := r.pool.QueryRow(ctx, query, id, file.Tag, file.Filename, file.ContentType, file.Size)
+	row := r.pool.QueryRow(ctx, query, id, file.Tag, file.Filename, file.MimeType, file.Size, file.GetPlaceholder())
 
 	var model FileModel
 	if err := row.Scan(
@@ -34,7 +34,7 @@ func (r *Repository) CreateFile(ctx context.Context, file domain.File) (domain.F
 		&model.Version,
 		&model.Tag,
 		&model.Filename,
-		&model.ContentType,
+		&model.MimeType,
 		&model.Size,
 		&model.CreatedAt,
 	); err != nil {
@@ -45,6 +45,10 @@ func (r *Repository) CreateFile(ctx context.Context, file domain.File) (domain.F
 				"%v: file with id=%s is already exists: %w",
 				err, id, core_errors.ErrInvalidArgument,
 			)
+		}
+
+		if errors.Is(err, core_postgres_pool.ErrViolatesCheckConstraint) {
+			return domain.File{}, fmt.Errorf("file validation failed: %w", core_errors.ErrInvalidArgument)
 		}
 
 		return domain.File{}, fmt.Errorf("scan error: %w", err)

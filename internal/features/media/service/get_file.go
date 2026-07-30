@@ -8,7 +8,7 @@ import (
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/repository/s3/pool"
-	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
+	core_media_utils "github.com/CascadePro/api-golang-server/internal/core/utils/media"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 )
 
@@ -50,7 +50,7 @@ func (s *Service) GetFile(
 	}
 
 	if w != nil && h != nil && (fileTag == domain.FileTagAvatars || fileTag == domain.FileTagImages) {
-		result, err = core_utils.ResizeAny(result, *w, *h, quality)
+		result, err = core_media_utils.ResizeAny(result, *w, *h, quality)
 		if err != nil {
 			return domain.File{}, nil, fmt.Errorf("resize image file: %w", err)
 		}

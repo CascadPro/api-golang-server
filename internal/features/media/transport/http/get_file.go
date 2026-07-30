@@ -46,7 +46,7 @@ func (h *HttpHandler) GetFile(rw http.ResponseWriter, r *http.Request) {
 		responseHandler.ErrorResponse(core_errors.ErrNotFound, "failed to get file")
 	}
 
-	responseHandler.MediaContentResponse(content, file.ContentType)
+	responseHandler.MediaContentResponse(content, file.MimeType)
 }
 
 func getFilePathValues(r *http.Request) (domain.FileTag, string, error) {

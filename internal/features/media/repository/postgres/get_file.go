@@ -20,7 +20,7 @@ func (r *Repository) GetFile(ctx context.Context, fileID string) (domain.File, e
 	}
 
 	query := `
-		SELECT id, version, tag, filename, content_type, size, deleted, deleted_at, created_at
+		SELECT id, version, tag, filename, mime_type, size, deleted, deleted_at, created_at
 		FROM media.files
 		WHERE (id = $1)
 		LIMIT 1;
@@ -34,7 +34,7 @@ func (r *Repository) GetFile(ctx context.Context, fileID string) (domain.File, e
 		&model.Version,
 		&model.Tag,
 		&model.Filename,
-		&model.ContentType,
+		&model.MimeType,
 		&model.Size,
 		&model.Deleted,
 		&model.DeletedAt,

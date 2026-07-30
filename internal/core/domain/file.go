@@ -73,7 +73,22 @@ func NewUploadFile(filename string, tag FileTag, mimeType FileMimeType, size int
 	}
 }
 
+func (f *File) GeneratePlaceholder(content []byte) error {
+	if f.Tag != FileTagAvatars && f.Tag != FileTagImages && f.Tag != FileTagVideos {
+		return fmt.Errorf("generate placeholder: %w", core_errors.ErrInvalidArgument)
 	}
+
+	placeholder, err := core_media_utils.GeneratePlaceholder(content)
+	if err != nil {
+		return fmt.Errorf("generate placeholder: %w", err)
+	}
+
+	f.placeholder = placeholder
+	return nil
+}
+
+func (f *File) GetPlaceholder() []byte {
+	return f.placeholder
 }
 
 func (f *File) Validate() error {

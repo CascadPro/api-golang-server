@@ -24,7 +24,7 @@ func (r *Repository) PatchFile(ctx context.Context, fileID string, file domain.F
 		UPDATE media.files
 		SET (version = version + 1, filename = $1, size = $2, deleted = $3, deleted_at = $4)
 		WHERE (id = $5 AND version = $6)
-		RETURNING id, version, tag, filename, content_type, size, deleted, deleted_at, created_at;
+		RETURNING id, version, tag, filename, mime_type, size, deleted, deleted_at, created_at;
 	`
 
 	row := r.pool.QueryRow(ctx, query, file.Filename, file.Size, file.Deleted, file.DeletedAt, fileID, file.Version)
@@ -35,7 +35,7 @@ func (r *Repository) PatchFile(ctx context.Context, fileID string, file domain.F
 		&model.Version,
 		&model.Tag,
 		&model.Filename,
-		&model.ContentType,
+		&model.MimeType,
 		&model.Size,
 		&model.Deleted,
 		&model.DeletedAt,
