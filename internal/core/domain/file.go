@@ -63,6 +63,10 @@ func (f *File) Validate() error {
 		if f.CreatedAt.After(*f.DeletedAt) {
 			return fmt.Errorf("`DeletedAt` can't be before `CreatedAt`: %w", core_errors.ErrInvalidArgument)
 		}
+
+		if (*f.DeletedAt).After(time.Now()) {
+			return fmt.Errorf("`DeletedAt` can't be after current time: %w", core_errors.ErrInvalidArgument)
+		}
 	} else {
 		if f.DeletedAt != nil {
 			return fmt.Errorf("`DeletedAt` must be NULL if `Deleted` is false: %w", core_errors.ErrInvalidArgument)
