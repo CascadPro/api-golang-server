@@ -24,6 +24,15 @@ func NewResponseHandler(log *core_logger.Logger, rw http.ResponseWriter) *Respon
 	}
 }
 
+func (h *ResponseHandler) MediaContentResponse(bytes []byte, contentType string) {
+	h.rw.Header().Add("Content-Type", contentType)
+	h.rw.Header().Add("Content-Length", fmt.Sprintf("%d", len(bytes)))
+
+	h.rw.WriteHeader(http.StatusOK)
+
+	h.rw.Write(bytes)
+}
+
 func (h *ResponseHandler) NoContentResponse() {
 	h.rw.WriteHeader(http.StatusNoContent)
 }
