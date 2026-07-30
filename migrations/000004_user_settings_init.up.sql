@@ -1,16 +1,18 @@
 CREATE TYPE session_expire_term_enum AS ENUM ('7d', '30d', '90d');
 
 CREATE TABLE base.user_settings (
-  id                  UUID                               PRIMARY KEY,
-  user_id             UUID                     NOT NULL  UNIQUE,
-  version             BIGINT                   NOT NULL  DEFAULT 1,
-  session_expire_term session_expire_term_enum NOT NULL  DEFAULT '30d',
-  created_at          TIMESTAMPTZ              NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-  updated_at          TIMESTAMPTZ              NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+  id      UUID            PRIMARY KEY,
+  user_id UUID   NOT NULL UNIQUE,
+  version BIGINT NOT NULL DEFAULT 1,
+
+  session_expire_term session_expire_term_enum NOT NULL DEFAULT '30d',
+
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_user_settings_user_id FOREIGN KEY (user_id) REFERENCES base.users(id) ON DELETE CASCADE,
 
-  CHECK (updated_at >= created_at)
+  CONSTRAINT chk_user_settings_timestamps CHECK (updated_at >= created_at)
 );
 
 CREATE UNIQUE INDEX idx_user_settings_user_id ON base.user_settings (user_id);

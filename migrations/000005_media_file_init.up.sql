@@ -16,9 +16,12 @@ CREATE TABLE media.files (
   updated_at   TIMESTAMPTZ  NOT NULL  DEFAULT CURRENT_TIMESTAMP,
 
   CHECK (
-    (deleted AND deleted_at IS NOT NULL)
-    OR
-    NOT deleted
+    (deleted AND deleted_at IS NOT NULL) OR NOT deleted
+    AND
+    ((tag IN ('avatars', 'images', 'videos') AND placeholder IS NOT NULL) OR
+    (tag NOT IN ('avatars', 'images', 'videos') AND placeholder IS NULL))
+    AND
+    tag != 'avatars' OR (tag = 'avatars' AND size <= 10485760)
     AND
     (updated_at >= created_at AND deleted_at >= created_at)
   )
