@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
@@ -39,21 +40,19 @@ func Authorization(rolesArr ...domain.UserRole) Middleware {
 			claims, err := core_utils.GetJwtTokenClaims[core_utils.JwtAccessClaims](tokenString)
 			if err != nil {
 				responseHandler.ErrorResponse(err, "failed to read token")
-
 				return
 			}
 
 			if len(rolesArr) != 0 {
 				if err := core_validation.ValidateArray(rolesArr, claims.Role); err != nil {
 					responseHandler.ErrorResponse(core_errors.ErrForbidden, "you don't have enough rights")
-
 					return
 				}
 			}
 
-			ctx = context.WithValue(ctx, "userID", claims.UserID.String())
-			ctx = context.WithValue(ctx, "role", claims.Role)
-			ctx = context.WithValue(ctx, "sessionID", claims.SessionID)
+			ctx = context.WithValue(ctx, core_context.CtxKeyUserID, claims.UserID.String())
+			ctx = context.WithValue(ctx, core_context.CtxKeyUserRole, claims.Role)
+			ctx = context.WithValue(ctx, core_context.CtxKeySessionID, claims.SessionID)
 
 			next.ServeHTTP(rw, r.WithContext(ctx))
 		})

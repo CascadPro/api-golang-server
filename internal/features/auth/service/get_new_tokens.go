@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -20,7 +20,10 @@ func (s *Service) GetNewTokens(ctx context.Context, token string) (string, error
 		return "", fmt.Errorf("get session: %w", err)
 	}
 
-	role := ctx.Value("role").(domain.UserRole)
+	role, err := core_context.UserRoleFromContext(ctx)
+	if err != nil {
+		return "", fmt.Errorf("get role from context: %w", err)
+	}
 
 	accessToken, _, err := core_utils.IssueTokens(claims.UserID, claims.SessionID, role)
 	if err != nil {

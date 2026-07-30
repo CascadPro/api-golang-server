@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 )
 
@@ -14,9 +14,9 @@ func (s *Service) DeleteSession(ctx context.Context, sessionID string) error {
 		return fmt.Errorf("validate session id: %w", err)
 	}
 
-	userID, err := core_utils.ParseUUIDFromContext(ctx, "userID")
+	userID, err := core_context.UserIDFromContext(ctx)
 	if err != nil {
-		return fmt.Errorf("parse UUID from context: %w", err)
+		return fmt.Errorf("get userID from context: %w", err)
 	}
 
 	if err := s.sessionsRedisRepo.DeleteSession(ctx, userID, sessionID); err != nil {
