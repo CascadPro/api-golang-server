@@ -20,6 +20,8 @@ const (
 
 var (
 	FileIDByteLength    int = 24
+	FileAvatarS3Size    int = 512
+	FileAvatarS3Quality int = 120
 )
 
 var (
