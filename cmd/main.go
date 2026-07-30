@@ -23,6 +23,9 @@ import (
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 	auth_service "github.com/CascadePro/api-golang-server/internal/features/auth/service"
 	auth_transport_http "github.com/CascadePro/api-golang-server/internal/features/auth/transport/http"
+	media_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/media/repository/postgres"
+	media_service "github.com/CascadePro/api-golang-server/internal/features/media/service"
+	media_transport_http "github.com/CascadePro/api-golang-server/internal/features/media/transport/http"
 	root_transport_http "github.com/CascadePro/api-golang-server/internal/features/root/transport/http"
 	sessions_redis_repository "github.com/CascadePro/api-golang-server/internal/features/sessions/repository/redis"
 	session_service "github.com/CascadePro/api-golang-server/internal/features/sessions/service"
@@ -80,7 +83,7 @@ func main() {
 
 	// >>> S3 connect start
 	logger.Debug("initializing S3 AWS connection pool")
-	_, err = core_s3_pool.NewConnectionPool(ctx, core_s3_pool.NewConfigMust())
+	s3Pool, err := core_s3_pool.NewConnectionPool(ctx, core_s3_pool.NewConfigMust())
 	if err != nil {
 		logger.Fatal("failed to init S3 AWS connection pool", zap.Error(err))
 	}
@@ -113,6 +116,17 @@ func main() {
 
 	rootHttpHandler := root_transport_http.NewHttpHandler()
 	rootRouter.RegisterRoutes(rootHttpHandler.Routes()...)
+
+	// Media routes
+	logger.Debug(featureInitMsg, zap.String("feature", "media"), zap.String("path", "/media/*"))
+	mediaRateLimit := core_http_middleware.NewRateLimitConfig(25, time.Minute*10)
+	mediaRouter := core_http_server.NewRouter("/media", mediaRateLimit.Middleware())
+
+	mediaPostgresRepo := media_postgres_repository.NewRepository(pgPool)
+	mediaService := media_service.NewService(mediaPostgresRepo, s3Pool)
+	mediaHttpHandler := media_transport_http.NewHttpHandler(mediaService)
+
+	mediaRouter.RegisterRoutes(mediaHttpHandler.Routes()...)
 
 	// Sessions route
 	logger.Debug(featureInitMsg, zap.String("feature", "sessions"), zap.String("path", "/sessions/*"))
@@ -150,7 +164,7 @@ func main() {
 	apiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
 	apiVersionRouter.RegisterRouters(sessionsRouter, authRouter)
 
-	httpServer.RegisterRouters(rootRouter)
+	httpServer.RegisterRouters(rootRouter, mediaRouter)
 	httpServer.RegisterApiRouters(apiVersionRouter)
 	httpServer.RegisterSwagger()
 
