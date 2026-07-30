@@ -4,19 +4,19 @@ import (
 	"context"
 	"fmt"
 
+	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
 )
 
 func (s *Service) GetUserSessions(ctx context.Context) ([]domain.Session, error) {
-	userID, err := core_utils.ParseUUIDFromContext(ctx, "userID")
+	userID, err := core_context.UserIDFromContext(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("parse userID from context: %w", err)
+		return nil, fmt.Errorf("get userID from context: %w", err)
 	}
 
-	sessionID, err := core_utils.ParseIDStingFromContext(ctx, "sessionID", 24)
+	sessionID, err := core_context.SessionIDFromContext(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("parse session id from context: %w", err)
+		return nil, fmt.Errorf("get sessionID from context: %w", err)
 	}
 
 	sessions, err := s.sessionsRedisRepo.GetUserSessions(ctx, userID)

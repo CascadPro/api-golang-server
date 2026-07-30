@@ -12,12 +12,14 @@ import (
 const (
 	ViolatesForeignKeyErrorCode       = "23503"
 	ViolatesUniqueConstraintErrorCode = "23505"
+	ViolatesCheckConstraintErrorCode  = "23514"
 )
 
 var (
 	ErrNoRows                   = errors.New("no rows")
 	ErrViolatesForeignKey       = errors.New("violates foreign key")
 	ErrViolatesUniqueConstraint = errors.New("violates unique constraint")
+	ErrViolatesCheckConstraint  = errors.New("violates check constraint")
 	ErrUnknown                  = errors.New("unknown")
 )
 
@@ -34,6 +36,8 @@ func MapErrors(err error) error {
 				return fmt.Errorf("%v: %w", pgErr.Message, ErrViolatesForeignKey)
 			case ViolatesUniqueConstraintErrorCode:
 				return fmt.Errorf("%v: %w", pgErr.Message, ErrViolatesUniqueConstraint)
+			case ViolatesCheckConstraintErrorCode:
+				return fmt.Errorf("%v: %w", pgErr.Message, ErrViolatesCheckConstraint)
 			}
 		}
 	}

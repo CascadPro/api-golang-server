@@ -10,7 +10,6 @@ CREATE TABLE base.users (
   name            VARCHAR(100)   NOT NULL   CHECK (char_length(name) BETWEEN 2 AND 100),
   surname         VARCHAR(100)   NOT NULL   CHECK (char_length(surname) BETWEEN 2 AND 100),
   last_name       VARCHAR(100),             CHECK (char_length(last_name) BETWEEN 2 AND 100),
-  avatar_file_id  UUID                      UNIQUE,
   last_active_at  TIMESTAMPTZ    NOT NULL   DEFAULT CURRENT_TIMESTAMP,
   created_at      TIMESTAMPTZ    NOT NULL   DEFAULT CURRENT_TIMESTAMP,
   updated_at      TIMESTAMPTZ    NOT NULL   DEFAULT CURRENT_TIMESTAMP,
@@ -25,8 +24,6 @@ CREATE TABLE base.users (
 );
 
 CREATE UNIQUE INDEX idx_user_email ON base.users (email);
-
-CREATE UNIQUE INDEX idx_user_avatar ON base.users (avatar_file_id);
 
 CREATE TRIGGER trg_update_user_timestamp
 BEFORE UPDATE ON base.users

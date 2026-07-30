@@ -2,13 +2,14 @@ CREATE TYPE token_type AS ENUM ('register', 'email_verify');
 
 CREATE TABLE base.tokens (
   id          UUID                    PRIMARY KEY,
+  user_id     UUID          NOT NULL,
   version     BIGINT        NOT NULL  DEFAULT 1,
   token       VARCHAR(255)  NOT NULL,
   type        token_type    NOT NULL,
   expires_at  TIMESTAMPTZ   NOT NULL,
   created_at  TIMESTAMPTZ   NOT NULL  DEFAULT CURRENT_TIMESTAMP,
 
-  user_id     UUID          NOT NULL  REFERENCES base.users (id) ON DELETE CASCADE,
+  CONSTRAINT fk_token_user_id FOREIGN KEY (user_id) REFERENCES base.users(id) ON DELETE CASCADE,
 
   CHECK (expires_at >= created_at)
 );

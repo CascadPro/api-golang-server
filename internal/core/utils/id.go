@@ -6,8 +6,8 @@ import (
 	"fmt"
 )
 
-func GenerateID(length int) (string, error) {
-	bytes := make([]byte, length)
+func GenerateID(byteLength int) (string, error) {
+	bytes := make([]byte, byteLength)
 
 	_, err := rand.Read(bytes)
 	if err != nil {

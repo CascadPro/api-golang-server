@@ -55,7 +55,7 @@ func NewGetToken(token string, tokenType TokenType, userID uuid.UUID) Token {
 }
 
 func (t *Token) Validate() error {
-	if t.CreatedAt.Before(t.ExpiresAt) {
+	if t.CreatedAt.After(t.ExpiresAt) {
 		return fmt.Errorf("`ExpiresAt` can't be before `CreatedAt`: %w", core_errors.ErrInvalidArgument)
 	}
 

@@ -4,18 +4,18 @@ import (
 	"context"
 	"fmt"
 
-	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
+	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 )
 
 func (s *Service) Logout(ctx context.Context) error {
-	userID, err := core_utils.ParseUUIDFromContext(ctx, "userID")
+	userID, err := core_context.UserIDFromContext(ctx)
 	if err != nil {
-		return fmt.Errorf("parse userID from context: %w", err)
+		return fmt.Errorf("get userID from context: %w", err)
 	}
 
-	sessionID, err := core_utils.ParseIDStingFromContext(ctx, "sessionID", 24)
+	sessionID, err := core_context.SessionIDFromContext(ctx)
 	if err != nil {
-		return fmt.Errorf("parse session id from context: %w", err)
+		return fmt.Errorf("get sessionID from context: %w", err)
 	}
 
 	if err := s.sessionsRedisRepo.DeleteSession(ctx, userID, sessionID); err != nil {

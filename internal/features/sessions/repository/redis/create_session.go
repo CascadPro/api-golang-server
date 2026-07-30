@@ -15,7 +15,7 @@ func (r *Repository) CreateSession(ctx context.Context, userID uuid.UUID, sessio
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
-	sessionID, err := core_utils.GenerateID(24)
+	sessionID, err := core_utils.GenerateID(domain.SessionIDByteLength)
 	if err != nil {
 		return "", fmt.Errorf("generate id: %w", err)
 	}

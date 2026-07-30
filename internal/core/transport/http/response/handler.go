@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	"go.uber.org/zap"
@@ -22,6 +23,15 @@ func NewResponseHandler(log *core_logger.Logger, rw http.ResponseWriter) *Respon
 		log: log,
 		rw:  rw,
 	}
+}
+
+func (h *ResponseHandler) MediaContentResponse(bytes []byte, mimeType domain.FileMimeType) {
+	h.rw.Header().Add("Content-Type", string(mimeType))
+	h.rw.Header().Add("Content-Length", fmt.Sprintf("%d", len(bytes)))
+
+	h.rw.WriteHeader(http.StatusOK)
+
+	h.rw.Write(bytes)
 }
 
 func (h *ResponseHandler) NoContentResponse() {

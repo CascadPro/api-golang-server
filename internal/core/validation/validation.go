@@ -97,14 +97,14 @@ func ValidateArray[T ~string](list []T, item T) error {
 
 func ValidateID(id string, byteLength int) error {
 	if id == "" {
-		return fmt.Errorf("session id is empty: %w", core_errors.ErrInvalidArgument)
+		return fmt.Errorf("id is empty: %w", core_errors.ErrInvalidArgument)
 	}
 
 	if byteLength > 0 {
 		expected := byteLength * 2
 		if len(id) != expected {
 			return fmt.Errorf(
-				"invalid session id length: got %d, want %d (hex of %d bytes): %w",
+				"invalid id length: got %d, want %d (hex of %d bytes): %w",
 				len(id), expected, byteLength, core_errors.ErrInvalidArgument,
 			)
 		}
@@ -112,6 +112,18 @@ func ValidateID(id string, byteLength int) error {
 
 	if _, err := hex.DecodeString(id); err != nil {
 		return fmt.Errorf("id is not valid hex: %v: %w", err, core_errors.ErrInvalidArgument)
+	}
+
+	return nil
+}
+
+func ValidateInteger(x int, fieldName string, min *int, max *int) error {
+	if min != nil && x < *min {
+		return fmt.Errorf("`%s` must be greater than or equal %d: %w", fieldName, *min, core_errors.ErrInvalidArgument)
+	}
+
+	if max != nil && x < *max {
+		return fmt.Errorf("`%s` must be less than or equal %d: %w", fieldName, *min, core_errors.ErrInvalidArgument)
 	}
 
 	return nil
