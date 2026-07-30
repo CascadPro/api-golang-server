@@ -19,6 +19,10 @@ const (
 )
 
 var (
+	FileIDByteLength    int = 24
+)
+
+var (
 	FileTags = []FileTag{FileTagAvatars, FileTagDocs, FileTagImages, FileTagVideos}
 )
 

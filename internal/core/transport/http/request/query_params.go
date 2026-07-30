@@ -7,9 +7,10 @@ import (
 	"time"
 
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 )
 
-func GetIntQueryParam(r *http.Request, key string) (*int, error) {
+func GetIntQueryParam(r *http.Request, key string, min *int, max *int) (*int, error) {
 	param := r.URL.Query().Get(key)
 	if param == "" {
 		return nil, nil
@@ -24,6 +25,10 @@ func GetIntQueryParam(r *http.Request, key string) (*int, error) {
 			err,
 			core_errors.ErrInvalidArgument,
 		)
+	}
+
+	if err := core_validation.ValidateInteger(val, key, min, max); err != nil {
+		return nil, fmt.Errorf("validate integer: %w", err)
 	}
 
 	return &val, nil
