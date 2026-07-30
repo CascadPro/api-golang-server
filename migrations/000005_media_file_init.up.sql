@@ -7,7 +7,8 @@ CREATE TABLE media.files (
   version      BIGINT       NOT NULL  DEFAULT 1,
   tag          file_tag     NOT NULL,
   filename     VARCHAR(255) NOT NULL  CHECK(char_length(filename) BETWEEN 1 AND 255),
-  content_type VARCHAR(255) NOT NULL,
+  mime_type    VARCHAR(255) NOT NULL  CHECK(mime_type ~ '^[a-zA-Z0-9]+\/[a-zA-Z0-9\.\-\+]+$'),
+  placeholder  BYTEA                  DEFAULT NULL,
   size         BIGINT       NOT NULL  CHECK(size > 0),
   deleted      BOOLEAN      NOT NULL  DEFAULT false,
   deleted_at   TIMESTAMPTZ            DEFAULT NULL,
@@ -34,7 +35,7 @@ CREATE UNIQUE INDEX idx_user_avatar_file_id ON base.users (avatar_file_id);
 
 CREATE INDEX idx_file_filename ON media.files (filename);
 
-CREaTE INDEX idx_file_content_type ON media.files (content_type);
+CREATE INDEX idx_file_mime_type ON media.files (mime_type);
 
 CREATE TRIGGER trg_update_file_timestamp
 BEFORE UPDATE ON media.files

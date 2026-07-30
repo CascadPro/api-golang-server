@@ -1,6 +1,6 @@
 DROP TRIGGER IF EXISTS trg_update_file_timestamp ON media.files;
 
-DROP INDEX IF EXISTS idx_file_content_type;
+DROP INDEX IF EXISTS idx_file_mime_type;
 
 DROP INDEX IF EXISTS idx_file_filename;
 
