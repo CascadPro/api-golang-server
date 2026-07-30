@@ -42,8 +42,15 @@ type File struct {
 	UpdatedAt time.Time
 }
 
-func NewFile() File {
-	return File{}
+func NewUploadFile(tag FileTag, filename, contentType string, size int) File {
+	return File{
+		ID:          UninitializedID,
+		Version:     UninitializedVersion,
+		Tag:         tag,
+		Filename:    filename,
+		ContentType: contentType,
+		Size:        size,
+	}
 }
 
 func (f *File) Validate() error {
