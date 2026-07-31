@@ -1,4 +1,4 @@
-package core_postgres_user
+package users_postgres_repository
 
 import (
 	"time"
