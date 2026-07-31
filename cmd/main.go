@@ -15,7 +15,6 @@ import (
 	core_ipinfo_pool "github.com/CascadePro/api-golang-server/internal/core/repository/ipinfo/pool"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/pool"
 	core_postgres_token "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/token"
-	core_postgres_user "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/user"
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
 	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/repository/s3/pool"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
@@ -30,6 +29,9 @@ import (
 	sessions_redis_repository "github.com/CascadePro/api-golang-server/internal/features/sessions/repository/redis"
 	session_service "github.com/CascadePro/api-golang-server/internal/features/sessions/service"
 	sessions_transport_http "github.com/CascadePro/api-golang-server/internal/features/sessions/transport/http"
+	users_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/users/repository/postgres"
+	users_service "github.com/CascadePro/api-golang-server/internal/features/users/service"
+	users_transport_http "github.com/CascadePro/api-golang-server/internal/features/users/transport/http"
 	"go.uber.org/zap"
 
 	_ "github.com/CascadePro/api-golang-server/docs"
@@ -103,14 +105,11 @@ func main() {
 		logger.Fatal("failed to inti validator", zap.Error(err))
 	}
 
-	const featureInitMsg = "initialing feature"
-
-	userPostgresRepository := core_postgres_user.NewRepository(pgPool)
 	tokenPostgresRepository := core_postgres_token.NewRepository(pgPool)
 	ipInfoRepository := core_ipinfo_client.NewRepository(ipInfoPool)
 
 	// Root routes
-	logger.Debug(featureInitMsg, zap.String("feature", "root"), zap.String("path", "/*"))
+	logFeatureInit(logger, "root", "")
 	rootRateLimit := core_http_middleware.NewRateLimitConfig(100, time.Minute*5)
 	rootRouter := core_http_server.NewRouter("", rootRateLimit.Middleware())
 
@@ -118,7 +117,7 @@ func main() {
 	rootRouter.RegisterRoutes(rootHttpHandler.Routes()...)
 
 	// Media routes
-	logger.Debug(featureInitMsg, zap.String("feature", "media"), zap.String("path", "/media/*"))
+	logFeatureInit(logger, "media", "/api/v1/media")
 	mediaRateLimit := core_http_middleware.NewRateLimitConfig(25, time.Minute*10)
 	mediaRouter := core_http_server.NewRouter("/media", mediaRateLimit.Middleware())
 
@@ -128,8 +127,18 @@ func main() {
 
 	mediaRouter.RegisterRoutes(mediaHttpHandler.Routes()...)
 
+	// Users route
+	logFeatureInit(logger, "users", "/api/v1/users")
+	usersRouter := core_http_server.NewRouter("/users", rootRateLimit.Middleware(), core_http_middleware.Authorization())
+
+	usersPostgresRepository := users_postgres_repository.NewRepository(pgPool)
+	usersService := users_service.NewService(usersPostgresRepository)
+	usersHttpHandler := users_transport_http.NewHttpHandler(usersService)
+
+	usersRouter.RegisterRoutes(usersHttpHandler.Routes()...)
+
 	// Sessions route
-	logger.Debug(featureInitMsg, zap.String("feature", "sessions"), zap.String("path", "/sessions/*"))
+	logFeatureInit(logger, "sessions", "/api/v1/sessions")
 	sessionsRouter := core_http_server.NewRouter("/sessions", core_http_middleware.Authorization())
 
 	sessionsRedisRepo := sessions_redis_repository.NewRepository(rdbPool)
@@ -139,10 +148,10 @@ func main() {
 	sessionsRouter.RegisterRoutes(sessionsHttpHandler.Routes()...)
 
 	// Auth routes
-	logger.Debug(featureInitMsg, zap.String("feature", "auth"), zap.String("path", "/auth/*"))
+	logFeatureInit(logger, "authentication", "/api/v1/auth")
 	authRouter := core_http_server.NewRouter("/auth")
 
-	authService := auth_service.NewService(userPostgresRepository, tokenPostgresRepository,
+	authService := auth_service.NewService(usersPostgresRepository, tokenPostgresRepository,
 		ipInfoRepository, sessionsRedisRepo)
 	authHttpHandler := auth_transport_http.NewHttpHandler(authService)
 
@@ -162,7 +171,7 @@ func main() {
 	)
 
 	apiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRouters(sessionsRouter, authRouter)
+	apiVersionRouter.RegisterRouters(sessionsRouter, authRouter, usersRouter)
 
 	httpServer.RegisterRouters(rootRouter, mediaRouter)
 	httpServer.RegisterApiRouters(apiVersionRouter)
@@ -171,4 +180,12 @@ func main() {
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("http server run error", zap.Error(err))
 	}
+}
+
+func logFeatureInit(log *core_logger.Logger, name, path string) {
+	log.Debug(
+		"initialing feature",
+		zap.String("feature", name),
+		zap.String("path", fmt.Sprintf("%s/*", path)),
+	)
 }
