@@ -16,6 +16,6 @@ CREATE TABLE base.tokens (
   CONSTRAINT chk_token_timestamps CHECK (expires_at >= created_at)
 );
 
-CREATE UNIQUE INDEX idx_user_token ON base.tokens (token, user_id);
+CREATE UNIQUE INDEX idx_user_token USING HASH ON base.tokens (token, user_id);
 
-CREATE UNIQUE INDEX idx_user_token_type_active ON base.tokens (user_id, type);
+CREATE UNIQUE INDEX idx_user_token_type USING HASH ON base.tokens (user_id, type);

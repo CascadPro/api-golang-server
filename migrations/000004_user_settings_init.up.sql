@@ -15,7 +15,7 @@ CREATE TABLE base.user_settings (
   CONSTRAINT chk_user_settings_timestamps CHECK (updated_at >= created_at)
 );
 
-CREATE UNIQUE INDEX idx_user_settings_user_id ON base.user_settings (user_id);
+CREATE UNIQUE INDEX idx_user_settings_user_id USING HASH ON base.user_settings (user_id);
 
 CREATE TRIGGER trg_update_user_settings_timestamp
 BEFORE UPDATE ON base.user_settings

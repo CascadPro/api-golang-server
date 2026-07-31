@@ -5,13 +5,13 @@ CREATE TABLE base.users (
   version    BIGINT  NOT NULL DEFAULT 1,
   activated  BOOLEAN NOT NULL DEFAULT false,
 
-  email         VARCHAR(255)            UNIQUE CHECK(email ~* '^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
+  email         VARCHAR(255)            UNIQUE CHECK(email ~ '^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
   password_hash VARCHAR(255),
   role          user_role     NOT NULL,
 
-  name      VARCHAR(50)  NOT NULL CHECK ((length(name) BETWEEN 2 AND 50) AND name ~ '^[\p{L}]+([ -][\p{L}]+)*$'),
-  surname   VARCHAR(50)  NOT NULL CHECK ((length(surname) BETWEEN 2 AND 50) AND surname ~ '^[\p{L}]+([ -][\p{L}]+)*$'),
-  last_name VARCHAR(50),          CHECK ((length(last_name) BETWEEN 2 AND 50) AND last_name ~ '^[\p{L}\s-]+$'),
+  name      VARCHAR(50)  NOT NULL CHECK ((length(name) BETWEEN 2 AND 50) AND name ~* '^[\p{L}]+([ -][\p{L}]+)*$'),
+  surname   VARCHAR(50)  NOT NULL CHECK ((length(surname) BETWEEN 2 AND 50) AND surname ~* '^[\p{L}]+([ -][\p{L}]+)*$'),
+  last_name VARCHAR(50),          CHECK ((length(last_name) BETWEEN 2 AND 50) AND last_name ~* '^[\p{L}\s-]+$'),
 
   last_active_at  TIMESTAMPTZ    NOT NULL   DEFAULT CURRENT_TIMESTAMP,
   created_at      TIMESTAMPTZ    NOT NULL   DEFAULT CURRENT_TIMESTAMP,
@@ -27,7 +27,7 @@ CREATE TABLE base.users (
   )
 );
 
-CREATE UNIQUE INDEX idx_user_email ON base.users (email);
+CREATE UNIQUE INDEX idx_user_email USING HASH ON base.users (email);
 
 CREATE TRIGGER trg_update_user_timestamp
 BEFORE UPDATE ON base.users

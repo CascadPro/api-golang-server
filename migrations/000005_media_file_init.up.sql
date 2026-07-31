@@ -36,9 +36,9 @@ ON DELETE SET NULL ON UPDATE CASCADE;
 
 CREATE UNIQUE INDEX idx_user_avatar_file_id ON base.users (avatar_file_id);
 
-CREATE INDEX idx_file_filename ON media.files (filename);
+CREATE INDEX idx_file_filename USING HASH ON media.files (filename);
 
-CREATE INDEX idx_file_mime_type ON media.files (mime_type);
+CREATE INDEX idx_file_mime_type USING HASH ON media.files (mime_type);
 
 CREATE TRIGGER trg_update_file_timestamp
 BEFORE UPDATE ON media.files
