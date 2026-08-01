@@ -13,6 +13,20 @@ import (
 
 type PatchUserSettingsRequest settings_http_dto.PatchUserSettingsRequest
 
+// PatchUserSettings godoc
+// @Summary      Patch user settings
+// @Description  Patch user settings for the authenticated user
+// @Tags         users
+// @Accept       json
+// @Param 			 request body PatchUserSettingsRequest true "Patch user settings body request"
+// @Success      204 "Successfully patched user settings"
+// @Failure      400 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"
+// @Failure      404 {object} core_http_response.ErrorResponse "Not found"
+// @Failure      409 {object} core_http_response.ErrorResponse "Conflict error"
+// @Failure      429 {object} core_http_response.ErrorResponse "Too many requests"
+// @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router       /settings/user/update [patch]
 func (h *HttpHandler) PatchUserSettings(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

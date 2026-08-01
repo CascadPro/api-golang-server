@@ -11,6 +11,20 @@ import (
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
 )
 
+// UpdateAvatar godoc
+// @Summary      Update avatar
+// @Description  Update user's avatar for the authenticated user
+// @Tags         users
+// @Accept       mpfd
+// @Param        file formData file true "File to upload"
+// @Param        tag formData string true "Text tag"
+// @Success      204 "Successfully updated user avatar"
+// @Failure      400 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"
+// @Failure      404 {object} core_http_response.ErrorResponse "Not found"
+// @Failure      429 {object} core_http_response.ErrorResponse "Too many requests"
+// @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router       /users/avatar [patch]
 func (h *HttpHandler) UpdateAvatar(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

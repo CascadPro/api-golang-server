@@ -16,6 +16,18 @@ type GetUserSettingsResponse struct {
 	SessionExpireTerm domain.SessionExpireTime `json:"session_expire_term" example:"30d"`
 }
 
+// GetUserSettings godoc
+// @Summary      Get user settings
+// @Description  Get user settings for the authenticated user
+// @Tags         users
+// @Produce      json
+// @Success      200 {object} GetUserSettingsResponse "User sessions"
+// @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"
+// @Failure      404 {object} core_http_response.ErrorResponse "Not found"
+// @Failure      409 {object} core_http_response.ErrorResponse "Conflict error"
+// @Failure      429 {object} core_http_response.ErrorResponse "Too many requests"
+// @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router       /settings/user/my [get]
 func (h *HttpHandler) GetUserSettings(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
