@@ -16,6 +16,7 @@ type Service struct {
 
 type ServiceMethods interface {
 	GetCurrentUser(context.Context, uuid.UUID) (domain.User, []byte, error)
+	UpdateAvatar(context.Context, uuid.UUID, *domain.File, []byte) error
 	DeleteAvatar(context.Context, uuid.UUID) error
 }
 

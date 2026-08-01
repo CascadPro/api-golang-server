@@ -20,6 +20,8 @@ func NewHttpHandler(usersService users_service.ServiceMethods) *HttpHandler {
 }
 
 func (h *HttpHandler) Routes() []core_http_server.Route {
+	avatarRateLimit := core_http_middleware.NewRateLimitConfig(5, 10*time.Minute)
+
 	return []core_http_server.Route{
 		{
 			Method:  http.MethodGet,
@@ -27,9 +29,16 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 			Handler: h.GetCurrentUser,
 		},
 		{
+			Method:     http.MethodPatch,
+			Path:       "/avatar",
+			Handler:    h.UpdateAvatar,
+			Middleware: []core_http_middleware.Middleware{core_http_middleware.Media(), avatarRateLimit.Middleware()},
+		},
+		{
 			Method:     http.MethodDelete,
 			Path:       "/avatar/delete",
 			Handler:    h.DeleteAvatar,
+			Middleware: []core_http_middleware.Middleware{avatarRateLimit.Middleware()},
 		},
 	}
 }
