@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
@@ -18,31 +20,75 @@ func (r *Repository) PatchUser(ctx context.Context, id uuid.UUID, user domain.Us
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
-	query := `
-		UPDATE base.users
-		SET version = version + 1, activated = $1, email = $2, password_hash = $3, role = $4,
-			name = $5, surname = $6, last_name = $7, last_active_at = $8
-		WHERE (id = $9 AND version = $10)
-		RETURNING id, version, activated, role, email, name, surname, last_name, last_active_at;
-	`
+	// query := `
+	// 	UPDATE base.users
+	// 	SET version = version + 1, activated = $1, email = $2, password_hash = $3, role = $4,
+	// 		name = $5, surname = $6, last_name = $7, last_active_at = $8
+	// 	WHERE (id = $9 AND version = $10)
+	// 	RETURNING id, version, activated, role, email, name, surname, last_name, last_active_at;
+	// `
+	var query strings.Builder
+	var args []any
 
-	passwordHash, err := core_utils.GenerateHash(*user.PasswordHash)
-	if err != nil {
-		return domain.User{}, fmt.Errorf("patch user: %w", err)
+	query.WriteString(`
+		UPDATE base.users
+		SET version = version + 1, activated = $1
+	`)
+	args = append(args, user.Activated)
+
+	if user.Email != nil {
+		fmt.Fprintf(&query, ", email = $%d", len(args)+1)
+		args = append(args, user.Email)
 	}
 
-	row := r.pool.QueryRow(ctx, query,
-		user.Activated,
-		user.Email,
-		passwordHash,
-		user.Role,
-		user.Name,
-		user.Surname,
-		user.LastName,
-		user.LastActiveAt,
-		id,
-		user.Version,
-	)
+	if user.PasswordHash != nil {
+		passwordHash, err := core_utils.GenerateHash(*user.PasswordHash)
+		if err != nil {
+			return domain.User{}, fmt.Errorf("patch user: %w", err)
+		}
+
+		fmt.Fprintf(&query, ", password_hash = $%d", len(args)+1)
+		args = append(args, passwordHash)
+	}
+
+	if user.Role != "" {
+		fmt.Fprintf(&query, ", role = $%d", len(args)+1)
+		args = append(args, user.Role)
+	}
+
+	if user.Name != "" {
+		fmt.Fprintf(&query, ", name = $%d", len(args)+1)
+		args = append(args, user.Name)
+	}
+
+	if user.Surname != "" {
+		fmt.Fprintf(&query, ", surname = $%d", len(args)+1)
+		args = append(args, user.Surname)
+	}
+
+	if user.LastName != nil {
+		fmt.Fprintf(&query, ", last_name = $%d", len(args)+1)
+		args = append(args, user.LastName)
+	}
+
+	if user.AvatarFileID != nil {
+		fmt.Fprintf(&query, ", avatar_file_id = $%d", len(args)+1)
+		args = append(args, user.AvatarFileID)
+	}
+
+	if user.LastActiveAt != (time.Time{}) {
+		fmt.Fprintf(&query, ", last_active_at = $%d", len(args)+1)
+		args = append(args, user.LastActiveAt)
+	}
+
+	fmt.Fprintf(&query, " WHERE (id = $%d AND version = $%d)", len(args)+1, len(args)+2)
+	args = append(args, id, user.Version)
+
+	query.WriteString(`
+		RETURNING id, version, activated, role, email, name, surname, last_name, avatar_file_id, last_active_at;
+	`)
+
+	row := r.pool.QueryRow(ctx, query.String(), args...)
 
 	var model UserModel
 	if err := row.Scan(
@@ -54,6 +100,7 @@ func (r *Repository) PatchUser(ctx context.Context, id uuid.UUID, user domain.Us
 		&model.Name,
 		&model.Surname,
 		&model.LastName,
+		&model.AvatarFileID,
 		&model.LastActiveAt,
 	); err != nil {
 		err = core_postgres_pool.MapErrors(err)
