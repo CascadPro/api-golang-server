@@ -19,5 +19,15 @@ func NewHttpHandler(settingsService settings_service.ServiceMethods) *HttpHandle
 
 func (h *HttpHandler) Routes() []core_http_server.Route {
 	return []core_http_server.Route{
+		{
+			Method:  http.MethodGet,
+			Path:    "/user/my",
+			Handler: h.GetUserSettings,
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/user/update",
+			Handler: h.PatchUserSettings,
+		},
 	}
 }
