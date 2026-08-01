@@ -48,14 +48,14 @@ type SessionMetadataDevice struct {
 	Version string
 }
 
-func NewSession(id string, ip net.IP, metadata SessionMetadata, CreatedAt, LastActiveAt, expiresAt time.Time) Session {
+func NewSession(id string, ip net.IP, metadata SessionMetadata, createdAt, lastActiveAt, expiresAt time.Time) Session {
 	return Session{
 		ID:             id,
 		IP:             ip,
 		Metadata:       metadata,
-		CreatedAt:      CreatedAt,
-		LastActiveAt:   LastActiveAt,
-		ExpirationTime: SessionLifetime(expiresAt.Sub(CreatedAt)),
+		CreatedAt:      createdAt,
+		LastActiveAt:   lastActiveAt,
+		ExpirationTime: SessionLifetime(expiresAt.Sub(createdAt)),
 	}
 }
 

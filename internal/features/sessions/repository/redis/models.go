@@ -12,7 +12,7 @@ import (
 
 type SessionModel struct {
 	CreatedAt    time.Time `redis:"created_at"`
-	ExpiresAt    time.Time `redis:"exp"`
+	ExpiresAt    time.Time `redis:"expires_at"`
 	LastActiveAt time.Time `redis:"last_active_at"`
 	IP           net.IP    `redis:"ip"`
 	Metadata     []byte    `redis:"metadata"`
