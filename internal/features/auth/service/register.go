@@ -25,11 +25,12 @@ func (s *Service) Register(ctx context.Context, patch domain.UserPatch, tokenStr
 		return fmt.Errorf("get user: %w", err)
 	}
 
-	if err := userDomain.ApplyPatch(patch); err != nil {
+	patchedUser, err := userDomain.ApplyPatch(patch)
+	if err != nil {
 		return fmt.Errorf("apply user patch: %w", err)
 	}
 
-	if _, err = s.userPostgresRepo.PatchUser(ctx, tokenDomain.UserID, userDomain); err != nil {
+	if _, err = s.userPostgresRepo.PatchUser(ctx, tokenDomain.UserID, patchedUser); err != nil {
 		return fmt.Errorf("patch user: %w", err)
 	}
 
