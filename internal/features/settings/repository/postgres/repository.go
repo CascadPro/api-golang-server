@@ -13,6 +13,9 @@ type Repository struct {
 }
 
 type RepositoryMethods interface {
+	CreateUserSettings(ctx context.Context, settings domain.UserSettings) (domain.UserSettings, error)
+	GetUserSettings(ctx context.Context, settings domain.UserSettings) (domain.UserSettings, error)
+	PatchUserSettings(ctx context.Context, id uuid.UUID, settings domain.UserSettings) (domain.UserSettings, error)
 }
 
 func NewRepository(pool core_postgres_pool.Pool) *Repository {
