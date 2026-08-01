@@ -2,12 +2,10 @@ package users_postgres_repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/pool"
 	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
 	"github.com/google/uuid"
@@ -63,13 +61,7 @@ func (r *Repository) CreateUser(ctx context.Context, user domain.User) (domain.U
 		&model.LastActiveAt,
 	)
 	if err != nil {
-		err = core_postgres_pool.MapErrors(err)
-
-		if errors.Is(err, core_postgres_pool.ErrViolatesForeignKey) {
-			return domain.User{}, fmt.Errorf("%v: settings with id=%s: %w", err, "", core_errors.ErrNotFound)
-		}
-
-		return domain.User{}, fmt.Errorf("scan error: %w", err)
+		return domain.User{}, fmt.Errorf("scan error: %w", core_postgres_pool.MapErrors(err))
 	}
 
 	return domainFromModel(model), nil

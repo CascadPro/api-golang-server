@@ -165,8 +165,8 @@ func main() {
 	logFeatureInit(logger, "authentication", "/api/v1/auth")
 	authRouter := core_http_server.NewRouter("/auth")
 
-	authService := auth_service.NewService(usersPostgresRepository, tokenPostgresRepository,
-		ipInfoRepository, sessionsRedisRepo)
+	authService := auth_service.NewService(usersPostgresRepository, settingsPostgresRepository,
+		tokenPostgresRepository, ipInfoRepository, sessionsRedisRepo)
 	authHttpHandler := auth_transport_http.NewHttpHandler(authService)
 
 	authRouter.RegisterRoutes(authHttpHandler.Routes()...)
