@@ -2,7 +2,7 @@ CREATE TYPE session_expire_term_enum AS ENUM ('7d', '30d', '90d');
 
 CREATE TABLE base.user_settings (
   id      UUID            PRIMARY KEY,
-  user_id UUID   NOT NULL UNIQUE,
+  user_id UUID   NOT NULL,
   version BIGINT NOT NULL DEFAULT 1,
 
   session_expire_term session_expire_term_enum NOT NULL DEFAULT '30d',
@@ -15,7 +15,7 @@ CREATE TABLE base.user_settings (
   CONSTRAINT chk_user_settings_timestamps CHECK (updated_at >= created_at)
 );
 
-CREATE UNIQUE INDEX idx_user_settings_user_id USING HASH ON base.user_settings (user_id);
+CREATE UNIQUE INDEX idx_user_settings_user_id ON base.user_settings (user_id);
 
 CREATE TRIGGER trg_update_user_settings_timestamp
 BEFORE UPDATE ON base.user_settings

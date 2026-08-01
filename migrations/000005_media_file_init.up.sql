@@ -27,7 +27,7 @@ CREATE TABLE media.files (
   )
 );
 
-ALTER TABLE base.users ADD COLUMN IF NOT EXISTS avatar_file_id VARCHAR(48) UNIQUE DEFAULT NULL;
+ALTER TABLE base.users ADD COLUMN IF NOT EXISTS avatar_file_id VARCHAR(48) DEFAULT NULL;
 
 ALTER TABLE base.users
 ADD CONSTRAINT fk_user_file_id
@@ -36,9 +36,11 @@ ON DELETE SET NULL ON UPDATE CASCADE;
 
 CREATE UNIQUE INDEX idx_user_avatar_file_id ON base.users (avatar_file_id);
 
-CREATE INDEX idx_file_filename USING HASH ON media.files (filename);
+CREATE INDEX idx_file_tag ON media.files USING HASH (tag);
 
-CREATE INDEX idx_file_mime_type USING HASH ON media.files (mime_type);
+CREATE INDEX idx_file_deleted ON media.files USING HASH (deleted);
+
+CREATE INDEX idx_file_created_at ON media.files (created_at DESC);
 
 CREATE TRIGGER trg_update_file_timestamp
 BEFORE UPDATE ON media.files

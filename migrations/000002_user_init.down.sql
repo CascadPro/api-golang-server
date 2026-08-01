@@ -1,6 +1,6 @@
 DROP TRIGGER IF EXISTS trg_update_user_timestamp ON base.users;
 
-DROP INDEX IF EXISTS idx_user_avatar;
+DROP INDEX IF EXISTS idx_user_role;
 
 DROP INDEX IF EXISTS idx_user_email;
 
