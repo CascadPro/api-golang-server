@@ -19,6 +19,7 @@ const (
 	RoleDirector       = UserRole("director")
 	RoleRegular        = UserRole("regular")
 	RoleAdmin          = UserRole("admin")
+	RoleNil            = UserRole("")
 )
 
 var (
@@ -89,6 +90,10 @@ func (u *User) Validate() error {
 		}
 	}
 
+	if u.Role == RoleNil {
+		return fmt.Errorf("`Role` can't be NULL: %w", core_errors.ErrInvalidArgument)
+	}
+
 	if u.Activated {
 		if _, err := core_validation.ValidateStringEmail(u.Email); err != nil {
 			return err
@@ -119,7 +124,7 @@ func (u *User) GetFullName() string {
 }
 
 type UserPatch struct {
-	Activated    bool
+	Activated    Nullable[bool]
 	Email        Nullable[string]
 	PasswordHash Nullable[string]
 	Role         Nullable[UserRole]
@@ -127,13 +132,21 @@ type UserPatch struct {
 	Name     Nullable[string]
 	Surname  Nullable[string]
 	LastName Nullable[string]
+
+	AvatarFileID Nullable[string]
 }
 
 func NewUserRegisterPatch(email Nullable[string], passwordHash Nullable[string]) UserPatch {
 	return UserPatch{
-		Activated:    true,
+		Activated:    NewNullable(true),
 		Email:        email,
 		PasswordHash: passwordHash,
+	}
+}
+
+func NewAvatarUserPatch(fileID Nullable[string]) UserPatch {
+	return UserPatch{
+		AvatarFileID: fileID,
 	}
 }
 
@@ -150,7 +163,7 @@ func (p *UserPatch) Validate() error {
 		return fmt.Errorf("'Role' can't be patched to NULL: %w", core_errors.ErrInvalidArgument)
 	}
 
-	if p.Activated {
+	if p.Activated.Set && *p.Activated.Value {
 		if p.Email.Set && p.Email.Value == nil {
 			return fmt.Errorf("'Email' can't be patched to NULL if `Activated` is true: %w", core_errors.ErrInvalidArgument)
 		}
@@ -160,47 +173,55 @@ func (p *UserPatch) Validate() error {
 		}
 	}
 
+	if p.AvatarFileID.Set && p.AvatarFileID.Value != nil {
+		if err := core_validation.ValidateID(*p.AvatarFileID.Value, FileIDByteLength); err != nil {
+			return fmt.Errorf("validate avatar file id: %w", err)
+		}
+	}
+
 	return nil
 }
 
-func (u *User) ApplyPatch(patch UserPatch) error {
+func (u *User) ApplyPatch(patch UserPatch) (User, error) {
 	if err := patch.Validate(); err != nil {
-		return fmt.Errorf("validate user patch: %w", err)
+		return User{}, fmt.Errorf("validate user patch: %w", err)
 	}
 
-	tmp := *u
+	var patched User
+	patched.Activated = u.Activated
+	patched.Version = u.Version
 
 	if patch.Email.Set {
-		tmp.Email = patch.Email.Value
+		patched.Email = patch.Email.Value
 	}
 
 	if patch.PasswordHash.Set {
-		tmp.PasswordHash = patch.PasswordHash.Value
+		patched.PasswordHash = patch.PasswordHash.Value
 	}
 
 	if patch.Role.Set {
-		tmp.Role = *patch.Role.Value
+		patched.Role = *patch.Role.Value
 	}
 
 	if patch.Name.Set {
-		tmp.Name = *patch.Name.Value
+		patched.Name = *patch.Name.Value
 	}
 
 	if patch.Surname.Set {
-		tmp.Surname = *patch.Surname.Value
+		patched.Surname = *patch.Surname.Value
 	}
 
 	if patch.LastName.Set {
-		tmp.LastName = patch.Surname.Value
+		patched.LastName = patch.Surname.Value
 	}
 
-	tmp.Activated = patch.Activated
-
-	if err := tmp.Validate(); err != nil {
-		return fmt.Errorf("validate patched user: %w", err)
+	if patch.Activated.Set {
+		patched.Activated = *patch.Activated.Value
 	}
 
-	*u = tmp
+	if patch.AvatarFileID.Set {
+		patched.AvatarFileID = patch.AvatarFileID.Value
+	}
 
-	return nil
+	return patched, nil
 }

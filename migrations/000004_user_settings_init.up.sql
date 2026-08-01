@@ -2,7 +2,7 @@ CREATE TYPE session_expire_term_enum AS ENUM ('7d', '30d', '90d');
 
 CREATE TABLE base.user_settings (
   id      UUID            PRIMARY KEY,
-  user_id UUID   NOT NULL UNIQUE,
+  user_id UUID   NOT NULL,
   version BIGINT NOT NULL DEFAULT 1,
 
   session_expire_term session_expire_term_enum NOT NULL DEFAULT '30d',

@@ -1,8 +1,10 @@
 DROP TRIGGER IF EXISTS trg_update_file_timestamp ON media.files;
 
-DROP INDEX IF EXISTS idx_file_mime_type;
+DROP INDEX IF EXISTS idx_file_created_at;
 
-DROP INDEX IF EXISTS idx_file_filename;
+DROP INDEX IF EXISTS idx_file_deleted;
+
+DROP INDEX IF EXISTS idx_file_tag;
 
 DROP INDEX IF EXISTS idx_user_avatar_file_id;
 

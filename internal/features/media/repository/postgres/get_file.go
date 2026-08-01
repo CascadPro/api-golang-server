@@ -11,16 +11,16 @@ import (
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 )
 
-func (r *Repository) GetFile(ctx context.Context, fileID string) (domain.File, error) {
+func (r *Repository) GetFile(ctx context.Context, fileID string) (domain.File, []byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
 	if err := core_validation.ValidateID(fileID, domain.FileIDByteLength); err != nil {
-		return domain.File{}, fmt.Errorf("validate file id: %w", err)
+		return domain.File{}, nil, fmt.Errorf("validate file id: %w", err)
 	}
 
 	query := `
-		SELECT id, version, tag, filename, mime_type, size, deleted, deleted_at, created_at
+		SELECT id, version, tag, filename, mime_type, size, deleted, deleted_at, created_at, placeholder
 		FROM media.files
 		WHERE (id = $1)
 		LIMIT 1;
@@ -29,6 +29,8 @@ func (r *Repository) GetFile(ctx context.Context, fileID string) (domain.File, e
 	row := r.pool.QueryRow(ctx, query, fileID)
 
 	var model FileModel
+	var placeholder []byte
+
 	if err := row.Scan(
 		&model.ID,
 		&model.Version,
@@ -39,15 +41,16 @@ func (r *Repository) GetFile(ctx context.Context, fileID string) (domain.File, e
 		&model.Deleted,
 		&model.DeletedAt,
 		&model.CreatedAt,
+		&placeholder,
 	); err != nil {
 		err = core_postgres_pool.MapErrors(err)
 
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
-			return domain.File{}, fmt.Errorf("%v: file with id=%s: %w", err, fileID, core_errors.ErrNotFound)
+			return domain.File{}, nil, fmt.Errorf("%v: file with id=%s: %w", err, fileID, core_errors.ErrNotFound)
 		}
 
-		return domain.File{}, fmt.Errorf("scan error: %w", err)
+		return domain.File{}, nil, fmt.Errorf("scan error: %w", err)
 	}
 
-	return domainFromModel(model), nil
+	return domainFromModel(model), placeholder, nil
 }

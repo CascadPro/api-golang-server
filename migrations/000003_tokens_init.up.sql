@@ -18,4 +18,4 @@ CREATE TABLE base.tokens (
 
 CREATE UNIQUE INDEX idx_user_token ON base.tokens (token, user_id);
 
-CREATE UNIQUE INDEX idx_user_token_type_active ON base.tokens (user_id, type);
+CREATE UNIQUE INDEX idx_user_token_type ON base.tokens (user_id, type);

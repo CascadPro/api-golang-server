@@ -50,10 +50,9 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 			Middleware: []core_http_middleware.Middleware{core_http_middleware.Authorization()},
 		},
 		{
-			Method:     http.MethodGet,
-			Path:       "/login/refresh",
-			Handler:    h.GetNewTokens,
-			Middleware: []core_http_middleware.Middleware{core_http_middleware.Authorization()},
+			Method:  http.MethodGet,
+			Path:    "/login/refresh",
+			Handler: h.GetNewTokens,
 		},
 	}
 }

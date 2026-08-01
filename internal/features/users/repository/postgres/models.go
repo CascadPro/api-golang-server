@@ -1,4 +1,4 @@
-package core_postgres_user
+package users_postgres_repository
 
 import (
 	"time"
@@ -21,6 +21,7 @@ type UserModel struct {
 	LastName *string
 
 	LastActiveAt time.Time
+	AvatarFileID *string
 }
 
 func domainFromModel(model UserModel) domain.User {
@@ -35,5 +36,6 @@ func domainFromModel(model UserModel) domain.User {
 		Surname:      model.Surname,
 		LastName:     model.LastName,
 		LastActiveAt: model.LastActiveAt,
+		AvatarFileID: model.AvatarFileID,
 	}
 }

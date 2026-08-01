@@ -1,4 +1,4 @@
-package core_postgres_user
+package users_postgres_repository
 
 import (
 	"context"
@@ -22,7 +22,7 @@ func (r *Repository) GetUser(ctx context.Context, user domain.User) (domain.User
 	var errStr string
 
 	query.WriteString(`
-		SELECT id, version, activated, role, email, password_hash, name, surname, last_name, last_active_at
+		SELECT id, version, activated, role, email, password_hash, name, surname, last_name, last_active_at, avatar_file_id
 		FROM base.users
 	`)
 
@@ -54,6 +54,7 @@ func (r *Repository) GetUser(ctx context.Context, user domain.User) (domain.User
 		&model.Surname,
 		&model.LastName,
 		&model.LastActiveAt,
+		&model.AvatarFileID,
 	); err != nil {
 		err = core_postgres_pool.MapErrors(err)
 

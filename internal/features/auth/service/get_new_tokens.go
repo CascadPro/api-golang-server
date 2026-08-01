@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -20,12 +21,15 @@ func (s *Service) GetNewTokens(ctx context.Context, token string) (string, error
 		return "", fmt.Errorf("get session: %w", err)
 	}
 
-	role, err := core_context.UserRoleFromContext(ctx)
+	user, err := s.userPostgresRepo.GetUser(ctx, domain.User{ID: claims.UserID})
 	if err != nil {
-		return "", fmt.Errorf("get role from context: %w", err)
+		return "", fmt.Errorf("get user from repository: %w", err)
+	}
+	if !user.Activated {
+		return "", fmt.Errorf("user is not activated: %w", core_errors.ErrConflict)
 	}
 
-	accessToken, _, err := core_utils.IssueTokens(claims.UserID, claims.SessionID, role)
+	accessToken, _, err := core_utils.IssueTokens(claims.UserID, claims.SessionID, user.Role)
 	if err != nil {
 		return "", fmt.Errorf("issue tokens: %w", err)
 	}

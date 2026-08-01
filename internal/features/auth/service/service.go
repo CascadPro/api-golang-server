@@ -7,13 +7,13 @@ import (
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/repository/ipinfo/client"
 	core_postgres_token "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/token"
-	core_postgres_user "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/user"
 	core_http_request "github.com/CascadePro/api-golang-server/internal/core/transport/http/request"
 	sessions_redis_repository "github.com/CascadePro/api-golang-server/internal/features/sessions/repository/redis"
+	users_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/users/repository/postgres"
 )
 
 type Service struct {
-	userPostgresRepo  core_postgres_user.RepositoryMethods
+	userPostgresRepo  users_postgres_repository.RepositoryMethods
 	tokenPostgresRepo core_postgres_token.RepositoryMethods
 	ipinfoRepo        core_ipinfo_client.RepositoryMethods
 	sessionsRedisRepo sessions_redis_repository.RepositoryMethods
@@ -28,7 +28,7 @@ type ServiceMethods interface {
 }
 
 func NewService(
-	userPostgresRepo core_postgres_user.RepositoryMethods,
+	userPostgresRepo users_postgres_repository.RepositoryMethods,
 	tokenPostgresRepo core_postgres_token.RepositoryMethods,
 	ipinfoRepo core_ipinfo_client.RepositoryMethods,
 	sessionsRedisRepo sessions_redis_repository.RepositoryMethods,
