@@ -26,5 +26,10 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 			Path:    "/my",
 			Handler: h.GetCurrentUser,
 		},
+		{
+			Method:     http.MethodDelete,
+			Path:       "/avatar/delete",
+			Handler:    h.DeleteAvatar,
+		},
 	}
 }

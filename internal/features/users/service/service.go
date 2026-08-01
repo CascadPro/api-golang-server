@@ -15,7 +15,8 @@ type Service struct {
 }
 
 type ServiceMethods interface {
-	GetCurrentUser(context.Context, uuid.UUID) (domain.User, error)
+	GetCurrentUser(context.Context, uuid.UUID) (domain.User, []byte, error)
+	DeleteAvatar(context.Context, uuid.UUID) error
 }
 
 func NewService(
