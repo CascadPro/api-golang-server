@@ -117,7 +117,7 @@ func main() {
 	rootRouter.RegisterRoutes(rootHttpHandler.Routes()...)
 
 	// Media routes
-	logFeatureInit(logger, "media", "/api/v1/media")
+	logFeatureInit(logger, "media", "/media")
 	mediaRateLimit := core_http_middleware.NewRateLimitConfig(25, time.Minute*10)
 	mediaRouter := core_http_server.NewRouter("/media", mediaRateLimit.Middleware())
 
@@ -133,7 +133,7 @@ func main() {
 
 	usersPostgresRepository := users_postgres_repository.NewRepository(pgPool)
 	usersService := users_service.NewService(usersPostgresRepository)
-	usersHttpHandler := users_transport_http.NewHttpHandler(usersService)
+	usersHttpHandler := users_transport_http.NewHttpHandler(usersService, mediaService)
 
 	usersRouter.RegisterRoutes(usersHttpHandler.Routes()...)
 

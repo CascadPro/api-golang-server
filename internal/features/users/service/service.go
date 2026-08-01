@@ -13,6 +13,7 @@ type Service struct {
 }
 
 type ServiceMethods interface {
+	GetCurrentUser(context.Context, uuid.UUID) (domain.User, error)
 }
 
 func NewService(usersPostgresRepo users_postgres_repository.RepositoryMethods) *Service {
