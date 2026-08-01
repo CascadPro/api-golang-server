@@ -68,17 +68,3 @@ func (t *Token) Validate() error {
 
 	return nil
 }
-
-type TokenPatch struct{}
-
-func NewTokenPatch() TokenPatch {
-	return TokenPatch{}
-}
-
-func (p *TokenPatch) Validate() error {
-	return nil
-}
-
-func (t *Token) ApplyPatch(patch TokenPatch) error {
-	return nil
-}
