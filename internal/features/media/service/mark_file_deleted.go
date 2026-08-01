@@ -14,7 +14,7 @@ func (s *Service) MarkFileDeleted(ctx context.Context, fileID string) error {
 		return fmt.Errorf("validate file id: %w", err)
 	}
 
-	file, err := s.mediaPostgresRepo.GetFile(ctx, fileID)
+	file, _, err := s.mediaPostgresRepo.GetFile(ctx, fileID)
 	if err != nil {
 		return fmt.Errorf("get file from repository: %w", err)
 	}

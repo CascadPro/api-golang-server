@@ -15,6 +15,7 @@ type Service struct {
 
 type ServiceMethods interface {
 	GetFile(context.Context, domain.FileTag, string, *int, *int, *int) (domain.File, []byte, error)
+	GetFilePlaceholder(context.Context, string) ([]byte, error)
 	UploadFile(context.Context, *domain.File, []byte) (domain.File, error)
 	DeleteFile(context.Context, domain.FileTag, string) error
 	MarkFileDeleted(context.Context, string) error

@@ -26,7 +26,7 @@ func (s *Service) GetFile(
 		return domain.File{}, nil, fmt.Errorf("validate file id: %w", err)
 	}
 
-	file, err := s.mediaPostgresRepo.GetFile(ctx, fileID)
+	file, _, err := s.mediaPostgresRepo.GetFile(ctx, fileID)
 	if err != nil {
 		return domain.File{}, nil, fmt.Errorf("get file from repository: %w", err)
 	}
