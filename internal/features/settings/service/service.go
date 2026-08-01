@@ -13,6 +13,8 @@ type Service struct {
 }
 
 type ServiceMethods interface {
+	GetUserSettings(context.Context, uuid.UUID) (domain.UserSettings, error)
+	PatchUserSettings(context.Context, uuid.UUID, domain.UserSettingsPatch) (domain.UserSettings, error)
 }
 
 func NewService(settingsPostgresRepo settings_postgres_repository.RepositoryMethods) *Service {
