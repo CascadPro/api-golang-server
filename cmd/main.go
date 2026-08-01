@@ -132,8 +132,8 @@ func main() {
 	usersRouter := core_http_server.NewRouter("/users", rootRateLimit.Middleware(), core_http_middleware.Authorization())
 
 	usersPostgresRepository := users_postgres_repository.NewRepository(pgPool)
-	usersService := users_service.NewService(usersPostgresRepository)
-	usersHttpHandler := users_transport_http.NewHttpHandler(usersService, mediaService)
+	usersService := users_service.NewService(mediaService, usersPostgresRepository)
+	usersHttpHandler := users_transport_http.NewHttpHandler(usersService)
 
 	usersRouter.RegisterRoutes(usersHttpHandler.Routes()...)
 

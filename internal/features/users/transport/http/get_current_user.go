@@ -35,19 +35,10 @@ func (h *HttpHandler) GetCurrentUser(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.usersService.GetCurrentUser(ctx, userID)
+	user, placeholder, err := h.usersService.GetCurrentUser(ctx, userID)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get current user")
 		return
-	}
-
-	var placeholder []byte
-	if user.AvatarFileID != nil {
-		placeholder, err = h.mediaService.GetFilePlaceholder(ctx, *user.AvatarFileID)
-		if err != nil {
-			responseHandler.ErrorResponse(err, "failed to get avatar placeholder")
-			return
-		}
 	}
 
 	response := currentUserDtoFromDomain(user, placeholder)
