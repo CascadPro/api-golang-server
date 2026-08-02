@@ -29,5 +29,10 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 			Path:    "/{id}",
 			Handler: h.DeleteSession,
 		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/delete",
+			Handler: h.DeleteUserSessions,
+		},
 	}
 }

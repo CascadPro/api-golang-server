@@ -17,6 +17,7 @@ type RepositoryMethods interface {
 	GetSession(ctx context.Context, userID uuid.UUID, sessionID string) (domain.Session, error)
 	GetUserSessions(ctx context.Context, userID uuid.UUID) ([]domain.Session, error)
 	DeleteSession(ctx context.Context, userID uuid.UUID, sessionID string) error
+	DeleteUserSessions(ctx context.Context, userID uuid.UUID, sessionID string) error
 }
 
 func NewRepository(pool core_redis_pool.Pool) *Repository {

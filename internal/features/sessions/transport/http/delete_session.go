@@ -13,7 +13,6 @@ import (
 // @Summary     Delete session
 // @Description Delete a session by its ID
 // @Tags        sessions
-// @Produce     json
 // @Param       id path string true "Session ID"
 // @Success     204 "Session deleted"
 // @Failure     400 {object} core_http_response.ErrorResponse "Bad request"
@@ -30,13 +29,11 @@ func (h *HttpHandler) DeleteSession(rw http.ResponseWriter, r *http.Request) {
 	sessionID, err := core_http_request.GetIDPathValue(r, "id", domain.SessionIDByteLength)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get session id path value")
-
 		return
 	}
 
 	if err := h.sessionsService.DeleteSession(ctx, sessionID); err != nil {
 		responseHandler.ErrorResponse(err, "failed to delete session")
-
 		return
 	}
 

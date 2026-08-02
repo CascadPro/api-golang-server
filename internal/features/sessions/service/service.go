@@ -14,6 +14,7 @@ type Service struct {
 type ServiceMethods interface {
 	GetUserSessions(context.Context) ([]domain.Session, error)
 	DeleteSession(context.Context, string) error
+	DeleteUserSessions(context.Context) error
 }
 
 func NewService(sessionsRedisRepo sessions_redis_repository.RepositoryMethods) *Service {
