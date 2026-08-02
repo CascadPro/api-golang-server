@@ -1,8 +1,14 @@
-# Use this workspace to collaborate
 workspace:
   id: c49c9ba1-1991-40d9-869f-71e26c25fbf1
-
 localResources:
   specs:
     - ../docs/swagger.json
     - ../docs/swagger.yaml
+cloudResources:
+  collections:
+    ../postman/collections/cascade-server: 56263633-2bf7f245-2bc7-4fef-905d-45ebe5fcc721
+  environments:
+    ../postman/environments/Base Environment.environment.yaml: 56263633-bb9638b4-3c4f-4964-99c8-0a41cb752548
+  specs:
+    ../docs/swagger.json: 9156525e-3537-4699-b8a4-f475288f0e1a
+    ../docs/swagger.yaml: 6c3458ad-a831-4788-9c30-fe88f25cc2f2
