@@ -37,12 +37,22 @@ func (s *Service) Login(
 		return "", "", fmt.Errorf("compare password hash: %w", core_errors.ErrUnauthorized)
 	}
 
+	settings, err := s.settingsPostgresRepo.GetUserSettings(ctx, domain.UserSettings{UserID: userDomain.ID})
+	if err != nil {
+		return "", "", fmt.Errorf("get user settings: %w", err)
+	}
+
+	rawDuration, err := core_utils.ParseDurationExtended(string(settings.SessionExpireTerm))
+	if err != nil {
+		return "", "", fmt.Errorf("parse settings duration: %w", err)
+	}
+
 	metadata, err := core_http_utils.GetSessionMetadata(ctx, s.ipinfoRepo, ip, userAgent)
 	if err != nil {
 		return "", "", fmt.Errorf("get session metadata: %w", err)
 	}
 
-	session := domain.NewAuthSession(ip, metadata, domain.SessionLifetime30d)
+	session := domain.NewAuthSession(ip, metadata, domain.SessionLifetime(rawDuration))
 
 	sessionID, err := s.sessionsRedisRepo.CreateSession(ctx, userDomain.ID, session)
 	if err != nil {

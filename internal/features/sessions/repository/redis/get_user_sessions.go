@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
@@ -63,6 +64,10 @@ func (r *Repository) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]d
 	if len(sessions) == 0 {
 		return nil, fmt.Errorf("sessions with user_id='%s': %w", userID, core_errors.ErrNotFound)
 	}
+
+	sort.Slice(sessions, func(i, j int) bool {
+		return sessions[i].CreatedAt.After(sessions[j].CreatedAt)
+	})
 
 	return sessions, nil
 }
