@@ -10,26 +10,28 @@ export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs
 
 
 env-up:
-	docker compose up -d cascade-app-postgres cascade-app-redis
+	docker compose up -d cascade-app-postgres cascade-app-redis cascade-app-mongo
 
 env-down:
-	docker compose down cascade-app-postgres cascade-app-redis
+	docker compose down cascade-app-postgres cascade-app-redis cascade-app-mongo
 
 env-cleanup:
 	@read -p "Are you sure you want to cleanup all environment? [y/N]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-		docker compose down cascade-app-postgres cascade-app-redis port-forwarder && \
+		docker compose down cascade-app-postgres cascade-app-redis cascade-app-mongo port-forwarder && \
 		rm -rf ${PROJECT_ROOT}/out/pg_data && \
 		rm -rf ${PROJECT_ROOT}/out/redis_data && \
+		rm -rf ${PROJECT_ROOT}/out/mongo_data && \
 		echo "Cleanup complete"; \
 	else \
 		echo "Cleanup aborted"; \
 	fi
 
 env-cleanup-win:
-	@docker compose down cascade-app-postgres cascade-app-redis port-forwarder | \
+	@docker compose down cascade-app-postgres cascade-app-redis cascade-app-mongo port-forwarder | \
 	rmdir /s /q "${PROJECT_ROOT}/out/pg_data" | \
 	rmdir /s /q "${PROJECT_ROOT}/out/redis_data" | \
+	rmdir /s /q "${PROJECT_ROOT}/out/mongo_data" | \
 	echo Cleanup complete
 
 env-port-forward:
@@ -77,6 +79,13 @@ migrate-action:
 		-path /migrations \
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@cascade-app-postgres:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable \
 		"$(action)"
+
+mongo-init:
+	@docker exec -i cascade-app-mongo-database mongosh \
+		-u ${MONGO_USER} \
+		-p ${MONGO_PASSWORD} \
+		--authenticationDatabase admin \
+		< scripts/mongo-init.js
 
 logs-cleanup:
 	@read -p "Are you sure you want to cleanup logs? [y/N]: " ans; \

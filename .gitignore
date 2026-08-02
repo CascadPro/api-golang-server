@@ -2,6 +2,8 @@
 /postman
 /docs
 
+/scripts/mongo-init.js
+
 .env
 TODO.md
 PROJECT_TREE.md
