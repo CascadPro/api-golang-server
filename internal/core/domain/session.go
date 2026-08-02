@@ -101,6 +101,14 @@ func (s *Session) Validate() error {
 		return fmt.Errorf("`IP` can't be nil or empty: %w", core_errors.ErrInvalidArgument)
 	}
 
+	if s.ExpirationTime <= 0 {
+		return fmt.Errorf("`ExpirationTime` can't be NULL: %w", core_errors.ErrInvalidArgument)
+	}
+
+	if s.CreatedAt.After(s.LastActiveAt) {
+		return fmt.Errorf("`CreatedAt` can't be after `LastActiveAt`: %w", core_errors.ErrInvalidArgument)
+	}
+
 	if s.CreatedAt.After(s.CreatedAt.Add(time.Duration(s.ExpirationTime))) {
 		return fmt.Errorf("`CreatedAt` can't be after `ExpiresAt`: %w", core_errors.ErrInvalidArgument)
 	}
@@ -160,6 +168,66 @@ func (d *SessionMetadataDevice) Validate() error {
 	if err := core_validation.ValidateStringLength(&d.Version, "Version", min, max); err != nil {
 		return fmt.Errorf("version validation: %w", err)
 	}
+
+	return nil
+}
+
+type SessionPatch struct {
+	IP             Nullable[net.IP]
+	Metadata       Nullable[SessionMetadata]
+	ExpirationTime Nullable[SessionLifetime]
+}
+
+func NewSessionPatch(
+	ip Nullable[net.IP],
+	metadata Nullable[SessionMetadata],
+	expirationTime Nullable[SessionLifetime],
+) SessionPatch {
+	return SessionPatch{
+		IP:             ip,
+		Metadata:       metadata,
+		ExpirationTime: expirationTime,
+	}
+}
+
+func (p *SessionPatch) Validate() error {
+	if p.IP.Set && p.IP.Value == nil {
+		return fmt.Errorf("`IP` can't be patched to NULL: %w", core_errors.ErrInvalidArgument)
+	}
+
+	if p.ExpirationTime.Set && p.ExpirationTime.Value == nil {
+		return fmt.Errorf("`ExpirationTime` can't be patched to NULL: %w", core_errors.ErrInvalidArgument)
+	}
+
+	return nil
+}
+
+func (s *Session) ApplyPatch(patch SessionPatch) error {
+	if err := patch.Validate(); err != nil {
+		return fmt.Errorf("apply patch: %w", err)
+	}
+
+	tmp := *s
+
+	if patch.IP.Set {
+		tmp.IP = *patch.IP.Value
+	}
+
+	if patch.Metadata.Set {
+		tmp.Metadata = *patch.Metadata.Value
+	}
+
+	if patch.ExpirationTime.Set {
+		tmp.ExpirationTime = *patch.ExpirationTime.Value
+	}
+
+	tmp.LastActiveAt = time.Now()
+
+	if err := tmp.Validate(); err != nil {
+		return fmt.Errorf("validate session: %w", err)
+	}
+
+	*s = tmp
 
 	return nil
 }
