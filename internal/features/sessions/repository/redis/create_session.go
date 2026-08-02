@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
 	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
 	"github.com/google/uuid"
@@ -15,9 +16,18 @@ func (r *Repository) CreateSession(ctx context.Context, userID uuid.UUID, sessio
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
+	if userID == uuid.Nil {
+		return "", fmt.Errorf("validate user id: %w", core_errors.ErrInvalidArgument)
+	}
+
 	sessionID, err := core_utils.GenerateID(domain.SessionIDByteLength)
 	if err != nil {
 		return "", fmt.Errorf("generate id: %w", err)
+	}
+	session.ID = sessionID
+
+	if err := session.Validate(); err != nil {
+		return "", fmt.Errorf("validate session: %w", err)
 	}
 
 	key := fmt.Sprintf("%s:%s:%s", core_redis_pool.SessionFolder, userID, sessionID)
@@ -27,13 +37,13 @@ func (r *Repository) CreateSession(ctx context.Context, userID uuid.UUID, sessio
 		return "", fmt.Errorf("session domain to model: %w", err)
 	}
 
-	pipe := r.pool.Pipeline()
+	pipe := r.pool.TxPipeline()
 
-	pipe.HSet(ctx, key, "created_at", model.CreatedAt)
-	pipe.HSet(ctx, key, "expires_at", model.ExpiresAt)
-	pipe.HSet(ctx, key, "last_active_at", model.LastActiveAt)
-	pipe.HSet(ctx, key, "ip", model.IP.String())
-	pipe.HSet(ctx, key, "metadata", model.Metadata)
+	pipe.HSet(ctx, key, HashFieldCreatedAt, model.CreatedAt)
+	pipe.HSet(ctx, key, HashFieldExpiresAt, model.ExpiresAt)
+	pipe.HSet(ctx, key, HashFieldLastActive, model.LastActiveAt)
+	pipe.HSet(ctx, key, HashFieldIP, model.IP.String())
+	pipe.HSet(ctx, key, HashFieldMetadata, model.Metadata)
 
 	pipe.Expire(ctx, key, time.Duration(session.ExpirationTime))
 

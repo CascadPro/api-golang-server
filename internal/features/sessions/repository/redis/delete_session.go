@@ -16,6 +16,9 @@ func (r *Repository) DeleteSession(ctx context.Context, userID uuid.UUID, sessio
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
+	if userID == uuid.Nil {
+		return fmt.Errorf("validate user id: %w", core_errors.ErrInvalidArgument)
+	}
 	if err := core_validation.ValidateID(sessionID, domain.SessionIDByteLength); err != nil {
 		return fmt.Errorf("validate session id: %w", err)
 	}

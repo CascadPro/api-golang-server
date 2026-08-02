@@ -10,6 +10,20 @@ import (
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
 )
 
+type HashField string
+
+const (
+	HashFieldCreatedAt  = HashField("created_at")
+	HashFieldExpiresAt  = HashField("expires_at")
+	HashFieldLastActive = HashField("last_active_at")
+	HashFieldIP         = HashField("ip")
+	HashFieldMetadata   = HashField("metadata")
+)
+
+var (
+	HashFields = []HashField{HashFieldCreatedAt, HashFieldExpiresAt, HashFieldLastActive, HashFieldIP, HashFieldMetadata}
+)
+
 type SessionModel struct {
 	CreatedAt    time.Time `redis:"created_at"`
 	ExpiresAt    time.Time `redis:"expires_at"`

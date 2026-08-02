@@ -16,6 +16,9 @@ func (r *Repository) GetSession(ctx context.Context, userID uuid.UUID, sessionID
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
+	if userID == uuid.Nil {
+		return domain.Session{}, fmt.Errorf("validate user id: %w", core_errors.ErrInvalidArgument)
+	}
 	if err := core_validation.ValidateID(sessionID, domain.SessionIDByteLength); err != nil {
 		return domain.Session{}, fmt.Errorf("validate session id: %w", err)
 	}

@@ -21,6 +21,10 @@ func (r *Repository) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]d
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
+	if userID == uuid.Nil {
+		return nil, fmt.Errorf("validate user id: %w", core_errors.ErrInvalidArgument)
+	}
+
 	key := fmt.Sprintf("%s:%s:*", core_redis_pool.SessionFolder, userID)
 
 	keys, err := r.pool.GetKeys(ctx, 0, key, 0)
