@@ -11,9 +11,8 @@ import (
 )
 
 const (
-	RefreshTokenLifetime time.Duration = time.Hour * 24 * 30
-	AccessTokenLifetime  time.Duration = time.Minute * 15
-	AuthTokenIssuer      string        = "cascade-pro-api-server"
+	AccessTokenLifetime time.Duration = time.Minute * 15
+	AuthTokenIssuer     string        = "cascade-pro-api-server"
 )
 
 type JwtAccessClaims struct {
@@ -87,7 +86,12 @@ func validateCommonClaims(rc *jwt.RegisteredClaims, sessionID string, userID uui
 	return nil
 }
 
-func IssueTokens(userID uuid.UUID, sessionID string, role domain.UserRole) (*JwtAccessClaims, *JwtRefreshClaims, error) {
+func IssueTokens(
+	userID uuid.UUID,
+	sessionID string,
+	role domain.UserRole,
+	refreshExpiration domain.SessionLifetime,
+) (*JwtAccessClaims, *JwtRefreshClaims, error) {
 	accessToken := JwtAccessClaims{
 		UserID:    userID,
 		SessionID: sessionID,
@@ -106,7 +110,7 @@ func IssueTokens(userID uuid.UUID, sessionID string, role domain.UserRole) (*Jwt
 		UserID:    userID,
 		SessionID: sessionID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(RefreshTokenLifetime)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(refreshExpiration))),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    AuthTokenIssuer,
 		},

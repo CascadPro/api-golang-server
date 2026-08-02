@@ -52,14 +52,15 @@ func (s *Service) Login(
 		return "", "", fmt.Errorf("get session metadata: %w", err)
 	}
 
-	session := domain.NewAuthSession(ip, metadata, domain.SessionLifetime(rawDuration))
+	duration := domain.SessionLifetime(rawDuration)
+	session := domain.NewAuthSession(ip, metadata, duration)
 
 	sessionID, err := s.sessionsRedisRepo.CreateSession(ctx, userDomain.ID, session)
 	if err != nil {
 		return "", "", fmt.Errorf("create session: %w", err)
 	}
 
-	accessToken, refreshToken, err := issueTokens(userDomain.ID, sessionID, userDomain.Role)
+	accessToken, refreshToken, err := issueTokens(userDomain.ID, sessionID, userDomain.Role, duration)
 	if err != nil {
 		return "", "", err
 	}
@@ -67,8 +68,8 @@ func (s *Service) Login(
 	return accessToken, refreshToken, nil
 }
 
-func issueTokens(uid uuid.UUID, sid string, role domain.UserRole) (string, string, error) {
-	atClaims, rtClaims, err := core_utils.IssueTokens(uid, sid, role)
+func issueTokens(uid uuid.UUID, sid string, role domain.UserRole, exp domain.SessionLifetime) (string, string, error) {
+	atClaims, rtClaims, err := core_utils.IssueTokens(uid, sid, role, exp)
 	if err != nil {
 		return "", "", fmt.Errorf("issue tokens: %w", err)
 	}

@@ -16,7 +16,7 @@ func (s *Service) GetNewTokens(ctx context.Context, token string) (string, error
 		return "", fmt.Errorf("get jwt token claims: %w", err)
 	}
 
-	_, err = s.sessionsRedisRepo.GetSession(ctx, claims.UserID, claims.SessionID)
+	session, err := s.sessionsRedisRepo.GetSession(ctx, claims.UserID, claims.SessionID)
 	if err != nil {
 		return "", fmt.Errorf("get session: %w", err)
 	}
@@ -29,7 +29,7 @@ func (s *Service) GetNewTokens(ctx context.Context, token string) (string, error
 		return "", fmt.Errorf("user is not activated: %w", core_errors.ErrConflict)
 	}
 
-	accessToken, _, err := core_utils.IssueTokens(claims.UserID, claims.SessionID, user.Role)
+	accessToken, _, err := core_utils.IssueTokens(claims.UserID, claims.SessionID, user.Role, session.ExpirationTime)
 	if err != nil {
 		return "", fmt.Errorf("issue tokens: %w", err)
 	}
