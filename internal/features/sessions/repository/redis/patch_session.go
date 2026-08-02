@@ -31,10 +31,10 @@ func (r *Repository) PatchSession(ctx context.Context, userID uuid.UUID, session
 
 	pipe := r.pool.TxPipeline()
 
-	pipe.HSet(ctx, key, HashFieldIP, model.IP.String())
-	pipe.HSet(ctx, key, HashFieldExpiresAt, model.ExpiresAt)
-	pipe.HSet(ctx, key, HashFieldLastActive, model.LastActiveAt)
-	pipe.HSet(ctx, key, HashFieldMetadata, model.Metadata)
+	pipe.HSet(ctx, key, string(HashFieldIP), model.IP.String())
+	pipe.HSet(ctx, key, string(HashFieldExpiresAt), model.ExpiresAt)
+	pipe.HSet(ctx, key, string(HashFieldLastActive), model.LastActiveAt)
+	pipe.HSet(ctx, key, string(HashFieldMetadata), model.Metadata)
 
 	pipe.Expire(ctx, key, time.Duration(session.ExpirationTime))
 
