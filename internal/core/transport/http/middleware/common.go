@@ -1,11 +1,14 @@
 package core_http_middleware
 
 import (
+	"context"
 	"net/http"
 	"time"
 
+	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
+	core_http_utils "github.com/CascadePro/api-golang-server/internal/core/transport/http/utils"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
@@ -84,6 +87,26 @@ func Trace() Middleware {
 				zap.Int("status_code", rw.GetStatusCode()),
 				zap.Duration("latency", time.Since(before)),
 			)
+		})
+	}
+}
+
+func IP() Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			log := core_logger.FromContext(ctx)
+
+			ip, err := core_http_utils.ClientIP(r)
+			if err != nil {
+				log.Warn("failed to get client ip", zap.Error(err))
+			}
+
+			log.Info("client ip for this request", zap.String("ip", ip.String()))
+
+			ctx = context.WithValue(ctx, core_context.CtxKeyIP, ip)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }

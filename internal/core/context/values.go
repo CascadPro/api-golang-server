@@ -3,6 +3,7 @@ package core_context
 import (
 	"context"
 	"fmt"
+	"net"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
@@ -61,4 +62,13 @@ func TagFromContext(ctx context.Context) (domain.FileTag, error) {
 	}
 
 	return t, nil
+}
+
+func IPFromContext(ctx context.Context) (net.IP, error) {
+	ip, ok := ctx.Value(CtxKeyIP).(net.IP)
+	if !ok {
+		return nil, fmt.Errorf("`IP` must be `net.IP`: %w", core_errors.ErrInvalidArgument)
+	}
+
+	return ip, nil
 }

@@ -182,6 +182,7 @@ func main() {
 		core_http_middleware.Logger(logger),
 		core_http_middleware.Trace(),
 		core_http_middleware.Panic(),
+		core_http_middleware.IP(),
 	)
 
 	apiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)

@@ -3,11 +3,11 @@ package auth_transport_http
 import (
 	"net/http"
 
+	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_request "github.com/CascadePro/api-golang-server/internal/core/transport/http/request"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
-	core_http_utils "github.com/CascadePro/api-golang-server/internal/core/transport/http/utils"
 )
 
 type LoginRequest struct {
@@ -47,7 +47,7 @@ func (h *HttpHandler) Login(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ip, err := core_http_utils.ClientIP(r)
+	ip, err := core_context.IPFromContext(ctx)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get client ip")
 

@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"time"
 
+	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
-	core_http_utils "github.com/CascadePro/api-golang-server/internal/core/transport/http/utils"
 )
 
 type RateLimitConfig struct {
@@ -65,10 +65,9 @@ func (cfg *RateLimitConfig) Middleware() Middleware {
 			log := core_logger.FromContext(ctx)
 			responseHandler := core_http_response.NewResponseHandler(log, rw)
 
-			clientIP, err := core_http_utils.ClientIP(r)
+			clientIP, err := core_context.IPFromContext(ctx)
 			if err != nil {
 				responseHandler.ErrorResponse(err, "failed to get client ip address")
-
 				return
 			}
 

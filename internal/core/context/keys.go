@@ -8,4 +8,5 @@ var (
 	CtxKeySessionID = CtxKey(2)
 	CtxKeyMimeType  = CtxKey(3)
 	CtxKeyTag       = CtxKey(4)
+	CtxKeyIP        = CtxKey(5)
 )
