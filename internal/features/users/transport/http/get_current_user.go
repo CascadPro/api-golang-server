@@ -21,9 +21,21 @@ type GetCurrentUserResponse struct {
 	LastName          *string         `json:"last_name,omitempty"          example:""`
 	LastActiveAt      time.Time       `json:"last_active_at"               example:"2006-01-02T15-04-05.000000"`
 	AvatarFileID      *string         `json:"avatar_file_id,omitempty"     example:"831f21c1798a7972fa9cda12dac0"`
-	AvatarPlaceholder []byte          `json:"avatar_placeholder,omitempty" example:"[bytes...]"`
+	AvatarPlaceholder []byte          `json:"avatar_placeholder,omitempty" example:"0"`
 }
 
+// GetCurrentUser godoc
+// @Summary      Get current user
+// @Description  Get user data for the authenticated user
+// @Tags         users
+// @Produce      json
+// @Success      200 {object} GetCurrentUserResponse "Current user data"
+// @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"
+// @Failure      404 {object} core_http_response.ErrorResponse "Not found"
+// @Failure      409 {object} core_http_response.ErrorResponse "Conflict error"
+// @Failure      429 {object} core_http_response.ErrorResponse "Too many requests"
+// @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router       /users/my [get]
 func (h *HttpHandler) GetCurrentUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

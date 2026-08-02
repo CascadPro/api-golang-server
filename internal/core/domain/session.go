@@ -12,7 +12,7 @@ import (
 type SessionLifetime time.Duration
 
 const (
-	SessionLifetime14d = SessionLifetime(time.Hour * 24 * 14)
+	SessionLifetime7d  = SessionLifetime(time.Hour * 24 * 7)
 	SessionLifetime30d = SessionLifetime(time.Hour * 24 * 30)
 	SessionLifetime90d = SessionLifetime(SessionLifetime30d * 3)
 )

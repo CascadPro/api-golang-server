@@ -20,13 +20,6 @@ func (r *Repository) PatchUser(ctx context.Context, id uuid.UUID, user domain.Us
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
-	// query := `
-	// 	UPDATE base.users
-	// 	SET version = version + 1, activated = $1, email = $2, password_hash = $3, role = $4,
-	// 		name = $5, surname = $6, last_name = $7, last_active_at = $8
-	// 	WHERE (id = $9 AND version = $10)
-	// 	RETURNING id, version, activated, role, email, name, surname, last_name, last_active_at;
-	// `
 	var query strings.Builder
 	var args []any
 

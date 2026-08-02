@@ -34,6 +34,11 @@ func (s *Service) Register(ctx context.Context, patch domain.UserPatch, tokenStr
 		return fmt.Errorf("patch user: %w", err)
 	}
 
+	settings := domain.NewUserSettings(userDomain.ID, domain.SessionExpire1Month)
+	if _, err = s.settingsPostgresRepo.CreateUserSettings(ctx, settings); err != nil {
+		return fmt.Errorf("create user settings: %w", err)
+	}
+
 	if err := s.tokenPostgresRepo.DeleteToken(ctx, tokenDomain.ID); err != nil {
 		return fmt.Errorf("delete token: %w", err)
 	}

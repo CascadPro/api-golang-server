@@ -29,6 +29,9 @@ import (
 	sessions_redis_repository "github.com/CascadePro/api-golang-server/internal/features/sessions/repository/redis"
 	session_service "github.com/CascadePro/api-golang-server/internal/features/sessions/service"
 	sessions_transport_http "github.com/CascadePro/api-golang-server/internal/features/sessions/transport/http"
+	settings_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/settings/repository/postgres"
+	settings_service "github.com/CascadePro/api-golang-server/internal/features/settings/service"
+	settings_transport_http "github.com/CascadePro/api-golang-server/internal/features/settings/transport/http"
 	users_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/users/repository/postgres"
 	users_service "github.com/CascadePro/api-golang-server/internal/features/users/service"
 	users_transport_http "github.com/CascadePro/api-golang-server/internal/features/users/transport/http"
@@ -137,6 +140,17 @@ func main() {
 
 	usersRouter.RegisterRoutes(usersHttpHandler.Routes()...)
 
+	// Settings route
+	logFeatureInit(logger, "settings", "/api/v1/settings")
+	settingsRouter := core_http_server.NewRouter("/settings",
+		rootRateLimit.Middleware(), core_http_middleware.Authorization())
+
+	settingsPostgresRepository := settings_postgres_repository.NewRepository(pgPool)
+	settingsService := settings_service.NewService(settingsPostgresRepository)
+	settingsHttpHandler := settings_transport_http.NewHttpHandler(settingsService)
+
+	settingsRouter.RegisterRoutes(settingsHttpHandler.Routes()...)
+
 	// Sessions route
 	logFeatureInit(logger, "sessions", "/api/v1/sessions")
 	sessionsRouter := core_http_server.NewRouter("/sessions", core_http_middleware.Authorization())
@@ -151,8 +165,8 @@ func main() {
 	logFeatureInit(logger, "authentication", "/api/v1/auth")
 	authRouter := core_http_server.NewRouter("/auth")
 
-	authService := auth_service.NewService(usersPostgresRepository, tokenPostgresRepository,
-		ipInfoRepository, sessionsRedisRepo)
+	authService := auth_service.NewService(usersPostgresRepository, settingsPostgresRepository,
+		tokenPostgresRepository, ipInfoRepository, sessionsRedisRepo)
 	authHttpHandler := auth_transport_http.NewHttpHandler(authService)
 
 	authRouter.RegisterRoutes(authHttpHandler.Routes()...)
@@ -171,7 +185,7 @@ func main() {
 	)
 
 	apiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRouters(sessionsRouter, authRouter, usersRouter)
+	apiVersionRouter.RegisterRouters(sessionsRouter, authRouter, usersRouter, settingsRouter)
 
 	httpServer.RegisterRouters(rootRouter, mediaRouter)
 	httpServer.RegisterApiRouters(apiVersionRouter)

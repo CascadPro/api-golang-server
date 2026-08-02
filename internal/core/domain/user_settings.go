@@ -15,6 +15,7 @@ const (
 	SessionExpire7Days  = SessionExpireTime("7d")
 	SessionExpire1Month = SessionExpireTime("30d")
 	SessionExpire3Month = SessionExpireTime("90d")
+	SessionExpireNil    = SessionExpireTime("")
 )
 
 var (
@@ -52,4 +53,42 @@ func (us *UserSettings) Validate() error {
 	}
 
 	return nil
+}
+
+type UserSettingsPatch struct {
+	SessionExpireTerm Nullable[SessionExpireTime]
+}
+
+func NewUserSettingsPatch(expireTerm Nullable[SessionExpireTime]) UserSettingsPatch {
+	return UserSettingsPatch{
+		SessionExpireTerm: expireTerm,
+	}
+}
+
+func (p *UserSettingsPatch) Validate() error {
+	if p.SessionExpireTerm.Set {
+		if p.SessionExpireTerm.Value == nil {
+			return fmt.Errorf("`SessionExpireTerm` can't be patched to NULL: %w", core_errors.ErrInvalidArgument)
+		}
+		if err := core_validation.ValidateArray(SessionExpireTimes, *p.SessionExpireTerm.Value); err != nil {
+			return fmt.Errorf("`SessionExpireTerm` isn't valid enum type: %w", core_errors.ErrInvalidArgument)
+		}
+	}
+
+	return nil
+}
+
+func (us *UserSettings) ApplyPatch(patch UserSettingsPatch) (UserSettings, error) {
+	if err := patch.Validate(); err != nil {
+		return UserSettings{}, fmt.Errorf("validate user settings patch: %w", err)
+	}
+
+	var patched UserSettings
+	patched.Version = us.Version
+
+	if patch.SessionExpireTerm.Set {
+		patched.SessionExpireTerm = *patch.SessionExpireTerm.Value
+	}
+
+	return patched, nil
 }
