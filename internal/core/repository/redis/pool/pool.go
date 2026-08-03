@@ -41,7 +41,7 @@ type ConnectionPool struct {
 	timeout time.Duration
 }
 
-func NewConnectionPool(ctx context.Context, cfg Config) (*ConnectionPool, error) {
+func New(ctx context.Context, cfg Config) (*ConnectionPool, error) {
 	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 
 	rdb := redis.NewClient(&redis.Options{

@@ -26,7 +26,7 @@ type ConnectionPool struct {
 	timeout time.Duration
 }
 
-func NewConnectionPool(ctx context.Context, cfg Config) (*ConnectionPool, error) {
+func New(ctx context.Context, cfg Config) (*ConnectionPool, error) {
 	connString := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		cfg.User,

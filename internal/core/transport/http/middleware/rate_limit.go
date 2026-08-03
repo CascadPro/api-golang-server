@@ -71,7 +71,7 @@ func (cfg *RateLimitConfig) Middleware() Middleware {
 				return
 			}
 
-			rdb, err := core_redis_pool.NewConnectionPool(r.Context(), core_redis_pool.NewConfigMust())
+			rdb, err := core_redis_pool.New(r.Context(), core_redis_pool.NewConfigMust())
 			if err != nil {
 				responseHandler.ErrorResponse(err, "failed to init redis connection pool")
 
