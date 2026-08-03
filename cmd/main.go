@@ -13,6 +13,7 @@ import (
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/repository/ipinfo/client"
 	core_ipinfo_pool "github.com/CascadePro/api-golang-server/internal/core/repository/ipinfo/pool"
+	core_mongo_pool "github.com/CascadePro/api-golang-server/internal/core/repository/mongo/pool"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/pool"
 	core_postgres_token "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/token"
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
@@ -70,7 +71,7 @@ func main() {
 
 	// >>> PostgresQL connect start
 	logger.Debug("initializing PostgreSQL connection pool")
-	pgPool, err := core_postgres_pool.NewConnectionPool(ctx, core_postgres_pool.NewConfigMust())
+	pgPool, err := core_postgres_pool.New(ctx, core_postgres_pool.NewConfigMust())
 	if err != nil {
 		logger.Fatal("failed to init PostgreSQL connection pool", zap.Error(err))
 	}
@@ -79,16 +80,25 @@ func main() {
 
 	// >>> Redis connect start
 	logger.Debug("initializing Redis connection pool")
-	rdbPool, err := core_redis_pool.NewConnectionPool(ctx, core_redis_pool.NewConfigMust())
+	rdbPool, err := core_redis_pool.New(ctx, core_redis_pool.NewConfigMust())
 	if err != nil {
 		logger.Fatal("failed to init Redis connection pool", zap.Error(err))
 	}
 	defer rdbPool.Close()
 	// <<< Redis connect end
 
+	// >>> MongoDB connect start
+	logger.Debug("initializing MongoDB connection pool")
+	mongoPool, err := core_mongo_pool.New(ctx, core_mongo_pool.NewConfigMust())
+	if err != nil {
+		logger.Fatal("failed to init MongoDB connection pool", zap.Error(err))
+	}
+	defer mongoPool.Close(ctx)
+	// <<< MongoDB connect end
+
 	// >>> S3 connect start
 	logger.Debug("initializing S3 AWS connection pool")
-	s3Pool, err := core_s3_pool.NewConnectionPool(ctx, core_s3_pool.NewConfigMust())
+	s3Pool, err := core_s3_pool.New(ctx, core_s3_pool.NewConfigMust())
 	if err != nil {
 		logger.Fatal("failed to init S3 AWS connection pool", zap.Error(err))
 	}

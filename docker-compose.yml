@@ -43,12 +43,14 @@ services:
         condition: service_healthy
       cascade-app-redis:
         condition: service_healthy
+      cascade-app-mongo:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 30s
     volumes:
       - ${PROJECT_ROOT}/out/logs:/app/out/logs
     networks:
@@ -67,6 +69,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 30s
     volumes:
       - ${PROJECT_ROOT}/out/pg_data:/var/lib/postgresql/data
     networks:
@@ -85,10 +88,44 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     command: redis-server
     # command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - ${PROJECT_ROOT}/out/redis_data:/data
+    networks:
+      - cascade-pro
+
+  cascade-app-mongo:
+    container_name: cascade-app-mongo-database
+    image: mongo:8.0.28
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB}
+    ports:
+      - 27017:27017
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "localhost:27017/admin",
+          "-u",
+          "${MONGO_USER}",
+          "-p",
+          "${MONGO_PASSWORD}",
+          "--quiet",
+          "--eval",
+          "db.runCommand({ping:1}).ok"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ${PROJECT_ROOT}/out/mongo_data:/data/db
     networks:
       - cascade-pro
 

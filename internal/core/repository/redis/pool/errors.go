@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	ErrNoValue   = errors.New("no value")
+	ErrNoValue   = errors.New("redis no value")
 	ErrRedisDown = errors.New("redis is down")
+	ErrUnknown   = errors.New("unknown redis error")
 )
 
 func MapErrors(err error) error {
@@ -29,7 +30,7 @@ func MapErrors(err error) error {
 		return fmt.Errorf("network failure: %w: %w", ErrRedisDown, err)
 	}
 
-	return fmt.Errorf("redis operation failed: %w", err)
+	return fmt.Errorf("redis operation failed: %v: %w", err, ErrUnknown)
 }
 
 func (p *ConnectionPool) Get(ctx context.Context, key string) (string, error) {

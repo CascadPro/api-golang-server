@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	ErrS3NotFound = errors.New("s3 object not found")
-	ErrS3Conflict = errors.New("s3 conflict or already exists")
-	ErrS3Unknown  = errors.New("unknown s3 error")
+	ErrNotFound = errors.New("s3 object not found")
+	ErrConflict = errors.New("s3 conflict or already exists")
+	ErrUnknown  = errors.New("unknown s3 error")
 )
 
 func MapErrors(err error) error {
@@ -24,15 +24,15 @@ func MapErrors(err error) error {
 
 	var nf *s3types.NotFound
 	if errors.As(err, &nf) {
-		return ErrS3NotFound
+		return fmt.Errorf("%v: %w", nf.Message, ErrNotFound)
 	}
 
-	var alreadyOwnedByYou *s3types.BucketAlreadyOwnedByYou
-	if errors.As(err, &alreadyOwnedByYou) {
-		return ErrS3Conflict
+	var ardOwU *s3types.BucketAlreadyOwnedByYou
+	if errors.As(err, &ardOwU) {
+		return fmt.Errorf("%v: %w", ardOwU.Message, ErrConflict)
 	}
 
-	return fmt.Errorf("%w: %v", ErrS3Unknown, err)
+	return fmt.Errorf("s3 operation failed: %v: %w", err, ErrUnknown)
 }
 
 func (p *ConnectionPool) PutObject(ctx context.Context, key string, body []byte) error {
