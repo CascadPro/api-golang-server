@@ -42,7 +42,7 @@ func (s *Service) GetFile(
 
 	result, err := s.coreS3Repo.GetObject(ctx, key)
 	if err != nil {
-		if errors.Is(err, core_s3_pool.ErrS3NotFound) {
+		if errors.Is(err, core_s3_pool.ErrNotFound) {
 			return domain.File{}, nil, fmt.Errorf("file with id=%s in S3 bucket: %w", fileID, core_errors.ErrNotFound)
 		}
 

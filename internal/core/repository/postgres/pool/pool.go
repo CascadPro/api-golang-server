@@ -15,7 +15,6 @@ type Pool interface {
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
 
-	Begin(ctx context.Context) (pgx.Tx, error)
 	Close()
 
 	OpTimeout() time.Duration

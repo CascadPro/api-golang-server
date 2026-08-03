@@ -16,33 +16,35 @@ const (
 )
 
 var (
-	ErrNoRows                   = errors.New("no rows")
-	ErrViolatesForeignKey       = errors.New("violates foreign key")
-	ErrViolatesUniqueConstraint = errors.New("violates unique constraint")
-	ErrViolatesCheckConstraint  = errors.New("violates check constraint")
-	ErrUnknown                  = errors.New("unknown")
+	ErrNoRows                   = errors.New("postgres no rows")
+	ErrViolatesForeignKey       = errors.New("postgres violates foreign key")
+	ErrViolatesUniqueConstraint = errors.New("postgres violates unique constraint")
+	ErrViolatesCheckConstraint  = errors.New("postgres violates check constraint")
+	ErrUnknown                  = errors.New("unknown postgres error")
 )
 
 func MapErrors(err error) error {
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return ErrNoRows
-		}
+	if err == nil {
+		return nil
+	}
 
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			switch pgErr.Code {
-			case ViolatesForeignKeyErrorCode:
-				return fmt.Errorf("%v: %w", pgErr.Message, ErrViolatesForeignKey)
-			case ViolatesUniqueConstraintErrorCode:
-				return fmt.Errorf("%v: %w", pgErr.Message, ErrViolatesUniqueConstraint)
-			case ViolatesCheckConstraintErrorCode:
-				return fmt.Errorf("%v: %w", pgErr.Message, ErrViolatesCheckConstraint)
-			}
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ErrNoRows
+	}
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		switch pgErr.Code {
+		case ViolatesForeignKeyErrorCode:
+			return fmt.Errorf("%v: %w", pgErr.Message, ErrViolatesForeignKey)
+		case ViolatesUniqueConstraintErrorCode:
+			return fmt.Errorf("%v: %w", pgErr.Message, ErrViolatesUniqueConstraint)
+		case ViolatesCheckConstraintErrorCode:
+			return fmt.Errorf("%v: %w", pgErr.Message, ErrViolatesCheckConstraint)
 		}
 	}
 
-	return fmt.Errorf("%v: %w", err, ErrUnknown)
+	return fmt.Errorf("postgres operation failed: %v: %w", err, ErrUnknown)
 }
 
 func (p *ConnectionPool) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
@@ -67,16 +69,6 @@ func (p *ConnectionPool) Exec(ctx context.Context, sql string, arguments ...any)
 	}
 
 	return tag, nil
-}
-
-func (p *ConnectionPool) Begin(ctx context.Context) (pgx.Tx, error) {
-	tx, err := p.Pool.Begin(ctx)
-
-	if err != nil {
-		return nil, MapErrors(err)
-	}
-
-	return tx, nil
 }
 
 func (p *ConnectionPool) Close() {
