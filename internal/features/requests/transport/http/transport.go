@@ -19,7 +19,40 @@ func NewHttpHandler(requestsService requests_service.ServiceMethods) *HttpHandle
 	}
 }
 
+var (
+	admDirMiddlewares = []core_http_middleware.Middleware{
+		core_http_middleware.Authorization(domain.RoleAdmin, domain.RoleDirector),
+	}
+	admDirClerkMiddlewares = []core_http_middleware.Middleware{
+		core_http_middleware.Authorization(domain.RoleAdmin, domain.RoleDirector, domain.RoleClerk),
+	}
+)
+
 func (h *HttpHandler) Routes() []core_http_server.Route {
 	return []core_http_server.Route{
+		{
+			Method:     http.MethodPatch,
+			Path:       "/{id}/reject",
+			Handler:    h.RejectRequest,
+			Middleware: admDirMiddlewares,
+		},
+		{
+			Method:     http.MethodPatch,
+			Path:       "/{id}/approve",
+			Handler:    h.ApproveRequest,
+			Middleware: admDirMiddlewares,
+		},
+		{
+			Method:     http.MethodPatch,
+			Path:       "/{id}/update",
+			Handler:    h.PatchRequest,
+			Middleware: admDirClerkMiddlewares,
+		},
+		{
+			Method:     http.MethodPost,
+			Path:       "/{id}/upload",
+			Handler:    h.UploadDoc,
+			Middleware: append(admDirMiddlewares, core_http_middleware.Media()),
+		},
 	}
 }
