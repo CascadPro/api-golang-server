@@ -10,7 +10,7 @@ import (
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 )
 
-func GetIntQueryParam(r *http.Request, key string, min *int, max *int) (*int, error) {
+func GetIntQueryParam(r *http.Request, key string, min, max *int) (*int, error) {
 	param := r.URL.Query().Get(key)
 	if param == "" {
 		return nil, nil
@@ -53,5 +53,5 @@ func GetDateQueryParam(r *http.Request, key string) (*time.Time, error) {
 		)
 	}
 
-	return &date, err
+	return &date, nil
 }

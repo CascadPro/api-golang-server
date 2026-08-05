@@ -10,20 +10,21 @@ import (
 )
 
 type Pool interface {
+	Requests() *mongo.Collection
+	Chapters() *mongo.Collection
 	OpTimeout() time.Duration
 
 	Close(ctx context.Context)
 }
 
 type ConnectionPool struct {
-	client  *mongo.Client
-	pool    *mongo.Database
-	timeout time.Duration
-
-	Collections Collections
+	client      *mongo.Client
+	pool        *mongo.Database
+	collections collections
+	timeout     time.Duration
 }
 
-type Collections struct {
+type collections struct {
 	Requests *mongo.Collection
 	Chapters *mongo.Collection
 }
@@ -53,7 +54,7 @@ func New(ctx context.Context, cfg Config) (*ConnectionPool, error) {
 		client:  client,
 		pool:    pool,
 		timeout: cfg.Timeout,
-		Collections: Collections{
+		collections: collections{
 			Requests: pool.Collection("requests"),
 			Chapters: pool.Collection("chapters"),
 		},
@@ -62,6 +63,14 @@ func New(ctx context.Context, cfg Config) (*ConnectionPool, error) {
 
 func (p *ConnectionPool) OpTimeout() time.Duration {
 	return p.timeout
+}
+
+func (p *ConnectionPool) Requests() *mongo.Collection {
+	return p.collections.Requests
+}
+
+func (p *ConnectionPool) Chapters() *mongo.Collection {
+	return p.collections.Chapters
 }
 
 func (p *ConnectionPool) Close(ctx context.Context) {

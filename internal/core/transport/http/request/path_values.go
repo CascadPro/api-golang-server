@@ -8,7 +8,25 @@ import (
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
+	"github.com/google/uuid"
 )
+
+func GetUUIDPathValue(r *http.Request, key string) (uuid.UUID, error) {
+	pathValue := r.PathValue(key)
+	if pathValue == "" {
+		return uuid.Nil, fmt.Errorf("no key='%s' in path values: %w", key, core_errors.ErrInvalidArgument)
+	}
+
+	value, err := uuid.Parse(pathValue)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("key='%s' in path values is not valid UUID: %w", key, err)
+	}
+	if value == uuid.Nil {
+		return uuid.Nil, fmt.Errorf("key='%s' in path values can't be NULL: %w", key, core_errors.ErrInvalidArgument)
+	}
+
+	return value, nil
+}
 
 func GetIDPathValue(r *http.Request, key string, length int) (string, error) {
 	pathValue := r.PathValue(key)
@@ -17,7 +35,7 @@ func GetIDPathValue(r *http.Request, key string, length int) (string, error) {
 	}
 
 	if err := core_validation.ValidateID(pathValue, length); err != nil {
-		return "", fmt.Errorf("key='%s' in path values is not valid ID: %w", key, core_errors.ErrInvalidArgument)
+		return "", fmt.Errorf("key='%s' in path values is not valid ID: %w", key, err)
 	}
 
 	return pathValue, nil
@@ -54,7 +72,7 @@ func GetFileTagPathValue(r *http.Request, key string) (domain.FileTag, error) {
 	fileTag := domain.FileTag(pathValue)
 
 	if err := core_validation.ValidateArray(domain.FileTags, fileTag); err != nil {
-		return domain.FileTagNil, fmt.Errorf("key=%s is not valid `FileTag`: %w", key, core_errors.ErrInvalidArgument)
+		return domain.FileTagNil, fmt.Errorf("key=%s is not valid `FileTag`: %w", key, err)
 	}
 
 	return fileTag, nil
