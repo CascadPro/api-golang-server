@@ -13,6 +13,9 @@ type Repository struct {
 }
 
 type RepositoryMethods interface {
+	CreateRequest(ctx context.Context, request domain.Request) (uuid.UUID, error)
+	GetRequest(ctx context.Context, id uuid.UUID) (domain.Request, error)
+	DeleteRequest(ctx context.Context, id uuid.UUID) error
 }
 
 func NewRepository(pool core_mongo_pool.Pool) *Repository {
