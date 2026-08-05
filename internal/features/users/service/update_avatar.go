@@ -9,11 +9,11 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Service) UpdateAvatar(ctx context.Context, userID uuid.UUID, file *domain.File, content []byte) error {
+func (s *Service) UpdateAvatar(ctx context.Context, userID uuid.UUID, uploadedFile *domain.File, content []byte) error {
 	if userID == uuid.Nil {
 		return fmt.Errorf("`userID` can't be NULL: %w", core_errors.ErrInvalidArgument)
 	}
-	if err := file.Validate(); err != nil {
+	if err := uploadedFile.Validate(); err != nil {
 		return fmt.Errorf("validate file: %w", core_errors.ErrInvalidArgument)
 	}
 
@@ -29,6 +29,11 @@ func (s *Service) UpdateAvatar(ctx context.Context, userID uuid.UUID, file *doma
 		if err := s.mediaService.DeleteFile(ctx, domain.FileTagAvatars, *user.AvatarFileID); err != nil {
 			return fmt.Errorf("delete existing avatar: %w", err)
 		}
+	}
+
+	file, err := s.mediaService.UploadFile(ctx, uploadedFile, content)
+	if err != nil {
+		return fmt.Errorf("upload file to repository: %w", err)
 	}
 
 	patch := domain.NewAvatarUserPatch(domain.NewNullable(file.ID))

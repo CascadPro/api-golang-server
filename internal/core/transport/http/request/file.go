@@ -39,9 +39,5 @@ func GetFile(rw http.ResponseWriter, r *http.Request, maxSize int64) (*domain.Fi
 
 	file := domain.NewUploadFile(fileHeader.Filename, tag, mimeType, int(len(content)))
 
-	if err := file.GeneratePlaceholder(content); err != nil {
-		return nil, nil, fmt.Errorf("generate file placeholder: %w", err)
-	}
-
 	return &file, content, nil
 }

@@ -48,11 +48,11 @@ func GetJwtTokenClaims[TP jwt.Claims](tokenString string) (*TP, error) {
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("parse jwt token: %w", err)
+		return nil, fmt.Errorf("parse jwt token: %v: %w", err, core_errors.ErrUnauthorized)
 	}
 
 	if token == nil || !token.Valid {
-		return nil, fmt.Errorf("invalid token")
+		return nil, fmt.Errorf("invalid token: %w", core_errors.ErrUnauthorized)
 	}
 
 	if v, ok := token.Claims.(core_validation.Validatable); ok {

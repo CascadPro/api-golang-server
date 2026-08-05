@@ -11,7 +11,9 @@ import (
 	settings_http_dto "github.com/CascadePro/api-golang-server/internal/features/settings/transport/http/dto"
 )
 
-type PatchUserSettingsRequest settings_http_dto.PatchUserSettingsRequest
+type PatchUserSettingsRequest struct {
+	settings_http_dto.PatchUserSettingsRequest
+}
 
 // PatchUserSettings godoc
 // @Summary      Patch user settings
