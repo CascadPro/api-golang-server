@@ -8,7 +8,15 @@ import (
 	"unicode"
 
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	"github.com/nyaruka/phonenumbers"
 )
+
+type PhoneInfo struct {
+	E164         string `json:"e164"`
+	CountryCode  string `json:"country_code"`
+	OperatorCode string `json:"operator_code"`
+	Subscriber   string `json:"subscriber"`
+}
 
 const (
 	NameMinLen int = 2
@@ -122,9 +130,59 @@ func ValidateInteger(x int, fieldName string, min *int, max *int) error {
 		return fmt.Errorf("`%s` must be greater than or equal %d: %w", fieldName, *min, core_errors.ErrInvalidArgument)
 	}
 
-	if max != nil && x < *max {
+	if max != nil && x > *max {
 		return fmt.Errorf("`%s` must be less than or equal %d: %w", fieldName, *min, core_errors.ErrInvalidArgument)
 	}
 
 	return nil
+}
+
+func ValidatePhoneNumber(raw string) (*PhoneInfo, error) {
+	if strings.TrimSpace(raw) == "" {
+		return nil, fmt.Errorf("phone number is empty: %w", core_errors.ErrInvalidArgument)
+	}
+
+	num, err := phonenumbers.Parse(raw, "")
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse phone number: %v: %w", err, core_errors.ErrInvalidArgument)
+	}
+
+	if !phonenumbers.IsValidNumber(num) {
+		return nil, fmt.Errorf("phone number is not valid: %w", core_errors.ErrInvalidArgument)
+	}
+
+	e164 := phonenumbers.Format(num, phonenumbers.E164)
+
+	countryCode := fmt.Sprintf("%d", num.GetCountryCode())
+
+	national := fmt.Sprintf("%d", num.GetNationalNumber())
+
+	operatorPrefixLen := map[string]int{
+		"7":   3,
+		"375": 3,
+	}
+
+	prefixLen := 0
+	if l, ok := operatorPrefixLen[countryCode]; ok {
+		prefixLen = l
+	} else {
+		if len(national) > 7 {
+			prefixLen = 3
+		}
+	}
+
+	var operator, subscriber string
+	if prefixLen > 0 && len(national) > prefixLen {
+		operator = national[:prefixLen]
+		subscriber = national[prefixLen:]
+	} else {
+		subscriber = national
+	}
+
+	return &PhoneInfo{
+		E164:         e164,
+		CountryCode:  countryCode,
+		OperatorCode: operator,
+		Subscriber:   subscriber,
+	}, nil
 }
