@@ -59,6 +59,28 @@ type Request struct {
 	UpdatedAt time.Time
 }
 
+type RequestOrigin struct {
+	Type  RequestOriginType
+	Value string
+}
+
+func NewCreateRequest(title string) Request {
+	return Request{
+		ID:      UninitializedUUID,
+		Version: UninitializedVersion,
+		Status:  RequestStatusDefault,
+		Title:   title,
+	}
+}
+
+func NewStatusPatchRequest(version int, status RequestStatus, userID uuid.UUID) Request {
+	return Request{
+		Version:  version,
+		Status:   status,
+		StatusBy: &userID,
+	}
+}
+
 func (r *Request) Validate() error {
 	if err := core_validation.ValidateStringLength(&r.Title, "Title", 1, 255); err != nil {
 		return err

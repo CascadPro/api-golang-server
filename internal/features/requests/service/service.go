@@ -15,7 +15,10 @@ type Service struct {
 }
 
 type ServiceMethods interface {
+	RejectRequest(context.Context, uuid.UUID) error
+	ApproveRequest(context.Context, uuid.UUID) error
 	PatchRequest(context.Context, uuid.UUID, domain.RequestPatch) (domain.Request, error)
+	UploadDoc(context.Context, uuid.UUID, domain.File, []byte, int) error
 }
 
 func NewService(
