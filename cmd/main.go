@@ -161,6 +161,16 @@ func main() {
 
 	settingsRouter.RegisterRoutes(settingsHttpHandler.Routes()...)
 
+	// Requests route
+	logFeatureInit(logger, "requests", "/api/v1/requests")
+	requestsRouter := core_http_server.NewRouter("/requests", rootRateLimit.Middleware())
+
+	requestsMongoRepository := requests_mongo_repository.NewRepository(mongoPool)
+	requestsService := requests_service.NewService(mediaService, requestsMongoRepository)
+	requestsHttpHandler := requests_transport_http.NewHttpHandler(requestsService)
+
+	requestsRouter.RegisterRoutes(requestsHttpHandler.Routes()...)
+
 	// Sessions route
 	logFeatureInit(logger, "sessions", "/api/v1/sessions")
 	sessionsRouter := core_http_server.NewRouter("/sessions", core_http_middleware.Authorization())
