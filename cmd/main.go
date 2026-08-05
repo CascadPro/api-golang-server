@@ -26,6 +26,9 @@ import (
 	media_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/media/repository/postgres"
 	media_service "github.com/CascadePro/api-golang-server/internal/features/media/service"
 	media_transport_http "github.com/CascadePro/api-golang-server/internal/features/media/transport/http"
+	requests_mongo_repository "github.com/CascadePro/api-golang-server/internal/features/requests/repository/mongo"
+	requests_service "github.com/CascadePro/api-golang-server/internal/features/requests/service"
+	requests_transport_http "github.com/CascadePro/api-golang-server/internal/features/requests/transport/http"
 	root_transport_http "github.com/CascadePro/api-golang-server/internal/features/root/transport/http"
 	sessions_redis_repository "github.com/CascadePro/api-golang-server/internal/features/sessions/repository/redis"
 	session_service "github.com/CascadePro/api-golang-server/internal/features/sessions/service"
@@ -206,7 +209,7 @@ func main() {
 	)
 
 	apiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRouters(sessionsRouter, authRouter, usersRouter, settingsRouter)
+	apiVersionRouter.RegisterRouters(sessionsRouter, authRouter, usersRouter, settingsRouter, requestsRouter)
 
 	httpServer.RegisterRouters(rootRouter, mediaRouter)
 	httpServer.RegisterApiRouters(apiVersionRouter)

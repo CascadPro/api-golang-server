@@ -15,6 +15,7 @@ type Service struct {
 }
 
 type ServiceMethods interface {
+	PatchRequest(context.Context, uuid.UUID, domain.RequestPatch) (domain.Request, error)
 }
 
 func NewService(

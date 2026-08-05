@@ -130,3 +130,89 @@ func validateDocID(id *string, field string) error {
 	return nil
 }
 
+type RequestPatch struct {
+	Title              Nullable[string]
+	Origin             Nullable[[]RequestOrigin]
+	ClientID           Nullable[uuid.UUID]
+	TechTaskDocID      Nullable[string]
+	ProjectDocID       Nullable[string]
+	SpecificationDocID Nullable[string]
+	WorkTypes          Nullable[[]string]
+	Geography          Nullable[[]string]
+	ContractDocID      Nullable[string]
+	Deadline           Nullable[time.Time]
+}
+
+func (p *RequestPatch) Validate() error {
+	if p.Title.Set && p.Title.Value == nil {
+		return fmt.Errorf("`Title` can't be patched to NULL: %w", core_errors.ErrInvalidArgument)
+	}
+
+	return nil
+}
+
+func (r *Request) ApplyPatch(patch RequestPatch) error {
+	if err := patch.Validate(); err != nil {
+		return fmt.Errorf("validate request patch: %w", err)
+	}
+
+	tmp := *r
+
+	if patch.Title.Set {
+		tmp.Title = *patch.Title.Value
+	}
+	if patch.Origin.Set {
+		tmp.Origin = *patch.Origin.Value
+	}
+	if patch.ClientID.Set {
+		tmp.ClientID = patch.ClientID.Value
+	}
+	if patch.TechTaskDocID.Set {
+		tmp.TechTaskDocID = patch.TechTaskDocID.Value
+	}
+	if patch.ProjectDocID.Set {
+		tmp.ProjectDocID = patch.ProjectDocID.Value
+	}
+	if patch.SpecificationDocID.Set {
+		tmp.SpecificationDocID = patch.SpecificationDocID.Value
+	}
+	if patch.WorkTypes.Set {
+		tmp.WorkTypes = *patch.WorkTypes.Value
+	}
+	if patch.Geography.Set {
+		tmp.Geography = *patch.Geography.Value
+	}
+	if patch.ContractDocID.Set {
+		tmp.ContractDocID = patch.ContractDocID.Value
+	}
+	if patch.Deadline.Set {
+		tmp.Deadline = patch.Deadline.Value
+	}
+
+	if err := tmp.Validate(); err != nil {
+		return fmt.Errorf("validate request after applying patch: %w", err)
+	}
+
+	*r = tmp
+
+	return nil
+}
+
+type RequestQueryFilter struct {
+	Status []RequestStatus
+	Sort   SortType
+}
+
+func (f *RequestQueryFilter) Validate() error {
+	if f.Sort != SortTypeNil {
+		if err := core_validation.ValidateArray(SortTypes, f.Sort); err != nil {
+			return fmt.Errorf("`SortType` isn't valid enum type: %w", err)
+		}
+	}
+
+	if length := len(f.Status); length > 0 && length < len(RequestStatuses) {
+		return fmt.Errorf("`Status` length can't be more than total existing statuses: %w", core_errors.ErrInvalidArgument)
+	}
+
+	return nil
+}

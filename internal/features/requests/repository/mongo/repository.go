@@ -15,6 +15,7 @@ type Repository struct {
 type RepositoryMethods interface {
 	CreateRequest(ctx context.Context, request domain.Request) (uuid.UUID, error)
 	GetRequest(ctx context.Context, id uuid.UUID) (domain.Request, error)
+	PatchRequest(ctx context.Context, id uuid.UUID, request domain.Request) error
 	DeleteRequest(ctx context.Context, id uuid.UUID) error
 }
 
