@@ -4,6 +4,7 @@
 
 .env.example
 /scripts/*.example.*
+/.gigacode_vsc
 
 TODO.md
 PROJECT_TREE.md

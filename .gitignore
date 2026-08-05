@@ -3,6 +3,7 @@
 /docs
 
 /scripts/mongo-init.js
+/.gigacode_vsc
 
 .env
 TODO.md
