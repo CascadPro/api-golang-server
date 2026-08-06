@@ -14,7 +14,7 @@ import (
 
 type GetRequestsRequest request_http_dto.GetRequestsRequest
 
-type GetRequestsResponse request_http_dto.GetRequestResponse
+type GetRequestsResponse request_http_dto.GetRequestsResponse
 
 func (h *HttpHandler) GetRequests(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -63,7 +63,7 @@ func requestsDomainFromDTO(request GetRequestsRequest) (int, int, domain.Request
 func requestsDTOFromDomain(requests []domain.Request, ceil int64) GetRequestsResponse {
 	reqs := make([]request_http_dto.GetRequestsResponseRequest, len(requests))
 	for i, req := range requests {
-		reqs[i] = request_http_dto.RequestResponseFromDomain(req)
+		reqs[i] = request_http_dto.RequestsResponseFromDomain(req)
 	}
 
 	return GetRequestsResponse{

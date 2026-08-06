@@ -36,6 +36,12 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 			Middleware: defaultMiddlewares,
 		},
 		{
+			Method:     core_http.MethodGet,
+			Path:       "/{id}",
+			Handler:    h.GetRequest,
+			Middleware: defaultMiddlewares,
+		},
+		{
 			Method:     core_http.MethodPatch,
 			Path:       "/{id}/reject",
 			Handler:    h.RejectRequest,

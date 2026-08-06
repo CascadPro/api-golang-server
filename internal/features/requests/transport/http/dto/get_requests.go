@@ -14,7 +14,7 @@ type GetRequestsRequest struct {
 	Statuses []domain.RequestStatus `json:"statuses" validate:"omitempty,max=4,unique"`
 }
 
-type GetRequestResponse struct {
+type GetRequestsResponse struct {
 	Requests    []GetRequestsResponseRequest `json:"requests"`
 	TotalLength int64                        `json:"length" example:"length"`
 }
@@ -25,9 +25,9 @@ type GetRequestsResponseRequest struct {
 	StatusBy  *uuid.UUID                  `json:"status_by,omitempty" example:"00000000-000000-000000-000000000000"`
 	Title     string                      `json:"title"               example:"New Request"`
 	Origin    []GetRequestsResponseOrigin `json:"origin,omitempty"`
-	Deadline  *time.Time                  `json:"deadline,omitempty"  example:"2006-01-02T15-04-05.000000'"`
-	CreatedAt time.Time                   `json:"created_at"          example:"2006-01-02T15-04-05.000000'"`
-	UpdatedAt time.Time                   `json:"updated_at"          example:"2006-01-02T15-04-05.000000'"`
+	Deadline  *time.Time                  `json:"deadline,omitempty"  example:"2006-01-02T15-04-05.000000"`
+	CreatedAt time.Time                   `json:"created_at"          example:"2006-01-02T15-04-05.000000"`
+	UpdatedAt time.Time                   `json:"updated_at"          example:"2006-01-02T15-04-05.000000"`
 }
 
 type GetRequestsResponseOrigin struct {
@@ -35,7 +35,7 @@ type GetRequestsResponseOrigin struct {
 	Value string                   `json:"value" example:"test@example.com"`
 }
 
-func RequestResponseFromDomain(request domain.Request) GetRequestsResponseRequest {
+func RequestsResponseFromDomain(request domain.Request) GetRequestsResponseRequest {
 	response := GetRequestsResponseRequest{
 		ID:        request.ID,
 		Status:    request.Status,
