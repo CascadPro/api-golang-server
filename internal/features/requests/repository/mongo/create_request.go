@@ -19,6 +19,8 @@ func (r *Repository) CreateRequest(ctx context.Context, request domain.Request) 
 
 	model := domainToModel(request)
 
+	model.CalcRequiredEmptyFields()
+
 	if _, err := r.pool.Requests().InsertOne(ctx, model); err != nil {
 		return uuid.Nil, fmt.Errorf("mongo insert one: %w", core_mongo_pool.MapErrors(err))
 	}

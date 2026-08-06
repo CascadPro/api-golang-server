@@ -25,6 +25,8 @@ type RequestModel struct {
 	Deadline      *time.Time `bson:"deadline,omitempty"`
 	StatusBy      *string    `bson:"status_by,omitempty"`
 
+	requiredEmptyFields []string `bson:"required_empty_fields"`
+
 	CreatedAt time.Time `bson:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at"`
 }
@@ -38,6 +40,38 @@ type RequestModelDocs struct {
 	TechTaskDocID      *string `bson:"tech_task,omitempty"`
 	ProjectDocID       *string `bson:"project,omitempty"`
 	SpecificationDocID *string `bson:"specification,omitempty"`
+}
+
+func (m *RequestModel) CalcRequiredEmptyFields() {
+	fields := make([]string, 0, 7)
+
+	if len(m.Origin) == 0 {
+		fields = append(fields, "origin")
+	}
+	if len(m.WorkTypes) == 0 {
+		fields = append(fields, "work_types")
+	}
+	if len(m.Geography) == 0 {
+		fields = append(fields, "geo_desc")
+	}
+	if m.ClientID == nil || *m.ClientID == "" {
+		fields = append(fields, "client")
+	}
+	if m.Docs.ProjectDocID == nil {
+		fields = append(fields, "docs.project")
+	}
+	if m.Docs.TechTaskDocID == nil {
+		fields = append(fields, "docs.tech_task")
+	}
+	if m.Docs.SpecificationDocID == nil {
+		fields = append(fields, "docs.specification")
+	}
+
+	m.requiredEmptyFields = fields
+}
+
+func (m *RequestModel) GetRequiredEmptyFields() []string {
+	return m.requiredEmptyFields
 }
 
 func domainToModel(request domain.Request) RequestModel {

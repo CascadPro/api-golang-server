@@ -9,6 +9,8 @@ import (
 
 type GetRequestResponse struct {
 	GetRequestsResponseRequest
+	WorkTypes []string `json:"work_types,omitempty"`
+	Geography []string `json:"geography_description,omitempty"`
 
 	Docs     *GetRequestResponseDocs `json:"docs,omitempty"`
 	StatusBy *GetRequestResponseUser `json:"status_by,omitempty"`
@@ -40,15 +42,10 @@ type GetRequestResponseDocsFile struct {
 func RequestResponseFromDomain(request domain.Request, user domain.User, files *map[int]domain.File) GetRequestResponse {
 	var response GetRequestResponse
 
-	response.GetRequestsResponseRequest = GetRequestsResponseRequest{
-		ID:        request.ID,
-		Status:    request.Status,
-		StatusBy:  request.StatusBy,
-		Title:     request.Title,
-		Deadline:  request.Deadline,
-		CreatedAt: request.CreatedAt,
-		UpdatedAt: request.UpdatedAt,
-	}
+	response.GetRequestsResponseRequest = RequestsResponseFromDomain(request)
+
+	response.WorkTypes = request.WorkTypes
+	response.Geography = request.Geography
 
 	if request.StatusBy != nil && *request.StatusBy != uuid.Nil {
 		response.StatusBy = &GetRequestResponseUser{
@@ -58,6 +55,14 @@ func RequestResponseFromDomain(request domain.Request, user domain.User, files *
 			Surname:      user.Surname,
 			AvatarFileID: user.AvatarFileID,
 		}
+	}
+
+	if len(request.Origin) > 0 {
+		origins := make([]GetRequestsResponseOrigin, len(request.Origin))
+		for i, origin := range request.Origin {
+			origins[i] = GetRequestsResponseOrigin(origin)
+		}
+		response.Origin = origins
 	}
 
 	var docs GetRequestResponseDocs
