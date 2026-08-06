@@ -11,6 +11,10 @@ import (
 	"github.com/nyaruka/phonenumbers"
 )
 
+type Validatable interface {
+	Validate() error
+}
+
 type PhoneInfo struct {
 	E164         string `json:"e164"`
 	CountryCode  string `json:"country_code"`

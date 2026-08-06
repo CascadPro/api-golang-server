@@ -9,7 +9,6 @@ import (
 	"time"
 
 	core_config "github.com/CascadePro/api-golang-server/internal/core/config"
-	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/repository/ipinfo/client"
 	core_ipinfo_pool "github.com/CascadePro/api-golang-server/internal/core/repository/ipinfo/pool"
@@ -20,7 +19,7 @@ import (
 	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/repository/s3/pool"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
-	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
+	core_validation_init "github.com/CascadePro/api-golang-server/internal/core/validation/init"
 	auth_service "github.com/CascadePro/api-golang-server/internal/features/auth/service"
 	auth_transport_http "github.com/CascadePro/api-golang-server/internal/features/auth/transport/http"
 	media_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/media/repository/postgres"
@@ -116,7 +115,7 @@ func main() {
 	// <<< IP Info connect end
 
 	logger.Debug("initializing app validator")
-	err = core_validation.InitValidator(domain.Roles, domain.SessionIDByteLength)
+	err = core_validation_init.InitValidator()
 	if err != nil {
 		logger.Fatal("failed to inti validator", zap.Error(err))
 	}
