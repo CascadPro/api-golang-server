@@ -1,9 +1,9 @@
 package users_transport_http
 
 import (
-	"net/http"
 	"time"
 
+	core_http "github.com/CascadePro/api-golang-server/internal/core/transport/http"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
 	users_service "github.com/CascadePro/api-golang-server/internal/features/users/service"
@@ -24,18 +24,18 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 
 	return []core_http_server.Route{
 		{
-			Method:  http.MethodGet,
+			Method:  core_http.MethodGet,
 			Path:    "/my",
 			Handler: h.GetCurrentUser,
 		},
 		{
-			Method:     http.MethodPatch,
+			Method:     core_http.MethodPatch,
 			Path:       "/avatar",
 			Handler:    h.UpdateAvatar,
 			Middleware: []core_http_middleware.Middleware{core_http_middleware.Media(), avatarRateLimit.Middleware()},
 		},
 		{
-			Method:     http.MethodDelete,
+			Method:     core_http.MethodDelete,
 			Path:       "/avatar/delete",
 			Handler:    h.DeleteAvatar,
 			Middleware: []core_http_middleware.Middleware{avatarRateLimit.Middleware()},

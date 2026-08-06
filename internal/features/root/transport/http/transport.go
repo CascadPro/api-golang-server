@@ -1,8 +1,7 @@
 package root_transport_http
 
 import (
-	"net/http"
-
+	core_http "github.com/CascadePro/api-golang-server/internal/core/transport/http"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
 )
 
@@ -15,12 +14,12 @@ func NewHttpHandler() *HttpHandler {
 func (h *HttpHandler) Routes() []core_http_server.Route {
 	return []core_http_server.Route{
 		{
-			Method:  http.MethodGet,
+			Method:  core_http.MethodGet,
 			Path:    "/",
 			Handler: h.Root,
 		},
 		{
-			Method:  http.MethodGet,
+			Method:  core_http.MethodGet,
 			Path:    "/ping",
 			Handler: h.Ping,
 		},

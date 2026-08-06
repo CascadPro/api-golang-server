@@ -1,9 +1,8 @@
 package requests_transport_http
 
 import (
-	"net/http"
-
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_http "github.com/CascadePro/api-golang-server/internal/core/transport/http"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
 	requests_service "github.com/CascadePro/api-golang-server/internal/features/requests/service"
@@ -31,31 +30,31 @@ var (
 func (h *HttpHandler) Routes() []core_http_server.Route {
 	return []core_http_server.Route{
 		{
-			Method:     "QUERY",
+			Method:     core_http.MethodQuery,
 			Path:       "/",
 			Handler:    h.GetRequests,
 			Middleware: defaultMiddlewares,
 		},
 		{
-			Method:     http.MethodPatch,
+			Method:     core_http.MethodPatch,
 			Path:       "/{id}/reject",
 			Handler:    h.RejectRequest,
 			Middleware: adminMiddlewares,
 		},
 		{
-			Method:     http.MethodPatch,
+			Method:     core_http.MethodPatch,
 			Path:       "/{id}/approve",
 			Handler:    h.ApproveRequest,
 			Middleware: adminMiddlewares,
 		},
 		{
-			Method:     http.MethodPatch,
+			Method:     core_http.MethodPatch,
 			Path:       "/{id}/update",
 			Handler:    h.PatchRequest,
 			Middleware: defaultMiddlewares,
 		},
 		{
-			Method:     http.MethodPost,
+			Method:     core_http.MethodPost,
 			Path:       "/{id}/upload",
 			Handler:    h.UploadDoc,
 			Middleware: append(adminMiddlewares, core_http_middleware.Media()),
