@@ -11,6 +11,19 @@ import (
 
 type GetRequestResponse request_http_dto.GetRequestResponse
 
+// GetRequest godoc
+// @Summary      Get request
+// @Description  Get request by ID
+// @Tags         requests
+// @Param        id path string true "Request ID"
+// @Produce      json
+// @Success      200 {object} GetRequestResponse "Request"
+// @Failure      400 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"
+// @Failure      404 {object} core_http_response.ErrorResponse "Request not found"
+// @Failure      429 {object} core_http_response.ErrorResponse "Too many requests"
+// @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router       /requests/{id} [get]
 func (h *HttpHandler) GetRequest(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

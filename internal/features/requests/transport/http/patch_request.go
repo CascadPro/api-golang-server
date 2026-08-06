@@ -14,6 +14,21 @@ type PatchRequestRequest struct {
 	request_http_dto.PatchRequestRequest
 }
 
+// PatchRequest godoc
+// @Summary      Patch request
+// @Description  Patch request by ID
+// @Tags         requests
+// @Accept			 json
+// @Param        id path string true "Request ID"
+// @Param 			 request body PatchRequestRequest true "Patch request body"
+// @Success      204 "Patched request"
+// @Failure      400 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"
+// @Failure      404 {object} core_http_response.ErrorResponse "Request not found"
+// @Failure 		 409 {object} core_http_response.ErrorResponse "Conflict error"
+// @Failure      429 {object} core_http_response.ErrorResponse "Too many requests"
+// @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router       /requests/{id}/update [patch]
 func (h *HttpHandler) PatchRequest(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

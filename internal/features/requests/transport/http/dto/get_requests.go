@@ -16,7 +16,7 @@ type GetRequestsRequest struct {
 
 type GetRequestsResponse struct {
 	Requests    []GetRequestsResponseRequest `json:"requests"`
-	TotalLength int64                        `json:"length" example:"length"`
+	TotalLength int64                        `json:"length" example:"1"`
 }
 
 type GetRequestsResponseRequest struct {

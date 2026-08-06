@@ -16,6 +16,20 @@ type GetRequestsRequest request_http_dto.GetRequestsRequest
 
 type GetRequestsResponse request_http_dto.GetRequestsResponse
 
+// GetRequests godoc
+// @Summary      Get requests
+// @Description  Get requests with filters
+// @Tags         requests
+// @Accept			 json
+// @Produce      json
+// @Param 			 request body GetRequestsRequest false "Get requests filters"
+// @Success      200 {object} GetRequestsResponse "Requests"
+// @Failure      400 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"
+// @Failure      404 {object} core_http_response.ErrorResponse "Request not found"
+// @Failure      429 {object} core_http_response.ErrorResponse "Too many requests"
+// @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router       /requests [get] "QUERY"
 func (h *HttpHandler) GetRequests(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

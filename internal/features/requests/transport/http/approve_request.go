@@ -9,6 +9,19 @@ import (
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
 )
 
+// ApproveRequest godoc
+// @Summary      Approve a request
+// @Description  Approve a request by ID
+// @Tags         requests
+// @Param        id path string true "Request ID"
+// @Success      204 "Approved request"
+// @Failure      400 {object} core_http_response.ErrorResponse "Bad request"
+// @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"
+// @Failure      404 {object} core_http_response.ErrorResponse "Request not found"
+// @Failure 		 409 {object} core_http_response.ErrorResponse "Conflict error"
+// @Failure      429 {object} core_http_response.ErrorResponse "Too many requests"
+// @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
+// @Router       /requests/{id}/approve [patch]
 func (h *HttpHandler) ApproveRequest(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
