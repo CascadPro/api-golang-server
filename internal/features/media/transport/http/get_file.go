@@ -37,7 +37,7 @@ func (h *HttpHandler) GetFile(rw http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	file, content, err := h.mediaService.GetFile(ctx, fileTag, fileID, width, height, quality)
+	file, content, err := h.mediaService.GetFileContent(ctx, fileID, width, height, quality)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get file")
 		return

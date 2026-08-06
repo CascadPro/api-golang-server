@@ -53,7 +53,8 @@ func (h *ResponseHandler) ErrorResponse(err error, msg string) {
 	)
 
 	switch {
-	case errors.Is(err, core_errors.ErrInvalidArgument):
+	case errors.Is(err, core_errors.ErrInvalidArgument),
+		errors.Is(err, core_errors.ErrEmptyRequestBody):
 		statusCode = http.StatusBadRequest
 		logFunc = h.log.Warn
 

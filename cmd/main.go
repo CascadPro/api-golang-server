@@ -9,7 +9,6 @@ import (
 	"time"
 
 	core_config "github.com/CascadePro/api-golang-server/internal/core/config"
-	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/repository/ipinfo/client"
 	core_ipinfo_pool "github.com/CascadePro/api-golang-server/internal/core/repository/ipinfo/pool"
@@ -20,12 +19,15 @@ import (
 	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/repository/s3/pool"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
-	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
+	core_validation_init "github.com/CascadePro/api-golang-server/internal/core/validation/init"
 	auth_service "github.com/CascadePro/api-golang-server/internal/features/auth/service"
 	auth_transport_http "github.com/CascadePro/api-golang-server/internal/features/auth/transport/http"
 	media_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/media/repository/postgres"
 	media_service "github.com/CascadePro/api-golang-server/internal/features/media/service"
 	media_transport_http "github.com/CascadePro/api-golang-server/internal/features/media/transport/http"
+	requests_mongo_repository "github.com/CascadePro/api-golang-server/internal/features/requests/repository/mongo"
+	requests_service "github.com/CascadePro/api-golang-server/internal/features/requests/service"
+	requests_transport_http "github.com/CascadePro/api-golang-server/internal/features/requests/transport/http"
 	root_transport_http "github.com/CascadePro/api-golang-server/internal/features/root/transport/http"
 	sessions_redis_repository "github.com/CascadePro/api-golang-server/internal/features/sessions/repository/redis"
 	session_service "github.com/CascadePro/api-golang-server/internal/features/sessions/service"
@@ -113,7 +115,7 @@ func main() {
 	// <<< IP Info connect end
 
 	logger.Debug("initializing app validator")
-	err = core_validation.InitValidator(domain.Roles, domain.SessionIDByteLength)
+	err = core_validation_init.InitValidator()
 	if err != nil {
 		logger.Fatal("failed to inti validator", zap.Error(err))
 	}
@@ -161,6 +163,16 @@ func main() {
 
 	settingsRouter.RegisterRoutes(settingsHttpHandler.Routes()...)
 
+	// Requests route
+	logFeatureInit(logger, "requests", "/api/v1/requests")
+	requestsRouter := core_http_server.NewRouter("/requests", rootRateLimit.Middleware())
+
+	requestsMongoRepository := requests_mongo_repository.NewRepository(mongoPool)
+	requestsService := requests_service.NewService(mediaService, usersPostgresRepository, requestsMongoRepository)
+	requestsHttpHandler := requests_transport_http.NewHttpHandler(requestsService)
+
+	requestsRouter.RegisterRoutes(requestsHttpHandler.Routes()...)
+
 	// Sessions route
 	logFeatureInit(logger, "sessions", "/api/v1/sessions")
 	sessionsRouter := core_http_server.NewRouter("/sessions", core_http_middleware.Authorization())
@@ -196,7 +208,7 @@ func main() {
 	)
 
 	apiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRouters(sessionsRouter, authRouter, usersRouter, settingsRouter)
+	apiVersionRouter.RegisterRouters(sessionsRouter, authRouter, usersRouter, settingsRouter, requestsRouter)
 
 	httpServer.RegisterRouters(rootRouter, mediaRouter)
 	httpServer.RegisterApiRouters(apiVersionRouter)

@@ -3,10 +3,10 @@ package domain
 import "github.com/google/uuid"
 
 var (
-	UninitializedUUID      = uuid.Nil
-	UninitializedID        = ""
-	UninitializedVersion   = -1
-	UninitializedRole      = RoleRegular
-	UninitializedTokenType = TokenTypeNil
-	UninitializedFileTag   = FileTagNil
+	UninitializedUUID      uuid.UUID = uuid.Nil
+	UninitializedID        string    = ""
+	UninitializedVersion   int64     = -1
+	UninitializedRole      UserRole  = RoleRegular
+	UninitializedTokenType TokenType = TokenTypeNil
+	UninitializedFileTag   FileTag   = FileTagNil
 )

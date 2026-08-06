@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	core_config "github.com/CascadePro/api-golang-server/internal/core/config"
+	core_http "github.com/CascadePro/api-golang-server/internal/core/transport/http"
 )
 
 func CORS() Middleware {
@@ -16,10 +17,14 @@ func CORS() Middleware {
 			}
 
 			allowedOrigins := map[string]struct{}{}
-			allowedMethods := []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"}
+			allowedMethods := make([]string, len(core_http.AllowedMethods))
 
 			for allowedOrigin := range strings.SplitSeq(cfg.AllowedOrigins, ",") {
 				allowedOrigins[strings.TrimSpace(allowedOrigin)] = struct{}{}
+			}
+
+			for i, method := range core_http.AllowedMethods {
+				allowedMethods[i] = string(method)
 			}
 
 			origin := r.Header.Get("Origin")
@@ -30,7 +35,7 @@ func CORS() Middleware {
 				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 			}
 
-			if r.Method == http.MethodOptions {
+			if r.Method == string(core_http.MethodOptions) {
 				w.WriteHeader(http.StatusOK)
 				return
 			}

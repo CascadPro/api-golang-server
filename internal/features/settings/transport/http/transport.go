@@ -1,8 +1,7 @@
 package settings_transport_http
 
 import (
-	"net/http"
-
+	core_http "github.com/CascadePro/api-golang-server/internal/core/transport/http"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
 	settings_service "github.com/CascadePro/api-golang-server/internal/features/settings/service"
 )
@@ -20,12 +19,12 @@ func NewHttpHandler(settingsService settings_service.ServiceMethods) *HttpHandle
 func (h *HttpHandler) Routes() []core_http_server.Route {
 	return []core_http_server.Route{
 		{
-			Method:  http.MethodGet,
+			Method:  core_http.MethodGet,
 			Path:    "/user/my",
 			Handler: h.GetUserSettings,
 		},
 		{
-			Method:  http.MethodPatch,
+			Method:  core_http.MethodPatch,
 			Path:    "/user/update",
 			Handler: h.PatchUserSettings,
 		},

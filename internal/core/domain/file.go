@@ -46,12 +46,12 @@ var (
 
 type File struct {
 	ID      string
-	Version int
+	Version int64
 
 	Tag      FileTag
 	Filename string
 	MimeType FileMimeType
-	Size     int
+	Size     int64
 
 	placeholder []byte
 
@@ -62,7 +62,7 @@ type File struct {
 	UpdatedAt time.Time
 }
 
-func NewUploadFile(filename string, tag FileTag, mimeType FileMimeType, size int) File {
+func NewUploadFile(filename string, tag FileTag, mimeType FileMimeType, size int64) File {
 	return File{
 		ID:       UninitializedID,
 		Version:  UninitializedVersion,

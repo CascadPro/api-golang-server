@@ -20,8 +20,8 @@ var (
 	allowedMimes = []domain.FileMimeType{
 		domain.FileMimeTypeJpeg,
 		domain.FileMimeTypePng,
-		domain.FileMimeTypeGif,
 		domain.FileMimeTypeWebp,
+		domain.FileMimeTypeGif,
 		domain.FileMimeTypeMMp4,
 		domain.FileMimeTypePdf,
 		domain.FileMimeTypeDocx,
@@ -30,6 +30,13 @@ var (
 	}
 
 	allowedTags = []domain.FileTag{domain.FileTagAvatars, domain.FileTagDocs, domain.FileTagImages, domain.FileTagVideos}
+
+	allowedMimesByTag = map[domain.FileTag][]domain.FileMimeType{
+		domain.FileTagAvatars: allowedMimes[:4],
+		domain.FileTagImages:  allowedMimes[:3],
+		domain.FileTagVideos:  allowedMimes[4:5],
+		domain.FileTagDocs:    allowedMimes[5:],
+	}
 )
 
 // MediaMiddleware validates multipart uploads.
@@ -127,13 +134,21 @@ func Media() Middleware {
 
 			if err := core_validation.ValidateArray(allowedMimes, mime); err != nil {
 				responseHandler.ErrorResponse(
-					wrapValidationError(fmt.Errorf("file format '%s': %w", tag, err)),
+					fmt.Errorf("file format '%s': %w", tag, err),
 					"failed to validate file format",
 				)
 				return
 			}
 
-			log.Info(string(mime))
+			if mimes, _ := allowedMimesByTag[tag]; len(mimes) > 0 {
+				if err := core_validation.ValidateArray(mimes, mime); err != nil {
+					responseHandler.ErrorResponse(
+						fmt.Errorf("file format '%s' doesn't satisfy file tag '%s': %w", mime, tag, err),
+						"failed to satisfy file tag and file format",
+					)
+					return
+				}
+			}
 
 			ctx = context.WithValue(ctx, core_context.CtxKeyMimeType, mime)
 			ctx = context.WithValue(ctx, core_context.CtxKeyTag, tag)
