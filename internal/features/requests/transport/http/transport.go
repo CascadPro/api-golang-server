@@ -31,6 +31,12 @@ var (
 func (h *HttpHandler) Routes() []core_http_server.Route {
 	return []core_http_server.Route{
 		{
+			Method:     "QUERY",
+			Path:       "/",
+			Handler:    h.GetRequests,
+			Middleware: defaultMiddlewares,
+		},
+		{
 			Method:     http.MethodPatch,
 			Path:       "/{id}/reject",
 			Handler:    h.RejectRequest,

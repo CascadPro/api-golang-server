@@ -15,6 +15,7 @@ type Service struct {
 }
 
 type ServiceMethods interface {
+	GetRequests(context.Context, int, int, domain.RequestQueryFilter) ([]domain.Request, int64, error)
 	RejectRequest(context.Context, uuid.UUID) error
 	ApproveRequest(context.Context, uuid.UUID) error
 	PatchRequest(context.Context, uuid.UUID, domain.RequestPatch) (domain.Request, error)
