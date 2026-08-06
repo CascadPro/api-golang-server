@@ -9,10 +9,7 @@ import (
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 )
 
-func (s *Service) GetFile(ctx context.Context, fileTag domain.FileTag, fileID string) (domain.File, error) {
-	if err := core_validation.ValidateArray(domain.FileTags, fileTag); err != nil {
-		return domain.File{}, fmt.Errorf("validate file tag: %w", err)
-	}
+func (s *Service) GetFile(ctx context.Context, fileID string) (domain.File, error) {
 	if err := core_validation.ValidateID(fileID, domain.FileIDByteLength); err != nil {
 		return domain.File{}, fmt.Errorf("validate file id: %w", err)
 	}

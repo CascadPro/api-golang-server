@@ -11,18 +11,13 @@ import (
 	core_media_utils "github.com/CascadePro/api-golang-server/internal/core/utils/media"
 )
 
-func (s *Service) GetFileContent(
-	ctx context.Context,
-	fileTag domain.FileTag,
-	fileID string,
-	w, h, quality *int,
-) (domain.File, []byte, error) {
-	file, err := s.GetFile(ctx, fileTag, fileID)
+func (s *Service) GetFileContent(ctx context.Context, fileID string, w, h, quality *int) (domain.File, []byte, error) {
+	file, err := s.GetFile(ctx, fileID)
 	if err != nil {
 		return domain.File{}, nil, fmt.Errorf("get file from repository: %w", err)
 	}
 
-	key := fmt.Sprintf("%s/%s", fileTag, fileID)
+	key := fmt.Sprintf("%s/%s", file.Tag, fileID)
 
 	result, err := s.coreS3Repo.GetObject(ctx, key)
 	if err != nil {
@@ -33,7 +28,7 @@ func (s *Service) GetFileContent(
 		return domain.File{}, nil, err
 	}
 
-	if w != nil && h != nil && (fileTag == domain.FileTagAvatars || fileTag == domain.FileTagImages) {
+	if w != nil && h != nil && (file.Tag == domain.FileTagAvatars || file.Tag == domain.FileTagImages) {
 		result, err = core_media_utils.ResizeAny(result, *w, *h, quality)
 		if err != nil {
 			return domain.File{}, nil, fmt.Errorf("resize image file: %w", err)
