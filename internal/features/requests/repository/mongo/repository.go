@@ -17,6 +17,7 @@ type RepositoryMethods interface {
 	GetRequest(ctx context.Context, id uuid.UUID) (domain.Request, error)
 	GetRequests(ctx context.Context, page, limit int, filter domain.RequestQueryFilter) ([]domain.Request, int64, error)
 	PatchRequest(ctx context.Context, id uuid.UUID, request domain.Request) error
+	PatchRequestStatus(ctx context.Context, id uuid.UUID, userID uuid.UUID, status domain.RequestStatus) error
 	DeleteRequest(ctx context.Context, id uuid.UUID) error
 }
 

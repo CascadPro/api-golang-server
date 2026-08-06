@@ -19,9 +19,8 @@ type Service struct {
 type ServiceMethods interface {
 	GetRequest(context.Context, uuid.UUID) (domain.Request, domain.User, map[int]domain.File, error)
 	GetRequests(context.Context, int, int, domain.RequestQueryFilter) ([]domain.Request, int64, error)
-	RejectRequest(context.Context, uuid.UUID) error
-	ApproveRequest(context.Context, uuid.UUID) error
 	PatchRequest(context.Context, uuid.UUID, domain.RequestPatch) (domain.Request, error)
+	PatchRequestStatus(context.Context, uuid.UUID, domain.RequestStatus) error
 	UploadDoc(context.Context, uuid.UUID, domain.File, []byte, int) error
 }
 

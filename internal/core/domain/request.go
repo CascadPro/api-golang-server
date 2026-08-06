@@ -199,10 +199,18 @@ func (r *Request) ApplyPatch(patch RequestPatch) error {
 		tmp.SpecificationDocID = patch.SpecificationDocID.Value
 	}
 	if patch.WorkTypes.Set {
-		tmp.WorkTypes = *patch.WorkTypes.Value
+		if patch.WorkTypes.Value == nil {
+			tmp.WorkTypes = nil
+		} else {
+			tmp.WorkTypes = *patch.WorkTypes.Value
+		}
 	}
 	if patch.Geography.Set {
-		tmp.Geography = *patch.Geography.Value
+		if patch.Geography.Value == nil {
+			tmp.Geography = nil
+		} else {
+			tmp.Geography = *patch.Geography.Value
+		}
 	}
 	if patch.ContractDocID.Set {
 		tmp.ContractDocID = patch.ContractDocID.Value
