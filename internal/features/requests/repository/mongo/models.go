@@ -25,7 +25,7 @@ type RequestModel struct {
 	Deadline      *time.Time `bson:"deadline,omitempty"`
 	StatusBy      *string    `bson:"status_by,omitempty"`
 
-	requiredEmptyFields []string `bson:"required_empty_fields"`
+	RequiredEmptyFields []string `bson:"required_empty_fields"`
 
 	CreatedAt time.Time `bson:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at"`
@@ -67,11 +67,7 @@ func (m *RequestModel) CalcRequiredEmptyFields() {
 		fields = append(fields, "docs.specification")
 	}
 
-	m.requiredEmptyFields = fields
-}
-
-func (m *RequestModel) GetRequiredEmptyFields() []string {
-	return m.requiredEmptyFields
+	m.RequiredEmptyFields = fields
 }
 
 func domainToModel(request domain.Request) RequestModel {
@@ -125,20 +121,21 @@ func modelToDomain(model RequestModel) domain.Request {
 	}
 
 	requestDomain := domain.Request{
-		ID:                 uuid.MustParse(model.ID),
-		Version:            model.Version,
-		Status:             model.Status,
-		Title:              model.Title,
-		Origin:             origin,
-		TechTaskDocID:      model.Docs.TechTaskDocID,
-		ProjectDocID:       model.Docs.ProjectDocID,
-		SpecificationDocID: model.Docs.SpecificationDocID,
-		WorkTypes:          model.WorkTypes,
-		Geography:          model.Geography,
-		ContractDocID:      model.ContractDocID,
-		Deadline:           model.Deadline,
-		CreatedAt:          model.CreatedAt,
-		UpdatedAt:          model.UpdatedAt,
+		ID:                  uuid.MustParse(model.ID),
+		Version:             model.Version,
+		Status:              model.Status,
+		Title:               model.Title,
+		Origin:              origin,
+		TechTaskDocID:       model.Docs.TechTaskDocID,
+		ProjectDocID:        model.Docs.ProjectDocID,
+		SpecificationDocID:  model.Docs.SpecificationDocID,
+		WorkTypes:           model.WorkTypes,
+		Geography:           model.Geography,
+		ContractDocID:       model.ContractDocID,
+		RequiredEmptyFields: model.RequiredEmptyFields,
+		Deadline:            model.Deadline,
+		CreatedAt:           model.CreatedAt,
+		UpdatedAt:           model.UpdatedAt,
 	}
 
 	if model.ClientID != nil && *model.ClientID != "" {

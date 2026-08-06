@@ -41,7 +41,7 @@ func (r *Repository) PatchRequest(ctx context.Context, id uuid.UUID, request dom
 	update = append(update, bson.E{Key: "origin", Value: origin})
 
 	model.CalcRequiredEmptyFields()
-	update = append(update, bson.E{Key: "required_empty_fields", Value: model.GetRequiredEmptyFields()})
+	update = append(update, bson.E{Key: "required_empty_fields", Value: model.RequiredEmptyFields})
 
 	filter := bson.D{{Key: "_id", Value: id.String()}, {Key: "v", Value: request.Version}}
 

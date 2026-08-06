@@ -9,8 +9,9 @@ import (
 
 type GetRequestResponse struct {
 	GetRequestsResponseRequest
-	WorkTypes []string `json:"work_types,omitempty"`
-	Geography []string `json:"geography_description,omitempty"`
+	WorkTypes           []string `json:"work_types,omitempty"`
+	Geography           []string `json:"geography_description,omitempty"`
+	RequiredEmptyFields []string `json:"fields_remaining"`
 
 	Docs     *GetRequestResponseDocs `json:"docs,omitempty"`
 	StatusBy *GetRequestResponseUser `json:"status_by,omitempty"`
@@ -46,6 +47,7 @@ func RequestResponseFromDomain(request domain.Request, user domain.User, files *
 
 	response.WorkTypes = request.WorkTypes
 	response.Geography = request.Geography
+	response.RequiredEmptyFields = request.RequiredEmptyFields
 
 	if request.StatusBy != nil && *request.StatusBy != uuid.Nil {
 		response.StatusBy = &GetRequestResponseUser{

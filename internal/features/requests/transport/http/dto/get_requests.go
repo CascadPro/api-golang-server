@@ -20,14 +20,18 @@ type GetRequestsResponse struct {
 }
 
 type GetRequestsResponseRequest struct {
-	ID        uuid.UUID                   `json:"id"                  example:"00000000-000000-000000-000000000000"`
-	Status    domain.RequestStatus        `json:"status"              example:"default"`
-	StatusBy  *uuid.UUID                  `json:"status_by,omitempty" example:"00000000-000000-000000-000000000000"`
-	Title     string                      `json:"title"               example:"New Request"`
-	Origin    []GetRequestsResponseOrigin `json:"origin,omitempty"`
-	Deadline  *time.Time                  `json:"deadline,omitempty"  example:"2006-01-02T15-04-05.000000"`
-	CreatedAt time.Time                   `json:"created_at"          example:"2006-01-02T15-04-05.000000"`
-	UpdatedAt time.Time                   `json:"updated_at"          example:"2006-01-02T15-04-05.000000"`
+	ID       uuid.UUID            `json:"id"                  example:"00000000-000000-000000-000000000000"`
+	Status   domain.RequestStatus `json:"status"              example:"default"`
+	StatusBy *uuid.UUID           `json:"status_by,omitempty" example:"00000000-000000-000000-000000000000"`
+
+	Title  string                      `json:"title"            example:"New Request"`
+	Origin []GetRequestsResponseOrigin `json:"origin,omitempty"`
+
+	RequiredEmptyFields int `json:"fields_remaining" example:"3"`
+
+	Deadline  *time.Time `json:"deadline,omitempty"  example:"2006-01-02T15-04-05.000000"`
+	CreatedAt time.Time  `json:"created_at"          example:"2006-01-02T15-04-05.000000"`
+	UpdatedAt time.Time  `json:"updated_at"          example:"2006-01-02T15-04-05.000000"`
 }
 
 type GetRequestsResponseOrigin struct {
@@ -37,13 +41,14 @@ type GetRequestsResponseOrigin struct {
 
 func RequestsResponseFromDomain(request domain.Request) GetRequestsResponseRequest {
 	response := GetRequestsResponseRequest{
-		ID:        request.ID,
-		Status:    request.Status,
-		StatusBy:  request.StatusBy,
-		Title:     request.Title,
-		Deadline:  request.Deadline,
-		CreatedAt: request.CreatedAt,
-		UpdatedAt: request.UpdatedAt,
+		ID:                  request.ID,
+		Status:              request.Status,
+		StatusBy:            request.StatusBy,
+		Title:               request.Title,
+		RequiredEmptyFields: len(request.RequiredEmptyFields),
+		Deadline:            request.Deadline,
+		CreatedAt:           request.CreatedAt,
+		UpdatedAt:           request.UpdatedAt,
 	}
 
 	if len(request.Origin) > 0 {

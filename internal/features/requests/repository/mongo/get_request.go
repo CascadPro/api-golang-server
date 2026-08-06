@@ -31,5 +31,7 @@ func (r *Repository) GetRequest(ctx context.Context, id uuid.UUID) (domain.Reque
 		return domain.Request{}, fmt.Errorf("mongo find one: %w", err)
 	}
 
+	fmt.Println(model.RequiredEmptyFields)
+
 	return modelToDomain(model), nil
 }

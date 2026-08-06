@@ -55,6 +55,8 @@ type Request struct {
 	Deadline      *time.Time
 	StatusBy      *uuid.UUID
 
+	RequiredEmptyFields []string
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
