@@ -8,12 +8,12 @@ import (
 
 type FileModel struct {
 	ID      string
-	Version int
+	Version int64
 
 	Tag      domain.FileTag
 	Filename string
 	MimeType domain.FileMimeType
-	Size     int
+	Size     int64
 
 	Deleted   bool
 	DeletedAt *time.Time

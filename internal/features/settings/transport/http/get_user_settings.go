@@ -12,7 +12,7 @@ import (
 
 type GetUserSettingsResponse struct {
 	ID                uuid.UUID                `json:"id"                  example:"00000000-000000-000000-000000000000"`
-	Version           int                      `json:"version"             example:"1"`
+	Version           int64                    `json:"version"             example:"1"`
 	SessionExpireTerm domain.SessionExpireTime `json:"session_expire_term" example:"30d"`
 }
 

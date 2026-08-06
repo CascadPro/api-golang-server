@@ -37,7 +37,7 @@ func GetFile(rw http.ResponseWriter, r *http.Request, maxSize int64) (*domain.Fi
 		return nil, nil, fmt.Errorf("get mime type from context: %w", err)
 	}
 
-	file := domain.NewUploadFile(fileHeader.Filename, tag, mimeType, int(len(content)))
+	file := domain.NewUploadFile(fileHeader.Filename, tag, mimeType, int64(len(content)))
 
 	return &file, content, nil
 }

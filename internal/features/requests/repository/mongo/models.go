@@ -9,7 +9,7 @@ import (
 
 type RequestModel struct {
 	ID      string               `bson:"_id"`
-	Version int                  `bson:"v"`
+	Version int64                `bson:"v"`
 	Status  domain.RequestStatus `bson:"status"`
 
 	Title    string               `bson:"title"`

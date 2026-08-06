@@ -28,7 +28,7 @@ var (
 
 type User struct {
 	ID        uuid.UUID
-	Version   int
+	Version   int64
 	Activated bool
 
 	Email        *string

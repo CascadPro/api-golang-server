@@ -8,7 +8,7 @@ import (
 type UserSettingsModel struct {
 	ID      uuid.UUID
 	UserID  uuid.UUID
-	Version int
+	Version int64
 
 	SessionExpireTerm domain.SessionExpireTime
 }

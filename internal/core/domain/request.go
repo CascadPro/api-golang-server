@@ -37,7 +37,7 @@ var (
 
 type Request struct {
 	ID      uuid.UUID
-	Version int
+	Version int64
 	Status  RequestStatus
 
 	Title    string
@@ -73,7 +73,7 @@ func NewCreateRequest(title string) Request {
 	}
 }
 
-func NewStatusPatchRequest(version int, status RequestStatus, userID uuid.UUID) Request {
+func NewStatusPatchRequest(version int64, status RequestStatus, userID uuid.UUID) Request {
 	return Request{
 		Version:  version,
 		Status:   status,

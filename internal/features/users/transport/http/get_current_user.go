@@ -13,7 +13,7 @@ import (
 
 type GetCurrentUserResponse struct {
 	ID                uuid.UUID       `json:"id"                           example:"00000000-000000-000000-000000000000"`
-	Version           int             `json:"version"                      example:"1"`
+	Version           int64           `json:"version"                      example:"1"`
 	Role              domain.UserRole `json:"role"                         example:"regular"`
 	Email             string          `json:"email"                        example:"test@example.com"`
 	Name              string          `json:"name"                         example:"John"`

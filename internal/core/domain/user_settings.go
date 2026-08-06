@@ -24,7 +24,7 @@ var (
 
 type UserSettings struct {
 	ID      uuid.UUID
-	Version int
+	Version int64
 
 	SessionExpireTerm SessionExpireTime
 

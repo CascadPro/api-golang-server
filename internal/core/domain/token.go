@@ -22,7 +22,7 @@ var (
 
 type Token struct {
 	ID      uuid.UUID
-	Version int
+	Version int64
 
 	Token string
 	Type  TokenType

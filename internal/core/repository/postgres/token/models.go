@@ -9,7 +9,7 @@ import (
 
 type TokenModel struct {
 	ID      uuid.UUID
-	Version int
+	Version int64
 
 	Token string
 	Type  domain.TokenType
