@@ -119,3 +119,10 @@ func modelToDomain(model RequestModel) domain.Request {
 	return requestDomain
 }
 
+func modelsToDomains(models []RequestModel) []domain.Request {
+	requests := make([]domain.Request, 0, len(models))
+	for _, model := range models {
+		requests = append(requests, modelToDomain(model))
+	}
+	return requests
+}

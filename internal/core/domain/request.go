@@ -232,8 +232,19 @@ func (f *RequestQueryFilter) Validate() error {
 		}
 	}
 
-	if length := len(f.Status); length > 0 && length < len(RequestStatuses) {
-		return fmt.Errorf("`Status` length can't be more than total existing statuses: %w", core_errors.ErrInvalidArgument)
+	if length := len(f.Status); length > 0 {
+		if length > len(RequestStatuses) {
+			return fmt.Errorf(
+				"`Status` length can't be more than total existing statuses: %w",
+				core_errors.ErrInvalidArgument,
+			)
+		}
+
+		for _, s := range f.Status {
+			if err := core_validation.ValidateArray(RequestStatuses, s); err != nil {
+				return fmt.Errorf("`Status` isn't valid enum type: %w", err)
+			}
+		}
 	}
 
 	return nil

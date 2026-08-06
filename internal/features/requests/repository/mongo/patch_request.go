@@ -9,6 +9,7 @@ import (
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_mongo_pool "github.com/CascadePro/api-golang-server/internal/core/repository/mongo/pool"
+	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -40,9 +41,6 @@ func (r *Repository) PatchRequest(ctx context.Context, id uuid.UUID, request dom
 	if model.Status != domain.RequestStatusNil {
 		update = append(update, bson.E{Key: "status", Value: model.Status})
 	}
-	if len(model.Origin) != 0 {
-		update = append(update, bson.E{Key: "origin", Value: model.Origin})
-	}
 	if len(model.WorkTypes) != 0 {
 		update = append(update, bson.E{Key: "work_types", Value: model.WorkTypes})
 	}
@@ -65,6 +63,12 @@ func (r *Repository) PatchRequest(ctx context.Context, id uuid.UUID, request dom
 		update = append(update, bson.E{Key: "docs", Value: model.Docs})
 	}
 
+	if origin, err := parseOriginValue(model.Origin); err != nil {
+		return fmt.Errorf("parse origin: %w", err)
+	} else if len(origin) > 0 {
+		update = append(update, bson.E{Key: "origin", Value: origin})
+	}
+
 	idStr := id.String()
 	filter := bson.D{{Key: "_id", Value: idStr}, {Key: "v", Value: request.Version}}
 
@@ -78,4 +82,30 @@ func (r *Repository) PatchRequest(ctx context.Context, id uuid.UUID, request dom
 	}
 
 	return nil
+}
+
+func parseOriginValue(origins []RequestModelOrigin) ([]RequestModelOrigin, error) {
+	if len(origins) == 0 {
+		return nil, nil
+	}
+
+	for i, origin := range origins {
+		if origin.Type == domain.RequestOriginTypePhone {
+			phone, err := core_validation.ValidatePhoneNumber(origin.Value)
+			if err != nil {
+				return nil, fmt.Errorf("`Value` to phone: %w", err)
+			}
+			origin.Value = phone.E164
+		} else if origin.Type == domain.RequestOriginTypeEmail {
+			email, err := core_validation.ValidateStringEmail(&origin.Value)
+			if err != nil {
+				return nil, fmt.Errorf("`Value` to email: %w", err)
+			}
+			origin.Value = email.String()
+		}
+
+		origins[i] = origin
+	}
+
+	return origins, nil
 }
