@@ -20,6 +20,33 @@ func NewHttpHandler(clientService client_service.ServiceMethods) *HttpHandler {
 	}
 }
 
+var (
+	defaultMiddlewares = []core_http_middleware.Middleware{
+		core_http_middleware.Authorization(domain.RoleAdmin, domain.RoleDirector, domain.RoleClerk),
+	}
+)
+
 func (h *HttpHandler) Routes() []core_http_server.Route {
-	return []core_http_server.Route{}
+	rateLimitCfg := core_http_middleware.NewRateLimitConfig(15, 5*time.Minute)
+
+	return []core_http_server.Route{
+		{
+			Method:     core_http.MethodPost,
+			Path:       "/",
+			Handler:    h.CreateClient,
+			Middleware: append(defaultMiddlewares, rateLimitCfg.Middleware()),
+		},
+		{
+			Method:     core_http.MethodGet,
+			Path:       "/{id}",
+			Handler:    h.GetClient,
+			Middleware: defaultMiddlewares,
+		},
+		{
+			Method:     core_http.MethodDelete,
+			Path:       "/{id}",
+			Handler:    h.DeleteClient,
+			Middleware: defaultMiddlewares,
+		},
+	}
 }
