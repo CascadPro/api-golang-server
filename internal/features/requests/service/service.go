@@ -19,6 +19,7 @@ type Service struct {
 }
 
 type ServiceMethods interface {
+	CreateRequest(context.Context, domain.Request) (domain.Request, error)
 	GetRequest(context.Context, uuid.UUID) (domain.Request, domain.User, domain.Client, map[int]domain.File, error)
 	GetRequests(context.Context, int, int, domain.RequestQueryFilter) ([]domain.Request, int64, error)
 	PatchRequest(context.Context, uuid.UUID, domain.RequestPatch) (domain.Request, error)
