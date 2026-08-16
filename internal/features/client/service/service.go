@@ -13,7 +13,9 @@ type Service struct {
 }
 
 type ServiceMethods interface {
-	// ..,
+	GetClient(context.Context, uuid.UUID) (domain.Client, error)
+	CreateClient(context.Context, domain.Client) (domain.Client, error)
+	DeleteClient(context.Context, uuid.UUID) error
 }
 
 func NewService(clientPostgresRepo client_postgres_repository.RepositoryMethods) *Service {
