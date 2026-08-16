@@ -168,7 +168,7 @@ func main() {
 
 	// Client route
 	logFeatureInit(logger, "client", "/api/v1/client")
-	clientRouter := core_http_server.NewRouter("/client", core_http_middleware.Authorization())
+	clientRouter := core_http_server.NewRouter("/clients", rootRateLimit.Middleware())
 
 	clientPostgresRepository := client_postgres_repository.NewRepository(pgPool)
 	clientService := client_service.NewService(clientPostgresRepository)
