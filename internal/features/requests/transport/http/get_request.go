@@ -35,13 +35,13 @@ func (h *HttpHandler) GetRequest(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	request, user, files, err := h.requestsService.GetRequest(ctx, requestID)
+	request, user, client, files, err := h.requestsService.GetRequest(ctx, requestID)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get request")
 		return
 	}
 
-	response := request_http_dto.RequestResponseFromDomain(request, user, &files)
+	response := request_http_dto.RequestResponseFromDomain(request, user, client, &files)
 
 	responseHandler.JsonResponse(response, http.StatusOK)
 }

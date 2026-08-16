@@ -13,8 +13,9 @@ type GetRequestResponse struct {
 	Geography           []string `json:"geography_description,omitempty"`
 	RequiredEmptyFields []string `json:"fields_remaining"`
 
-	Docs     *GetRequestResponseDocs `json:"docs,omitempty"`
-	StatusBy *GetRequestResponseUser `json:"status_by,omitempty"`
+	Client   *GetRequestResponseClient `json:"client"`
+	Docs     *GetRequestResponseDocs   `json:"docs,omitempty"`
+	StatusBy *GetRequestResponseUser   `json:"status_by,omitempty"`
 }
 
 type GetRequestResponseUser struct {
@@ -23,6 +24,12 @@ type GetRequestResponseUser struct {
 	Name         string          `json:"name"                     example:"John"`
 	Surname      string          `json:"surname"                  example:"Doe"`
 	AvatarFileID *string         `json:"avatar_file_id,omitempty" example:"831f21c1798a7972fa9cda12dac0"`
+}
+
+type GetRequestResponseClient struct {
+	ID       uuid.UUID `json:"id"      example:"00000000-000000-000000-000000000000"`
+	Company  string    `json:"company" example:"Cascade Pro"`
+	Contacts []string  `json:"contacts"`
 }
 
 type GetRequestResponseDocs struct {
@@ -40,7 +47,7 @@ type GetRequestResponseDocsFile struct {
 	CreatedAt time.Time      `json:"created_at" example:"2006-01-02T15-04-05.000000"`
 }
 
-func RequestResponseFromDomain(request domain.Request, user domain.User, files *map[int]domain.File) GetRequestResponse {
+func RequestResponseFromDomain(request domain.Request, user domain.User, client domain.Client, files *map[int]domain.File) GetRequestResponse {
 	var response GetRequestResponse
 
 	response.GetRequestsResponseRequest = RequestsResponseFromDomain(request)
@@ -56,6 +63,14 @@ func RequestResponseFromDomain(request domain.Request, user domain.User, files *
 			Name:         user.Name,
 			Surname:      user.Surname,
 			AvatarFileID: user.AvatarFileID,
+		}
+	}
+
+	if request.ClientID != nil && *request.ClientID != uuid.Nil {
+		response.Client = &GetRequestResponseClient{
+			ID:       client.ID,
+			Company:  client.Company,
+			Contacts: client.Contacts,
 		}
 	}
 

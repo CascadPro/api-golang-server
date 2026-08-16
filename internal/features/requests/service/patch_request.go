@@ -23,6 +23,12 @@ func (s *Service) PatchRequest(ctx context.Context, id uuid.UUID, patch domain.R
 		return domain.Request{}, fmt.Errorf("apply patch: %w", err)
 	}
 
+	if request.ClientID != nil {
+		if _, err := s.clientService.GetClient(ctx, *request.ClientID); err != nil {
+			return domain.Request{}, fmt.Errorf("get client from repository: %w", err)
+		}
+	}
+
 	if err := s.requestsMongoRepo.PatchRequest(ctx, id, request); err != nil {
 		return domain.Request{}, fmt.Errorf("patch request: %w", err)
 	}

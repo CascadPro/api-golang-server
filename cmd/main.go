@@ -181,7 +181,7 @@ func main() {
 	requestsRouter := core_http_server.NewRouter("/requests", rootRateLimit.Middleware())
 
 	requestsMongoRepository := requests_mongo_repository.NewRepository(mongoPool)
-	requestsService := requests_service.NewService(mediaService, usersPostgresRepository, requestsMongoRepository)
+	requestsService := requests_service.NewService(mediaService, clientService, usersPostgresRepository, requestsMongoRepository)
 	requestsHttpHandler := requests_transport_http.NewHttpHandler(requestsService)
 
 	requestsRouter.RegisterRoutes(requestsHttpHandler.Routes()...)
