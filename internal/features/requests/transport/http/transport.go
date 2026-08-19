@@ -75,5 +75,11 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 			Handler:    h.UploadDoc,
 			Middleware: append(defaultMiddlewares, rateLimitCfg.Middleware(), core_http_middleware.Media()),
 		},
+		{
+			Method:     core_http.MethodDelete,
+			Path:       "/{id}/file/{index}",
+			Handler:    h.DeleteDoc,
+			Middleware: append(defaultMiddlewares, rateLimitCfg.Middleware()),
+		},
 	}
 }

@@ -28,7 +28,7 @@ type PatchRequestRequest struct {
 // @Failure 		 409 {object} core_http_response.ErrorResponse "Conflict error"
 // @Failure      429 {object} core_http_response.ErrorResponse "Too many requests"
 // @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
-// @Router       /requests/{id}/update [patch]
+// @Router       /requests/{id} [patch]
 func (h *HttpHandler) PatchRequest(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
