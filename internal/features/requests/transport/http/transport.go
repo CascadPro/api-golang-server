@@ -1,6 +1,8 @@
 package requests_transport_http
 
 import (
+	"time"
+
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_http "github.com/CascadePro/api-golang-server/internal/core/transport/http"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
@@ -28,11 +30,19 @@ var (
 )
 
 func (h *HttpHandler) Routes() []core_http_server.Route {
+	rateLimitCfg := core_http_middleware.NewRateLimitConfig(5, 10*time.Minute)
+
 	return []core_http_server.Route{
 		{
 			Method:     core_http.MethodQuery,
 			Path:       "/",
 			Handler:    h.GetRequests,
+			Middleware: defaultMiddlewares,
+		},
+		{
+			Method:     core_http.MethodPost,
+			Path:       "/",
+			Handler:    h.CreateRequest,
 			Middleware: defaultMiddlewares,
 		},
 		{
@@ -55,15 +65,15 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 		},
 		{
 			Method:     core_http.MethodPatch,
-			Path:       "/{id}/update",
+			Path:       "/{id}",
 			Handler:    h.PatchRequest,
 			Middleware: defaultMiddlewares,
 		},
 		{
 			Method:     core_http.MethodPost,
-			Path:       "/{id}/upload",
+			Path:       "/{id}",
 			Handler:    h.UploadDoc,
-			Middleware: append(adminMiddlewares, core_http_middleware.Media()),
+			Middleware: append(defaultMiddlewares, rateLimitCfg.Middleware(), core_http_middleware.Media()),
 		},
 	}
 }

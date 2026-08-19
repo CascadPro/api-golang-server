@@ -27,6 +27,8 @@ type GetRequestsResponseRequest struct {
 	Title  string                      `json:"title"            example:"New Request"`
 	Origin []GetRequestsResponseOrigin `json:"origin,omitempty"`
 
+	ClientID *uuid.UUID `json:"client,omitempty"           example:"00000000-000000-000000-000000000000"`
+
 	RequiredEmptyFields int `json:"fields_remaining" example:"3"`
 
 	Deadline  *time.Time `json:"deadline,omitempty"  example:"2006-01-02T15-04-05.000000"`
@@ -45,6 +47,7 @@ func RequestsResponseFromDomain(request domain.Request) GetRequestsResponseReque
 		Status:              request.Status,
 		StatusBy:            request.StatusBy,
 		Title:               request.Title,
+		ClientID:            request.ClientID,
 		RequiredEmptyFields: len(request.RequiredEmptyFields),
 		Deadline:            request.Deadline,
 		CreatedAt:           request.CreatedAt,

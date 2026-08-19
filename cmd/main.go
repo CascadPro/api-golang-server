@@ -22,6 +22,9 @@ import (
 	core_validation_init "github.com/CascadePro/api-golang-server/internal/core/validation/init"
 	auth_service "github.com/CascadePro/api-golang-server/internal/features/auth/service"
 	auth_transport_http "github.com/CascadePro/api-golang-server/internal/features/auth/transport/http"
+	client_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/client/repository/postgres"
+	client_service "github.com/CascadePro/api-golang-server/internal/features/client/service"
+	client_transport_http "github.com/CascadePro/api-golang-server/internal/features/client/transport/http"
 	media_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/media/repository/postgres"
 	media_service "github.com/CascadePro/api-golang-server/internal/features/media/service"
 	media_transport_http "github.com/CascadePro/api-golang-server/internal/features/media/transport/http"
@@ -163,12 +166,22 @@ func main() {
 
 	settingsRouter.RegisterRoutes(settingsHttpHandler.Routes()...)
 
+	// Client route
+	logFeatureInit(logger, "client", "/api/v1/client")
+	clientRouter := core_http_server.NewRouter("/clients", rootRateLimit.Middleware())
+
+	clientPostgresRepository := client_postgres_repository.NewRepository(pgPool)
+	clientService := client_service.NewService(clientPostgresRepository)
+	clientHttpHandler := client_transport_http.NewHttpHandler(clientService)
+
+	clientRouter.RegisterRoutes(clientHttpHandler.Routes()...)
+
 	// Requests route
 	logFeatureInit(logger, "requests", "/api/v1/requests")
 	requestsRouter := core_http_server.NewRouter("/requests", rootRateLimit.Middleware())
 
 	requestsMongoRepository := requests_mongo_repository.NewRepository(mongoPool)
-	requestsService := requests_service.NewService(mediaService, usersPostgresRepository, requestsMongoRepository)
+	requestsService := requests_service.NewService(mediaService, clientService, usersPostgresRepository, requestsMongoRepository)
 	requestsHttpHandler := requests_transport_http.NewHttpHandler(requestsService)
 
 	requestsRouter.RegisterRoutes(requestsHttpHandler.Routes()...)
@@ -208,7 +221,8 @@ func main() {
 	)
 
 	apiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRouters(sessionsRouter, authRouter, usersRouter, settingsRouter, requestsRouter)
+	apiVersionRouter.RegisterRouters(sessionsRouter, authRouter, usersRouter,
+		settingsRouter, clientRouter, requestsRouter)
 
 	httpServer.RegisterRouters(rootRouter, mediaRouter)
 	httpServer.RegisterApiRouters(apiVersionRouter)

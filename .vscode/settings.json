@@ -2,7 +2,7 @@
 	"makefile.configureOnOpen": false,
 	"cSpell.words": ["Createregister", "ipinfo", "Validatable"],
 	"sonarlint.connectedMode.project": {
-		"connectionId": "CascadePro SonarQude Connection",
+		"connectionId": "cascadpro",
 		"projectKey": "CascadPro_api-golang-server"
 	}
 }

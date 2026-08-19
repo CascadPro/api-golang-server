@@ -2,10 +2,7 @@ include .env
 export
 
 
-# For UNIX
-# export PROJECT_ROOT=$(shell pwd)
-# For Windows
-export PROJECT_ROOT=C:/Users/Svat/Documents/GitHub/api-golang-server
+export PROJECT_ROOT=$(shell pwd)
 export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs
 
 
@@ -19,9 +16,9 @@ env-cleanup:
 	@read -p "Are you sure you want to cleanup all environment? [y/N]: " ans; \
 	if [ "$$ans" = "y" ]; then \
 		docker compose down cascade-app-postgres cascade-app-redis cascade-app-mongo port-forwarder && \
-		rm -rf ${PROJECT_ROOT}/out/pg_data && \
-		rm -rf ${PROJECT_ROOT}/out/redis_data && \
-		rm -rf ${PROJECT_ROOT}/out/mongo_data && \
+		sudo rm -rf ${PROJECT_ROOT}/out/pg_data && \
+		sudo rm -rf ${PROJECT_ROOT}/out/redis_data && \
+		sudo rm -rf ${PROJECT_ROOT}/out/mongo_data && \
 		echo "Cleanup complete"; \
 	else \
 		echo "Cleanup aborted"; \
