@@ -32,23 +32,17 @@ func (h *HttpHandler) UploadDoc(rw http.ResponseWriter, r *http.Request) {
 	log := core_logger.FromContext(ctx)
 	responseHandler := core_http_response.NewResponseHandler(log, rw)
 
-	log.Info("1")
-
 	requestID, err := core_http_request.GetUUIDPathValue(r, "id")
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get request id path value")
 		return
 	}
 
-	log.Info("2")
-
 	index, err := getQueryParams(r)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get `idx` query param")
 		return
 	}
-
-	log.Info("3")
 
 	uploadedFile, content, err := core_http_request.GetFile(rw, r, 1<<20)
 	if err != nil {
@@ -60,19 +54,13 @@ func (h *HttpHandler) UploadDoc(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info("4")
-
 	if err := h.requestsService.UploadDoc(ctx, requestID, *uploadedFile, content, index); err != nil {
 		responseHandler.ErrorResponse(err, "failed to upload doc")
 		return
 	}
 
-	log.Info("5")
-
 	responseHandler.NoContentResponse()
 }
-
-var docNames = []string{"project", "tech_task", "specification", "contract"}
 
 func getQueryParams(r *http.Request) (int, error) {
 	var min, max = 0, 3
