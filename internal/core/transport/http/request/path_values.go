@@ -3,6 +3,7 @@ package core_http_request
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
@@ -39,6 +40,29 @@ func GetIDPathValue(r *http.Request, key string, length int) (string, error) {
 	}
 
 	return pathValue, nil
+}
+
+func GetIntPathValue(r *http.Request, key string, min, max *int) (int, error) {
+	param := r.URL.Query().Get(key)
+	if param == "" {
+		return -1, nil
+	}
+
+	val, err := strconv.Atoi(param)
+	if err != nil {
+		return -1, fmt.Errorf(
+			"key=%s in path values in not valid integer: %v: %w",
+			key,
+			err,
+			core_errors.ErrInvalidArgument,
+		)
+	}
+
+	if err := core_validation.ValidateInteger(val, key, min, max); err != nil {
+		return 0, fmt.Errorf("validate integer: %w", err)
+	}
+
+	return val, nil
 }
 
 func GetFileNamePathValue(r *http.Request, key string) (string, *string, error) {

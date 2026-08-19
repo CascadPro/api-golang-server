@@ -71,7 +71,7 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 		},
 		{
 			Method:     core_http.MethodPost,
-			Path:       "/{id}",
+			Path:       "/{id}/file/{index}",
 			Handler:    h.UploadDoc,
 			Middleware: append(defaultMiddlewares, rateLimitCfg.Middleware(), core_http_middleware.Media()),
 		},

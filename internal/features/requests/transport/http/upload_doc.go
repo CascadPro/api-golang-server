@@ -1,7 +1,6 @@
 package requests_transport_http
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
@@ -9,6 +8,7 @@ import (
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_request "github.com/CascadePro/api-golang-server/internal/core/transport/http/request"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
+	request_http_dto "github.com/CascadePro/api-golang-server/internal/features/requests/transport/http/dto"
 )
 
 // UploadDoc godoc
@@ -18,7 +18,7 @@ import (
 // @Accept       mpfd
 // @Param        file formData file true "File to upload"
 // @Param        tag formData string true "Text tag"
-// @Param        idx query int true "File Index"
+// @Param        idx path int true "File Index"
 // @Success      204 "Successfully uploaded document"
 // @Failure      400 {object} core_http_response.ErrorResponse "Bad request"
 // @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"
@@ -26,21 +26,15 @@ import (
 // @Failure 		 409 {object} core_http_response.ErrorResponse "Conflict error"
 // @Failure      429 {object} core_http_response.ErrorResponse "Too many requests"
 // @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
-// @Router       /requests/{id}/upload [post]
+// @Router       /requests/{id}/file/{index} [post]
 func (h *HttpHandler) UploadDoc(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
 	responseHandler := core_http_response.NewResponseHandler(log, rw)
 
-	requestID, err := core_http_request.GetUUIDPathValue(r, "id")
+	requestID, index, err := request_http_dto.GetRequestDocPathValues(r)
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to get request id path value")
-		return
-	}
-
-	index, err := getQueryParams(r)
-	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to get `idx` query param")
+		responseHandler.ErrorResponse(err, "failed to get request path values")
 		return
 	}
 
@@ -60,18 +54,4 @@ func (h *HttpHandler) UploadDoc(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	responseHandler.NoContentResponse()
-}
-
-func getQueryParams(r *http.Request) (int, error) {
-	var min, max = 0, 3
-
-	index, err := core_http_request.GetIntQueryParam(r, "idx", &min, &max)
-	if err != nil {
-		return -1, fmt.Errorf("get int query param: %w", err)
-	}
-	if index == nil {
-		return -1, fmt.Errorf("`idx` can't be NULL: %w", core_errors.ErrInvalidArgument)
-	}
-
-	return *index, nil
 }
