@@ -36,8 +36,8 @@ func MapErrors(err error) []error {
 			errs = append(errs, fmt.Errorf("`%s` must be less than or equal %s", fe.Field(), fe.Param()))
 		case "gte":
 			errs = append(errs, fmt.Errorf("`%s` must be greater than or equal %s", fe.Field(), fe.Param()))
-		case "uuid4":
-			errs = append(errs, fmt.Errorf("`%s` must be valid UUID of version 4", fe.Field()))
+		case "uuid":
+			errs = append(errs, fmt.Errorf("`%s` must be valid universal user identifier", fe.Field()))
 		case "pwd":
 			errs = append(errs, fmt.Errorf("`%s` must be complex password string", fe.Field()))
 		case "user_role":

@@ -24,12 +24,15 @@ func (r *Repository) CreateUserSettings(
 		RETURNING id, user_id, version, session_expire_term;
 	`
 
-	id := uuid.New()
+	id, err := uuid.NewV7()
+	if err != nil {
+		return domain.UserSettings{}, fmt.Errorf("generate ID: %w", err)
+	}
+
 	row := r.pool.QueryRow(ctx, query, id, settings.UserID, settings.SessionExpireTerm)
 
 	var model UserSettingsModel
-	err := row.Scan(&model.ID, &model.UserID, &model.Version, &model.SessionExpireTerm)
-	if err != nil {
+	if err := row.Scan(&model.ID, &model.UserID, &model.Version, &model.SessionExpireTerm); err != nil {
 		err = core_postgres_pool.MapErrors(err)
 
 		if errors.Is(err, core_postgres_pool.ErrViolatesForeignKey) {

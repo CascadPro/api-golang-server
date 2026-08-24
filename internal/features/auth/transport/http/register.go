@@ -12,7 +12,7 @@ import (
 type RegisterRequest struct {
 	Email    string `json:"email"    validate:"required,email" example:"test@example.com"`
 	Password string `json:"password" validate:"required,pwd"   example:"Strong_Pwd123"`
-	Token    string `json:"token"    validate:"required,uuid4" example:"00000000-000000-000000-000000000000"`
+	Token    string `json:"token"    validate:"required,uuid" example:"00000000-000000-000000-000000000000"`
 }
 
 // Register godoc

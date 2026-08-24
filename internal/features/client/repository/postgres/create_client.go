@@ -14,7 +14,10 @@ func (r *Repository) CreateClient(ctx context.Context, client domain.Client) (do
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
-	id := uuid.New()
+	id, err := uuid.NewV7()
+	if err != nil {
+		return domain.Client{}, fmt.Errorf("generate ID: %w", err)
+	}
 
 	query := `
 		INSERT INTO base.clients (id, company, contacts)

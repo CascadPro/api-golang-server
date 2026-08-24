@@ -17,9 +17,14 @@ func (r *Repository) CreateRequest(ctx context.Context, request domain.Request) 
 		return uuid.Nil, fmt.Errorf("validate request: %w", err)
 	}
 
+	id, err := uuid.NewV7()
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("generate ID: %w", err)
+	}
+
 	model := domainToModel(request)
 
-	model.ID = uuid.NewString()
+	model.ID = id.String()
 	model.Version = 1
 
 	model.CalcRequiredEmptyFields()

@@ -22,7 +22,11 @@ func (r *Repository) CreateToken(ctx context.Context, token domain.Token) (domai
 		RETURNING id, version, token, type, expires_at;
 	`
 
-	id := uuid.New()
+	id, err := uuid.NewV7()
+	if err != nil {
+		return domain.Token{}, fmt.Errorf("generate ID: %w", err)
+	}
+
 	row := r.pool.QueryRow(ctx, query, id, token.Token, token.Type, token.ExpiresAt, token.UserID)
 
 	var model TokenModel

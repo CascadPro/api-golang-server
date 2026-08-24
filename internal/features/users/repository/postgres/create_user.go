@@ -21,7 +21,10 @@ func (r *Repository) CreateUser(ctx context.Context, user domain.User) (domain.U
 	var query strings.Builder
 	var args []any
 
-	id := uuid.New()
+	id, err := uuid.NewV7()
+	if err != nil {
+		return domain.User{}, fmt.Errorf("generate ID: %w", err)
+	}
 
 	if user.Activated {
 		query.WriteString(`
@@ -50,7 +53,7 @@ func (r *Repository) CreateUser(ctx context.Context, user domain.User) (domain.U
 
 	var model UserModel
 
-	err := row.Scan(
+	if err := row.Scan(
 		&model.ID,
 		&model.Version,
 		&model.Role,
@@ -59,8 +62,7 @@ func (r *Repository) CreateUser(ctx context.Context, user domain.User) (domain.U
 		&model.Surname,
 		&model.LastName,
 		&model.LastActiveAt,
-	)
-	if err != nil {
+	); err != nil {
 		return domain.User{}, fmt.Errorf("scan error: %w", core_postgres_pool.MapErrors(err))
 	}
 
