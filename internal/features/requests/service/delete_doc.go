@@ -22,23 +22,27 @@ func (s *Service) DeleteDoc(ctx context.Context, requestID uuid.UUID, index int)
 		return fmt.Errorf("get request from repository: %w", err)
 	}
 
-	var fileID string
+	var fileID *string
 	var patch domain.RequestPatch
 
 	null := domain.NewNullable("")
 	switch index {
 	case 0:
 		patch.ProjectDocID = null
-		fileID = *request.ProjectDocID
+		fileID = request.ProjectDocID
 	case 1:
 		patch.TechTaskDocID = null
-		fileID = *request.TechTaskDocID
+		fileID = request.TechTaskDocID
 	case 2:
 		patch.SpecificationDocID = null
-		fileID = *request.SpecificationDocID
+		fileID = request.SpecificationDocID
 	case 3:
 		patch.ContractDocID = null
-		fileID = *request.ContractDocID
+		fileID = request.ContractDocID
+	}
+
+	if fileID == nil {
+		return fmt.Errorf("`fileID` can't be NULL: %w", core_errors.ErrInvalidArgument)
 	}
 
 	if err := request.ApplyPatch(patch); err != nil {
@@ -49,7 +53,7 @@ func (s *Service) DeleteDoc(ctx context.Context, requestID uuid.UUID, index int)
 		return fmt.Errorf("patch request: %w", err)
 	}
 
-	if err := s.mediaService.DeleteFile(ctx, domain.FileTagDocs, fileID); err != nil {
+	if err := s.mediaService.DeleteFile(ctx, domain.FileTagDocs, *fileID); err != nil {
 		return fmt.Errorf("delete file from repository: %w", err)
 	}
 

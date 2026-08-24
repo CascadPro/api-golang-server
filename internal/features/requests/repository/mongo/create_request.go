@@ -19,6 +19,9 @@ func (r *Repository) CreateRequest(ctx context.Context, request domain.Request) 
 
 	model := domainToModel(request)
 
+	model.ID = uuid.NewString()
+	model.Version = 1
+
 	model.CalcRequiredEmptyFields()
 
 	if _, err := r.pool.Requests().InsertOne(ctx, model); err != nil {

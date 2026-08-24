@@ -13,7 +13,7 @@ import (
 )
 
 // PatchRequest updates selected fields of an existing request using $set.
-// Patched fields: "Title", "Status", "Origin", "Docs", "WorkTypes", "Geography", "Deadline", "Contract".
+// Patched fields: "Title", "Origin", "Docs", "WorkTypes", "Geography", "Deadline", "Contract".
 func (r *Repository) PatchRequest(ctx context.Context, id uuid.UUID, request domain.Request) error {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()

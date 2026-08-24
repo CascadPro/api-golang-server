@@ -43,12 +43,12 @@ func GetIDPathValue(r *http.Request, key string, length int) (string, error) {
 }
 
 func GetIntPathValue(r *http.Request, key string, min, max *int) (int, error) {
-	param := r.URL.Query().Get(key)
-	if param == "" {
-		return -1, nil
+	pathValue := r.PathValue(key)
+	if pathValue == "" {
+		return -1, fmt.Errorf("no key='%s' in path values: %w", key, core_errors.ErrInvalidArgument)
 	}
 
-	val, err := strconv.Atoi(param)
+	val, err := strconv.Atoi(pathValue)
 	if err != nil {
 		return -1, fmt.Errorf(
 			"key=%s in path values in not valid integer: %v: %w",

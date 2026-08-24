@@ -13,7 +13,7 @@ type CreateRequestRequest struct {
 	ClientID  *uuid.UUID                    `json:"client_id"  validate:"omitempty,uuid"                example:"00000000-000000-000000-000000000000"`
 	WorkTypes *[]string                     `json:"work_types" validate:"omitempty,dive,min=1,max=255"  example:""`
 	Geography *[]string                     `json:"geography"  validate:"omitempty,dive,min=1,max=255"  example:""`
-	Deadline  *time.Time                    `json:"deadline"   validate:"omitempty,datetime=2006-01-02" example:"2006-01-02T15-04-05.000000"`
+	Deadline  *time.Time                    `json:"deadline"   validate:"omitempty"                     example:"2006-01-02T15-04-05.000000"`
 }
 
 type CreateRequestRequestOrigin struct {

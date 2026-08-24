@@ -72,7 +72,6 @@ func (m *RequestModel) CalcRequiredEmptyFields() {
 
 func domainToModel(request domain.Request) RequestModel {
 	model := RequestModel{
-		ID:        uuid.New().String(),
 		Version:   request.Version,
 		Status:    request.Status,
 		Title:     request.Title,
@@ -126,9 +125,6 @@ func modelToDomain(model RequestModel) domain.Request {
 		Status:              model.Status,
 		Title:               model.Title,
 		Origin:              origin,
-		TechTaskDocID:       model.Docs.TechTaskDocID,
-		ProjectDocID:        model.Docs.ProjectDocID,
-		SpecificationDocID:  model.Docs.SpecificationDocID,
 		WorkTypes:           model.WorkTypes,
 		Geography:           model.Geography,
 		ContractDocID:       model.ContractDocID,
@@ -145,6 +141,16 @@ func modelToDomain(model RequestModel) domain.Request {
 	if model.StatusBy != nil && *model.StatusBy != "" {
 		id := uuid.MustParse(*model.StatusBy)
 		requestDomain.StatusBy = &id
+	}
+
+	if model.Docs.ProjectDocID != nil && *model.Docs.ProjectDocID != "" {
+		requestDomain.ProjectDocID = model.Docs.ProjectDocID
+	}
+	if model.Docs.SpecificationDocID != nil && *model.Docs.SpecificationDocID != "" {
+		requestDomain.SpecificationDocID = model.Docs.SpecificationDocID
+	}
+	if model.Docs.TechTaskDocID != nil && *model.Docs.TechTaskDocID != "" {
+		requestDomain.TechTaskDocID = model.Docs.TechTaskDocID
 	}
 
 	return requestDomain
