@@ -18,7 +18,8 @@ import (
 // @Accept       mpfd
 // @Param        file formData file true "File to upload"
 // @Param        tag formData string true "Text tag"
-// @Param        idx path int true "File Index"
+// @Param        id path string true "Request ID"
+// @Param        index path int true "File Index"
 // @Success      204 "Successfully uploaded document"
 // @Failure      400 {object} core_http_response.ErrorResponse "Bad request"
 // @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"

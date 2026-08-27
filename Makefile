@@ -102,8 +102,10 @@ swagger-gen:
 		init \
 		-g cmd/main.go \
 		-o docs \
-		--parseInternal \
-		--parseDependency
+		--parseInternal
+
+swagger-version:
+	@docker compose run --rm swagger --version
 
 app-run:
 	@export go mod tidy && \

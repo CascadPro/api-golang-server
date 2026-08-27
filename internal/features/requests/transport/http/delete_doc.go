@@ -12,7 +12,8 @@ import (
 // @Summary      Delete document
 // @Description  Delete document and unpin it from request
 // @Tags         requests
-// @Param        idx path int true "File Index"
+// @Param        id path string true "Request ID"
+// @Param        index path int true "File Index"
 // @Success      204 "Successfully deleted document"
 // @Failure      400 {object} core_http_response.ErrorResponse "Bad request"
 // @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"
