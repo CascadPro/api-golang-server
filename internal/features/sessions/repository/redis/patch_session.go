@@ -7,7 +7,7 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
-	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
+	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 	"github.com/google/uuid"
 )
 

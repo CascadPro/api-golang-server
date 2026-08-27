@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	core_redis_cache "github.com/CascadePro/api-golang-server/internal/core/repository/redis/cache"
-	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
+	core_redis_cache "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/cache"
+	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 	"github.com/ipinfo/go/v2/ipinfo"
 )
 

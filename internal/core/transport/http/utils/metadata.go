@@ -7,7 +7,7 @@ import (
 
 	core_config "github.com/CascadePro/api-golang-server/internal/core/config"
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/repository/ipinfo/client"
+	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/infrastructure/ipinfo/client"
 	core_http_request "github.com/CascadePro/api-golang-server/internal/core/transport/http/request"
 )
 

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	core_redis_cache "github.com/CascadePro/api-golang-server/internal/core/repository/redis/cache"
+	core_redis_cache "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/cache"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/ipinfo/go/v2/ipinfo/cache"
 )

@@ -5,8 +5,8 @@ import (
 	"net"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/repository/ipinfo/client"
-	core_postgres_token "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/token"
+	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/infrastructure/ipinfo/client"
+	core_postgres_token "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/token"
 	core_http_request "github.com/CascadePro/api-golang-server/internal/core/transport/http/request"
 	sessions_redis_repository "github.com/CascadePro/api-golang-server/internal/features/sessions/repository/redis"
 	settings_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/settings/repository/postgres"

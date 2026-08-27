@@ -9,8 +9,8 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
-	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"

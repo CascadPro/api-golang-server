@@ -8,8 +8,8 @@ import (
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
-	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
 )
 
