@@ -23,7 +23,7 @@ type ConnectionPool struct {
 	timeout   time.Duration
 }
 
-func NewConnectionPool(ctx context.Context, cfg Config, pool core_redis_pool.Pool) (*ConnectionPool, error) {
+func New(ctx context.Context, cfg Config, pool core_redis_pool.Pool) (*ConnectionPool, error) {
 	httpClient := http.Client{
 		Transport: &http.Transport{
 			MaxIdleConns:        100,
