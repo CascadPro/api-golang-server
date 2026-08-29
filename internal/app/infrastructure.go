@@ -9,15 +9,18 @@ import (
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/s3/pool"
+	core_jwt_security "github.com/CascadePro/api-golang-server/internal/core/security/jwt"
 	core_validation_init "github.com/CascadePro/api-golang-server/internal/core/validation/init"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type Infrastructure struct {
-	Postgres *core_postgres_pool.ConnectionPool
-	Redis    *core_redis_pool.ConnectionPool
-	Mongo    *core_mongo_pool.ConnectionPool
-	S3       *core_s3_pool.ConnectionPool
-	IPInfo   *core_ipinfo_pool.ConnectionPool
+	Postgres    *core_postgres_pool.ConnectionPool
+	Redis       *core_redis_pool.ConnectionPool
+	Mongo       *core_mongo_pool.ConnectionPool
+	S3          *core_s3_pool.ConnectionPool
+	IPInfo      *core_ipinfo_pool.ConnectionPool
+	TokenIssuer *core_jwt_security.Issuer
 }
 
 func (a *App) initInfrastructure(ctx context.Context) error {
@@ -84,12 +87,24 @@ func (a *App) initInfrastructure(ctx context.Context) error {
 		return fmt.Errorf("initialize validator: %w", err)
 	}
 
+	a.logger.Debug("initializing app JWT issuer")
+
+	tokenIssuer, err := core_jwt_security.NewIssuer(jwt.SigningMethodHS512)
+	if err != nil {
+		pgPool.Close()
+		redisPool.Close()
+		mongoPool.Close(ctx)
+
+		return fmt.Errorf("initialize JWT issuer")
+	}
+
 	a.infrastructure = &Infrastructure{
-		Postgres: pgPool,
-		Redis:    redisPool,
-		Mongo:    mongoPool,
-		S3:       s3Pool,
-		IPInfo:   ipInfoPool,
+		Postgres:    pgPool,
+		Redis:       redisPool,
+		Mongo:       mongoPool,
+		S3:          s3Pool,
+		IPInfo:      ipInfoPool,
+		TokenIssuer: tokenIssuer,
 	}
 
 	return nil

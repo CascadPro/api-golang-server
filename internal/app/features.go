@@ -77,7 +77,8 @@ func (a *App) initFeatures() error {
 
 	// Users route
 	logFeatureInit("users", "/api/v1/users")
-	usersRouter := core_http_server.NewRouter("/users", rootRateLimit.Middleware(), core_http_middleware.Authorization())
+	usersRouter := core_http_server.NewRouter("/users",
+		rootRateLimit.Middleware(), core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
 
 	usersPostgresRepository := users_postgres_repository.NewRepository(a.infrastructure.Postgres)
 	usersService := users_service.NewService(mediaService, usersPostgresRepository)
@@ -88,7 +89,7 @@ func (a *App) initFeatures() error {
 	// Settings route
 	logFeatureInit("settings", "/api/v1/settings")
 	settingsRouter := core_http_server.NewRouter("/settings",
-		rootRateLimit.Middleware(), core_http_middleware.Authorization())
+		rootRateLimit.Middleware(), core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
 
 	settingsPostgresRepository := settings_postgres_repository.NewRepository(a.infrastructure.Postgres)
 	settingsService := settings_service.NewService(settingsPostgresRepository)
@@ -102,7 +103,7 @@ func (a *App) initFeatures() error {
 
 	clientPostgresRepository := client_postgres_repository.NewRepository(a.infrastructure.Postgres)
 	clientService := client_service.NewService(clientPostgresRepository)
-	clientHttpHandler := client_transport_http.NewHttpHandler(clientService)
+	clientHttpHandler := client_transport_http.NewHttpHandler(clientService, a.infrastructure.TokenIssuer)
 
 	clientRouter.RegisterRoutes(clientHttpHandler.Routes()...)
 
@@ -112,13 +113,13 @@ func (a *App) initFeatures() error {
 
 	requestsMongoRepository := requests_mongo_repository.NewRepository(a.infrastructure.Mongo)
 	requestsService := requests_service.NewService(mediaService, clientService, usersPostgresRepository, requestsMongoRepository)
-	requestsHttpHandler := requests_transport_http.NewHttpHandler(requestsService)
+	requestsHttpHandler := requests_transport_http.NewHttpHandler(requestsService, a.infrastructure.TokenIssuer)
 
 	requestsRouter.RegisterRoutes(requestsHttpHandler.Routes()...)
 
 	// Sessions route
 	logFeatureInit("sessions", "/api/v1/sessions")
-	sessionsRouter := core_http_server.NewRouter("/sessions", core_http_middleware.Authorization())
+	sessionsRouter := core_http_server.NewRouter("/sessions", core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
 
 	sessionsRedisRepo := sessions_redis_repository.NewRepository(a.infrastructure.Redis)
 	sessionsService := session_service.NewService(sessionsRedisRepo)
@@ -131,8 +132,8 @@ func (a *App) initFeatures() error {
 	authRouter := core_http_server.NewRouter("/auth")
 
 	authService := auth_service.NewService(usersPostgresRepository, settingsPostgresRepository,
-		tokenPostgresRepository, ipInfoRepository, sessionsRedisRepo)
-	authHttpHandler := auth_transport_http.NewHttpHandler(authService)
+		tokenPostgresRepository, ipInfoRepository, sessionsRedisRepo, a.infrastructure.TokenIssuer)
+	authHttpHandler := auth_transport_http.NewHttpHandler(authService, a.infrastructure.TokenIssuer)
 
 	authRouter.RegisterRoutes(authHttpHandler.Routes()...)
 
