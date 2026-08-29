@@ -6,19 +6,12 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
-	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func (s *Service) GetNewTokens(ctx context.Context, token string) (string, error) {
-	claims, err := core_utils.GetJwtTokenClaims[core_utils.JwtRefreshClaims](token)
+	claims, err := s.tokenIssuer.ParseRefresh(token)
 	if err != nil {
-		return "", fmt.Errorf("get jwt token claims: %w", err)
-	}
-
-	session, err := s.sessionsRedisRepo.GetSession(ctx, claims.UserID, claims.SessionID)
-	if err != nil {
-		return "", fmt.Errorf("get session: %w", err)
+		return "", fmt.Errorf("parse refresh token: %w", err)
 	}
 
 	user, err := s.userPostgresRepo.GetUser(ctx, domain.User{ID: claims.UserID})
@@ -29,15 +22,15 @@ func (s *Service) GetNewTokens(ctx context.Context, token string) (string, error
 		return "", fmt.Errorf("user is not activated: %w", core_errors.ErrConflict)
 	}
 
-	accessToken, _, err := core_utils.IssueTokens(claims.UserID, claims.SessionID, user.Role, session.ExpirationTime)
+	accessClaims, err := s.tokenIssuer.IssueAccess(claims.UserID, claims.SessionID, user.Role)
 	if err != nil {
-		return "", fmt.Errorf("issue tokens: %w", err)
+		return "", fmt.Errorf("issue access token: %w", err)
 	}
 
-	accessTokenString, err := core_utils.GenerateJwtToken(jwt.SigningMethodHS256, accessToken)
+	accessToken, err := s.tokenIssuer.SignAccess(accessClaims)
 	if err != nil {
-		return "", fmt.Errorf("generate jwt token string: %w", err)
+		return "", fmt.Errorf("sign access token: %w", err)
 	}
 
-	return accessTokenString, nil
+	return accessToken, nil
 }

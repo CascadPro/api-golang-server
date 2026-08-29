@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_jwt_security "github.com/CascadePro/api-golang-server/internal/core/security/jwt"
 	core_http "github.com/CascadePro/api-golang-server/internal/core/transport/http"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
@@ -12,25 +13,26 @@ import (
 
 type HttpHandler struct {
 	requestsService requests_service.ServiceMethods
+	tokenIssuer     core_jwt_security.IssuerMethods
 }
 
-func NewHttpHandler(requestsService requests_service.ServiceMethods) *HttpHandler {
+func NewHttpHandler(requestsService requests_service.ServiceMethods, tokenIssuer core_jwt_security.IssuerMethods) *HttpHandler {
 	return &HttpHandler{
 		requestsService: requestsService,
+		tokenIssuer:     tokenIssuer,
 	}
 }
 
-var (
-	adminMiddlewares = []core_http_middleware.Middleware{
-		core_http_middleware.Authorization(domain.RoleAdmin, domain.RoleDirector),
-	}
-	defaultMiddlewares = []core_http_middleware.Middleware{
-		core_http_middleware.Authorization(domain.RoleAdmin, domain.RoleDirector, domain.RoleClerk),
-	}
-)
-
 func (h *HttpHandler) Routes() []core_http_server.Route {
-	rateLimitCfg := core_http_middleware.NewRateLimitConfig(5, 10*time.Minute)
+	var (
+		adminMiddlewares = []core_http_middleware.Middleware{
+			core_http_middleware.Authorization(h.tokenIssuer, domain.RoleAdmin, domain.RoleDirector),
+		}
+		defaultMiddlewares = []core_http_middleware.Middleware{
+			core_http_middleware.Authorization(h.tokenIssuer, domain.RoleAdmin, domain.RoleDirector, domain.RoleClerk),
+		}
+		rateLimitCfg = core_http_middleware.NewRateLimitConfig(5, 10*time.Minute)
+	)
 
 	return []core_http_server.Route{
 		{
