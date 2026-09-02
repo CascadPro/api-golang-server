@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 
-	core_ipinfo_pool "github.com/CascadePro/api-golang-server/internal/core/repository/ipinfo/pool"
+	core_ipinfo_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/ipinfo/pool"
 )
 
 type Repository struct {

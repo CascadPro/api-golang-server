@@ -7,7 +7,7 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
-	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/repository/s3/pool"
+	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/s3/pool"
 	core_media_utils "github.com/CascadePro/api-golang-server/internal/core/utils/media"
 )
 

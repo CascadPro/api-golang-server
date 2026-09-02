@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
-	core_mongo_pool "github.com/CascadePro/api-golang-server/internal/core/repository/mongo/pool"
+	core_mongo_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/mongo/pool"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

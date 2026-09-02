@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_mongo_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/mongo/pool"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
-	core_mongo_pool "github.com/CascadePro/api-golang-server/internal/core/repository/mongo/pool"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/zap"

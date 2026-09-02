@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
+	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 )
 
 func (r *Repository) SetCache(ctx context.Context, key string, dest any) error {

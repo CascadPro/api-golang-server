@@ -10,8 +10,6 @@ import (
 	core_http_request "github.com/CascadePro/api-golang-server/internal/core/transport/http/request"
 	core_http_utils "github.com/CascadePro/api-golang-server/internal/core/transport/http/utils"
 	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 )
 
 func (s *Service) Login(
@@ -60,30 +58,24 @@ func (s *Service) Login(
 		return "", "", fmt.Errorf("create session: %w", err)
 	}
 
-	accessToken, refreshToken, err := issueTokens(userDomain.ID, sessionID, userDomain.Role, duration)
+	accessClaims, err := s.tokenIssuer.IssueAccess(userDomain.ID, sessionID, userDomain.Role)
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("issue access token: %w", err)
 	}
 
-	return accessToken, refreshToken, nil
-}
-
-func issueTokens(uid uuid.UUID, sid string, role domain.UserRole, exp domain.SessionLifetime) (string, string, error) {
-	atClaims, rtClaims, err := core_utils.IssueTokens(uid, sid, role, exp)
+	refreshClaims, err := s.tokenIssuer.IssueRefresh(userDomain.ID, sessionID, duration)
 	if err != nil {
-		return "", "", fmt.Errorf("issue tokens: %w", err)
+		return "", "", fmt.Errorf("issue refresh token: %w", err)
 	}
 
-	var method = jwt.SigningMethodHS256
-
-	accessToken, err := core_utils.GenerateJwtToken(method, atClaims)
+	accessToken, err := s.tokenIssuer.SignAccess(accessClaims)
 	if err != nil {
-		return "", "", fmt.Errorf("access token generate: %w", err)
+		return "", "", fmt.Errorf("sign access token: %w", err)
 	}
 
-	refreshToken, err := core_utils.GenerateJwtToken(method, rtClaims)
+	refreshToken, err := s.tokenIssuer.SignRefresh(refreshClaims)
 	if err != nil {
-		return "", "", fmt.Errorf("refresh token generate: %w", err)
+		return "", "", fmt.Errorf("sign refresh token: %w", err)
 	}
 
 	return accessToken, refreshToken, nil

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
+	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 )
 
 func (r *Repository) DelCache(ctx context.Context, key string) error {

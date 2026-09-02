@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/repository/postgres/pool"
+	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
 	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
 	"github.com/google/uuid"
 )

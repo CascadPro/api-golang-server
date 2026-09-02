@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
-	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/repository/redis/pool"
+	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 )
 
 func (r *Repository) GetCache(ctx context.Context, key string) (string, error) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_mongo_pool "github.com/CascadePro/api-golang-server/internal/core/repository/mongo/pool"
+	core_mongo_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/mongo/pool"
 	"github.com/google/uuid"
 )
 

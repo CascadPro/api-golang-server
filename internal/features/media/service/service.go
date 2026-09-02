@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/repository/s3/pool"
+	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/s3/pool"
 	media_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/media/repository/postgres"
 )
 

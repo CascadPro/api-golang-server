@@ -212,7 +212,7 @@ func (u *User) ApplyPatch(patch UserPatch) (User, error) {
 	}
 
 	if patch.LastName.Set {
-		patched.LastName = patch.Surname.Value
+		patched.LastName = patch.LastName.Value
 	}
 
 	if patch.Activated.Set {
