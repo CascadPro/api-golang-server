@@ -18,6 +18,9 @@ type Event struct {
 	Attempts  int
 	LastError *string
 
+	LockedAt *time.Time
+	LockedBy *uuid.UUID
+
 	ProcessedAt *time.Time
 	CreatedAt   time.Time
 }
@@ -30,6 +33,8 @@ func domainEventFromModel(model Event) domain.OutboxEvent {
 		Payload:     model.Payload,
 		Attempts:    model.Attempts,
 		LastError:   model.LastError,
+		LockedAt:    model.LockedAt,
+		LockedBy:    model.LockedBy,
 		ProcessedAt: model.ProcessedAt,
 		CreatedAt:   model.CreatedAt,
 	}

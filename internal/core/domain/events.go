@@ -23,6 +23,9 @@ type OutboxEvent struct {
 	Attempts  int
 	LastError *string
 
+	LockedAt *time.Time
+	LockedBy *uuid.UUID
+
 	ProcessedAt *time.Time
 	CreatedAt   time.Time
 }

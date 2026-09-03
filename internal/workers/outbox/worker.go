@@ -2,10 +2,12 @@ package worker_outbox
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	core_postgres_outbox "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/outbox"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -14,24 +16,39 @@ type Worker struct {
 	handler    HandlerMethods
 	logger     *core_logger.Logger
 
+	workerID  uuid.UUID
 	interval  time.Duration
 	batchSize int
+	lockTTL   time.Duration
 }
 
-func New(repository core_postgres_outbox.RepositoryMethods, handler HandlerMethods, logger *core_logger.Logger) *Worker {
+func New(
+	repository core_postgres_outbox.RepositoryMethods,
+	handler HandlerMethods,
+	logger *core_logger.Logger,
+) (*Worker, error) {
+	workerID, err := uuid.NewV7()
+	if err != nil {
+		return nil, fmt.Errorf("generate ID: %w", err)
+	}
+
 	return &Worker{
 		repository: repository,
 		handler:    handler,
 		logger:     logger,
 
+		workerID:  workerID,
 		interval:  5 * time.Second,
 		batchSize: 50,
-	}
+		lockTTL:   time.Minute,
+	}, nil
 }
 
 func (w *Worker) Run(ctx context.Context) {
 	ticker := time.NewTicker(w.interval)
 	defer ticker.Stop()
+
+	w.process(ctx)
 
 	for {
 		select {
@@ -45,10 +62,9 @@ func (w *Worker) Run(ctx context.Context) {
 }
 
 func (w *Worker) process(ctx context.Context) {
-	events, err := w.repository.GetPendingEvents(ctx, w.batchSize)
+	events, err := w.repository.GetPendingEvents(ctx, w.workerID, w.batchSize, w.lockTTL)
 	if err != nil {
 		w.logger.Error("failed to get pending outbox events", zap.Error(err))
-
 		return
 	}
 
@@ -61,16 +77,18 @@ func (w *Worker) process(ctx context.Context) {
 				zap.Error(err),
 			)
 
-			if event.Attempts >= 3 {
-				_ = w.repository.MarkEventFailed(ctx, event.ID, err)
-			} else {
-				_ = w.repository.IncrementAttempt(ctx, event.ID)
+			if err := w.repository.MarkEventFailed(ctx, event.ID, w.workerID, err); err != nil {
+				w.logger.Error(
+					"failed to mark outbox event failed",
+					zap.String("event_id", event.ID.String()),
+					zap.Error(err),
+				)
 			}
 
 			continue
 		}
 
-		if err := w.repository.MarkEventProcessed(ctx, event.ID); err != nil {
+		if err := w.repository.MarkEventProcessed(ctx, event.ID, w.workerID); err != nil {
 			w.logger.Error(
 				"failed to mark outbox event processed",
 				zap.String("event_id", event.ID.String()),

@@ -2,6 +2,7 @@ package core_postgres_outbox
 
 import (
 	"context"
+	"time"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
@@ -15,13 +16,11 @@ type Repository struct {
 type RepositoryMethods interface {
 	CreateEvent(ctx context.Context, tx core_postgres_pool.Tx, event domain.OutboxEvent) (domain.OutboxEvent, error)
 
-	GetPendingEvents(ctx context.Context, limit int) ([]domain.OutboxEvent, error)
+	GetPendingEvents(ctx context.Context, workerID uuid.UUID, limit int, ttl time.Duration) ([]domain.OutboxEvent, error)
 
-	MarkEventProcessed(ctx context.Context, id uuid.UUID) error
+	MarkEventProcessed(ctx context.Context, id uuid.UUID, workerID uuid.UUID) error
 
-	MarkEventFailed(ctx context.Context, id uuid.UUID, err error) error
-
-	IncrementAttempt(ctx context.Context, id uuid.UUID) error
+	MarkEventFailed(ctx context.Context, id uuid.UUID, workerID uuid.UUID, err error) error
 }
 
 func NewRepository(pool core_postgres_pool.Pool) *Repository {
