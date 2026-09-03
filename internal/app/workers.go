@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 
 	core_postgres_outbox "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/outbox"
 	worker_outbox "github.com/CascadePro/api-golang-server/internal/workers/outbox"
@@ -17,7 +18,10 @@ func (a *App) initWorkers(ctx context.Context) error {
 
 	outboxWorkerHandler := worker_outbox.NewHandler(outboxMediaHandler)
 
-	outboxWorker := worker_outbox.New(repository, outboxWorkerHandler, a.logger)
+	outboxWorker, err := worker_outbox.New(repository, outboxWorkerHandler, a.logger)
+	if err != nil {
+		return fmt.Errorf("create outbox worker: %w", err)
+	}
 
 	a.logger.Debug("starting outbox worker", zap.String("worker", "outbox"))
 	go outboxWorker.Run(ctx)
