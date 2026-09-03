@@ -75,7 +75,14 @@ migrate-action:
 	docker compose run --rm cascade-app-postgres-migrate \
 		-path /migrations \
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@cascade-app-postgres:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable \
-		"$(action)"
+		$(action) $(args)
+
+migrate-goto:
+	@if [ -z "$(version)" ]; then \
+		echo "Version is required. Use 'make migrate-goto version=<version>' to specify a version."; \
+		exit 1; \
+	fi; \
+	make migrate-action action=goto args=$(version)
 
 mongo-init:
 	@docker exec -i cascade-app-mongo-database mongosh \
