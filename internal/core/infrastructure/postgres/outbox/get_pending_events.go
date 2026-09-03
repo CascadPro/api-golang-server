@@ -12,9 +12,9 @@ func (r *Repository) GetPendingEvents(ctx context.Context, limit int) ([]domain.
 	defer cancel()
 
 	query := `
-		SELECT id, aggregate_id, aggregate_type, event_type, payload, attempts, last_error, processed_at, created_at
+		SELECT id, type, aggregate_id, payload, attempts, last_error, processed_at, created_at
 		FROM infrastructure.outbox_events
-		WHERE processed_at IS NULL
+		WHERE (processed_at IS NULL)
 		ORDER BY created_at, id
 		LIMIT $1
 		FOR UPDATE SKIP LOCKED;
@@ -36,10 +36,10 @@ func (r *Repository) GetPendingEvents(ctx context.Context, limit int) ([]domain.
 			&event.Type,
 			&event.AggregateID,
 			&event.Payload,
-			&event.CreatedAt,
-			&event.ProcessedAt,
 			&event.Attempts,
 			&event.LastError,
+			&event.ProcessedAt,
+			&event.CreatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("scan error: %w", err)
 		}

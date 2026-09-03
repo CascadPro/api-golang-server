@@ -14,7 +14,7 @@ func (r *Repository) MarkEventFailed(ctx context.Context, id uuid.UUID, lastErro
 
 	query := `
 		UPDATE infrastructure.outbox_events
-		SET (last_error = $2)
+		SET last_error = $2
 		WHERE (id = $1 AND processed_at IS NULL);
 	`
 

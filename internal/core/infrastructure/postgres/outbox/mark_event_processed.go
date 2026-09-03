@@ -3,6 +3,7 @@ package core_postgres_outbox
 import (
 	"context"
 	"fmt"
+	"time"
 
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	"github.com/google/uuid"
@@ -14,11 +15,13 @@ func (r *Repository) MarkEventProcessed(ctx context.Context, id uuid.UUID) error
 
 	query := `
 		UPDATE infrastructure.outbox_events
-		SET (processed_at = NOW(), last_error = NULL)
+		SET processed_at = $2, last_error = NULL
 		WHERE (id = $1 AND processed_at IS NULL);
 	`
 
-	cmd, err := r.pool.Exec(ctx, query, id)
+	now := time.Now()
+
+	cmd, err := r.pool.Exec(ctx, query, id, now)
 	if err != nil {
 		return fmt.Errorf("exec query: %w", err)
 	}

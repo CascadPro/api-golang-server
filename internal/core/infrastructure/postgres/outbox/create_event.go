@@ -33,7 +33,7 @@ func (r *Repository) CreateEvent(
 		event.Payload = json.RawMessage(`{}`)
 	}
 
-	row := tx.QueryRow(ctx, query, id, event.Type, event.AggregateID, event.Payload, event.CreatedAt)
+	row := tx.QueryRow(ctx, query, id, event.Type, event.AggregateID, event.Payload)
 
 	var model Event
 	if err := row.Scan(&model.ID, &model.Type, &model.AggregateID, &model.Payload, &model.CreatedAt); err != nil {
