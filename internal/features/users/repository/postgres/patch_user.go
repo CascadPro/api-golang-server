@@ -16,7 +16,12 @@ import (
 
 // PatchUser, fields to update: "Activated", "Email", "PasswordHash" (provides as string), "Role", "Name", "Surname",
 // "LastName", "AvatarFileID", "LastActiveAt"
-func (r *Repository) PatchUser(ctx context.Context, id uuid.UUID, user domain.User) (domain.User, error) {
+func (r *Repository) patchUser(
+	ctx context.Context,
+	db core_postgres_pool.Querier,
+	id uuid.UUID,
+	user domain.User,
+) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
@@ -81,7 +86,7 @@ func (r *Repository) PatchUser(ctx context.Context, id uuid.UUID, user domain.Us
 		RETURNING id, version, activated, role, email, name, surname, last_name, avatar_file_id, last_active_at;
 	`)
 
-	row := r.pool.QueryRow(ctx, query.String(), args...)
+	row := db.QueryRow(ctx, query.String(), args...)
 
 	var model UserModel
 	if err := row.Scan(
@@ -116,4 +121,21 @@ func (r *Repository) PatchUser(ctx context.Context, id uuid.UUID, user domain.Us
 	}
 
 	return domainFromModel(model), nil
+}
+
+func (r *Repository) PatchUser(
+	ctx context.Context,
+	id uuid.UUID,
+	user domain.User,
+) (domain.User, error) {
+	return r.patchUser(ctx, r.pool, id, user)
+}
+
+func (r *Repository) PatchUserTx(
+	ctx context.Context,
+	tx core_postgres_pool.Tx,
+	id uuid.UUID,
+	user domain.User,
+) (domain.User, error) {
+	return r.patchUser(ctx, tx, id, user)
 }

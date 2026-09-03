@@ -15,11 +15,22 @@ type Repository struct {
 type RepositoryMethods interface {
 	CreateUser(ctx context.Context, user domain.User) (domain.User, error)
 	GetUser(ctx context.Context, user domain.User) (domain.User, error)
+
 	PatchUser(ctx context.Context, id uuid.UUID, user domain.User) (domain.User, error)
+	PatchUserTx(ctx context.Context, tx core_postgres_pool.Tx, id uuid.UUID, user domain.User) (domain.User, error)
+
+	BeginTx(ctx context.Context) (core_postgres_pool.Tx, error)
 }
 
 func NewRepository(pool core_postgres_pool.Pool) *Repository {
 	return &Repository{
 		pool: pool,
 	}
+}
+
+func (r *Repository) BeginTx(ctx context.Context) (core_postgres_pool.Tx, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
+	defer cancel()
+
+	return r.pool.Begin(ctx)
 }
