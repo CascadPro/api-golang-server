@@ -29,14 +29,14 @@ func (r *Repository) GetPendingEvents(
 			FROM infrastructure.outbox_events
 			WHERE processed_at IS NULL AND (
 				locked_at IS NULL
-				OR locked_at < $3 - ($4 * INTERVAL '1 second')
+				OR locked_at < NOW() - ($3 * INTERVAL '1 second')
 			)
 			ORDER BY created_at, id
 			FOR UPDATE SKIP LOCKED
 			LIMIT $1
 		)
 		UPDATE infrastructure.outbox_events AS e
-		SET locked_at = $3, locked_by = $2, attempts = attempts + 1
+		SET locked_at = NOW(), locked_by = $2, attempts = attempts + 1
 		FROM events
 		WHERE e.id = events.id
 		RETURNING
@@ -52,9 +52,7 @@ func (r *Repository) GetPendingEvents(
 			e.created_at;
 	`
 
-	now := time.Now()
-
-	rows, err := r.pool.Query(ctx, query, limit, workerID, now, int64(ttl.Seconds()))
+	rows, err := r.pool.Query(ctx, query, limit, workerID, int64(ttl.Seconds()))
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}
