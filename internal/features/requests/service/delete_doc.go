@@ -26,6 +26,7 @@ func (s *Service) DeleteDoc(ctx context.Context, requestID uuid.UUID, index int)
 	var patch domain.RequestPatch
 
 	null := domain.NewNullable("")
+
 	switch index {
 	case 0:
 		patch.ProjectDocID = null

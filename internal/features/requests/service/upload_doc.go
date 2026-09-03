@@ -39,23 +39,37 @@ func (s *Service) UploadDoc(
 	fileID := domain.NewNullable(file.ID)
 
 	var patch domain.RequestPatch
+	var oldFileID *string
+
 	switch index {
 	case 0:
 		patch.ProjectDocID = fileID
+		oldFileID = request.ProjectDocID
 	case 1:
 		patch.TechTaskDocID = fileID
+		oldFileID = request.TechTaskDocID
 	case 2:
 		patch.SpecificationDocID = fileID
+		oldFileID = request.SpecificationDocID
 	case 3:
 		patch.ContractDocID = fileID
+		oldFileID = request.ContractDocID
 	}
 
 	if err := request.ApplyPatch(patch); err != nil {
+		_ = s.mediaService.DeleteFile(ctx, file.Tag, file.ID)
+
 		return fmt.Errorf("apply patch: %w", err)
 	}
 
 	if err := s.requestsMongoRepo.PatchRequest(ctx, requestID, request); err != nil {
+		_ = s.mediaService.DeleteFile(ctx, file.Tag, file.ID)
+
 		return fmt.Errorf("patch request: %w", err)
+	}
+
+	if oldFileID != nil {
+		_ = s.mediaService.DeleteFile(ctx, file.Tag, *oldFileID)
 	}
 
 	return nil
