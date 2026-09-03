@@ -19,11 +19,6 @@ func (s *Service) DeleteFile(ctx context.Context, fileTag domain.FileTag, fileID
 		return fmt.Errorf("validate file id: %w", err)
 	}
 
-	key := fmt.Sprintf("%s/%s", fileTag, fileID)
-	if err := s.coreS3Repo.DeleteObject(ctx, key); err != nil {
-		return fmt.Errorf("delete object from S3 repository: %w", err)
-	}
-
 	tx, err := s.mediaPostgresRepo.BeginTx(ctx)
 	if err != nil {
 		return fmt.Errorf("begin transaction: %w", err)
