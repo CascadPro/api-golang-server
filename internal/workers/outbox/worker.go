@@ -61,7 +61,11 @@ func (w *Worker) process(ctx context.Context) {
 				zap.Error(err),
 			)
 
-			_ = w.repository.MarkEventFailed(ctx, event.ID, err)
+			if event.Attempts >= 3 {
+				_ = w.repository.MarkEventFailed(ctx, event.ID, err)
+			} else {
+				_ = w.repository.IncrementAttempt(ctx, event.ID)
+			}
 
 			continue
 		}
