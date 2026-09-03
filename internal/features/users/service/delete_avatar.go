@@ -23,7 +23,7 @@ func (s *Service) DeleteAvatar(ctx context.Context, userID uuid.UUID) error {
 	}
 
 	if err := s.mediaService.DeleteFile(ctx, domain.FileTagAvatars, *user.AvatarFileID); err != nil {
-		return fmt.Errorf("delete avatar file from media service: %w", err)
+		return fmt.Errorf("delete avatar file: %w", err)
 	}
 
 	return nil

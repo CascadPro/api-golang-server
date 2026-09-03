@@ -36,7 +36,7 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 		},
 		{
 			Method:     core_http.MethodDelete,
-			Path:       "/avatar/delete",
+			Path:       "/avatar",
 			Handler:    h.DeleteAvatar,
 			Middleware: []core_http_middleware.Middleware{avatarRateLimit.Middleware()},
 		},

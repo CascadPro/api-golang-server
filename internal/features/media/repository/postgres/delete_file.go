@@ -6,10 +6,11 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 )
 
-func (r *Repository) DeleteFile(ctx context.Context, fileID string) error {
+func (r *Repository) deleteFile(ctx context.Context, db core_postgres_pool.Querier, fileID string) error {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
@@ -22,7 +23,7 @@ func (r *Repository) DeleteFile(ctx context.Context, fileID string) error {
 		WHERE id = $1;
 	`
 
-	cmd, err := r.pool.Exec(ctx, query, fileID)
+	cmd, err := db.Exec(ctx, query, fileID)
 	if err != nil {
 		return fmt.Errorf("exec query: %w", err)
 	}
@@ -31,4 +32,12 @@ func (r *Repository) DeleteFile(ctx context.Context, fileID string) error {
 	}
 
 	return nil
+}
+
+func (r *Repository) DeleteFile(ctx context.Context, fileID string) error {
+	return r.deleteFile(ctx, r.pool, fileID)
+}
+
+func (r *Repository) DeleteFileTx(ctx context.Context, tx core_postgres_pool.Tx, fileID string) error {
+	return r.deleteFile(ctx, tx, fileID)
 }

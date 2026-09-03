@@ -71,6 +71,15 @@ func (p *ConnectionPool) Exec(ctx context.Context, sql string, arguments ...any)
 	return tag, nil
 }
 
+func (p *ConnectionPool) Begin(ctx context.Context) (Tx, error) {
+	tx, err := p.Pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin transaction: %w", err)
+	}
+
+	return tx, nil
+}
+
 func (p *ConnectionPool) Close() {
 	p.Pool.Close()
 }

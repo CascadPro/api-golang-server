@@ -17,7 +17,7 @@ import (
 // @Failure      404 {object} core_http_response.ErrorResponse "Not found"
 // @Failure      429 {object} core_http_response.ErrorResponse "Too many requests"
 // @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
-// @Router       /users/avatar/delete [patch]
+// @Router       /users/avatar [delete]
 func (h *HttpHandler) DeleteAvatar(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

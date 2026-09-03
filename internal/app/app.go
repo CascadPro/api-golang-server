@@ -35,20 +35,28 @@ func New(
 		logger: logger,
 	}
 
+	logger.Debug("initializing app infrastructure")
 	if err := app.initInfrastructure(ctx); err != nil {
 		return nil, fmt.Errorf("init infrastructure: %w", err)
 	}
 
+	logger.Debug("initializing app workers")
+	if err := app.initWorkers(ctx); err != nil {
+		return nil, fmt.Errorf("init workers: %w", err)
+	}
+
+	logger.Debug("initializing app features")
 	if err := app.initFeatures(); err != nil {
 		app.infrastructure.Close(ctx)
 
-		return nil, err
+		return nil, fmt.Errorf("init features: %w", err)
 	}
 
+	logger.Debug("initializing app http server")
 	if err := app.initHttp(); err != nil {
 		app.infrastructure.Close(ctx)
 
-		return nil, err
+		return nil, fmt.Errorf("init http server: %w", err)
 	}
 
 	return app, nil

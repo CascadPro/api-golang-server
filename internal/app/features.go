@@ -5,6 +5,7 @@ import (
 	"time"
 
 	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/infrastructure/ipinfo/client"
+	core_postgres_outbox "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/outbox"
 	core_postgres_token "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/token"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
@@ -45,11 +46,12 @@ type Features struct {
 
 func (a *App) initFeatures() error {
 	tokenPostgresRepository := core_postgres_token.NewRepository(a.infrastructure.Postgres)
+	outboxPostgresRepository := core_postgres_outbox.NewRepository(a.infrastructure.Postgres)
 	ipInfoRepository := core_ipinfo_client.NewRepository(a.infrastructure.IPInfo)
 
 	logFeatureInit := func(name, path string) {
 		a.logger.Debug(
-			"initialing feature",
+			"initializing feature",
 			zap.String("feature", name),
 			zap.String("path", fmt.Sprintf("%s/*", path)),
 		)
@@ -70,7 +72,7 @@ func (a *App) initFeatures() error {
 	mediaRouter := core_http_server.NewRouter("/media", mediaRateLimit.Middleware())
 
 	mediaPostgresRepo := media_postgres_repository.NewRepository(a.infrastructure.Postgres)
-	mediaService := media_service.NewService(mediaPostgresRepo, a.infrastructure.S3)
+	mediaService := media_service.NewService(mediaPostgresRepo, outboxPostgresRepository, a.infrastructure.S3)
 	mediaHttpHandler := media_transport_http.NewHttpHandler(mediaService)
 
 	mediaRouter.RegisterRoutes(mediaHttpHandler.Routes()...)
@@ -81,7 +83,7 @@ func (a *App) initFeatures() error {
 		rootRateLimit.Middleware(), core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
 
 	usersPostgresRepository := users_postgres_repository.NewRepository(a.infrastructure.Postgres)
-	usersService := users_service.NewService(mediaService, usersPostgresRepository)
+	usersService := users_service.NewService(mediaService, usersPostgresRepository, outboxPostgresRepository)
 	usersHttpHandler := users_transport_http.NewHttpHandler(usersService)
 
 	usersRouter.RegisterRoutes(usersHttpHandler.Routes()...)

@@ -26,7 +26,11 @@ func RequestID() Middleware {
 			r.Header.Set(requestIDHeader, requestID)
 			w.Header().Set(requestIDHeader, requestID)
 
-			next.ServeHTTP(w, r)
+			ctx := r.Context()
+
+			ctx = context.WithValue(ctx, core_context.CtxKeyRequestID, requestID)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
