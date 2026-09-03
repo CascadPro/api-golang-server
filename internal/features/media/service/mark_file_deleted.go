@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 )
@@ -19,17 +20,43 @@ func (s *Service) MarkFileDeleted(ctx context.Context, fileID string) error {
 		return fmt.Errorf("get file from repository: %w", err)
 	}
 
+	tx, err := s.mediaPostgresRepo.BeginTx(ctx)
+	if err != nil {
+		return fmt.Errorf("begin transaction: %w", err)
+	}
+
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
 	now := time.Now()
 	file.Deleted = true
 	file.DeletedAt = &now
 
-	if _, err := s.mediaPostgresRepo.PatchFile(ctx, fileID, file); err != nil {
-		return fmt.Errorf("patch file in repository")
+	if _, err := s.mediaPostgresRepo.PatchFileTx(ctx, tx, fileID, file); err != nil {
+		return fmt.Errorf("patch file in repository: %w", err)
 	}
 
-	key := fmt.Sprintf("%s/%s", file.Tag, fileID)
-	if err := s.coreS3Repo.DeleteObject(ctx, key); err != nil {
-		return fmt.Errorf("delete object from S3 repository: %w", err)
+	payload, err := deleteFileEventPayload(domain.FileTagAvatars, file.ID)
+	if err != nil {
+		_ = tx.Rollback(ctx)
+
+		return fmt.Errorf("create outbox payload: %w", err)
+	}
+
+	event := domain.NewOutboxEvent(domain.EventTypeMediaDeleteFile, nil, payload)
+	if requestID, err := core_context.RequestIDFromContext(ctx); err == nil {
+		event.AggregateID = &requestID
+	}
+
+	if _, err := s.outboxPostgresRepo.CreateEvent(ctx, tx, event); err != nil {
+		_ = tx.Rollback(ctx)
+
+		return fmt.Errorf("create outbox event: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit transaction: %w", err)
 	}
 
 	return nil

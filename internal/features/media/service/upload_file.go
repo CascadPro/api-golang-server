@@ -26,12 +26,14 @@ func (s *Service) UploadFile(ctx context.Context, dtoFile *domain.File, content 
 			&domain.FileAvatarS3Quality,
 		)
 		if err != nil {
+			_ = s.mediaPostgresRepo.DeleteFile(ctx, file.ID)
 			return domain.File{}, fmt.Errorf("resize image: %w", err)
 		}
 	}
 
 	key := fmt.Sprintf("%s/%s", file.Tag, file.ID)
 	if err := s.coreS3Repo.PutObject(ctx, key, content); err != nil {
+		_ = s.mediaPostgresRepo.DeleteFile(ctx, file.ID)
 		return domain.File{}, fmt.Errorf("put object to S3 repository: %w", err)
 	}
 

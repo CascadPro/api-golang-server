@@ -4,13 +4,15 @@ import (
 	"context"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_postgres_outbox "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/outbox"
 	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/s3/pool"
 	media_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/media/repository/postgres"
 )
 
 type Service struct {
-	mediaPostgresRepo media_postgres_repository.RepositoryMethods
-	coreS3Repo        core_s3_pool.Pool
+	mediaPostgresRepo  media_postgres_repository.RepositoryMethods
+	outboxPostgresRepo core_postgres_outbox.RepositoryMethods
+	coreS3Repo         core_s3_pool.Pool
 }
 
 type ServiceMethods interface {
@@ -24,10 +26,12 @@ type ServiceMethods interface {
 
 func NewService(
 	mediaPostgresRepo media_postgres_repository.RepositoryMethods,
+	outboxPostgresRepo core_postgres_outbox.RepositoryMethods,
 	coreS3Repo core_s3_pool.Pool,
 ) *Service {
 	return &Service{
-		mediaPostgresRepo: mediaPostgresRepo,
-		coreS3Repo:        coreS3Repo,
+		mediaPostgresRepo:  mediaPostgresRepo,
+		outboxPostgresRepo: outboxPostgresRepo,
+		coreS3Repo:         coreS3Repo,
 	}
 }

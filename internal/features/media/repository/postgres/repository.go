@@ -14,12 +14,22 @@ type Repository struct {
 type RepositoryMethods interface {
 	CreateFile(ctx context.Context, file *domain.File) (domain.File, error)
 	GetFile(ctx context.Context, fileID string) (domain.File, []byte, error)
-	PatchFile(ctx context.Context, fileID string, file domain.File) (domain.File, error)
+
 	DeleteFile(ctx context.Context, fileID string) error
+	DeleteFileTx(ctx context.Context, tx core_postgres_pool.Tx, fileID string) error
+
+	PatchFile(ctx context.Context, fileID string, file domain.File) (domain.File, error)
+	PatchFileTx(ctx context.Context, tx core_postgres_pool.Tx, fileID string, file domain.File) (domain.File, error)
+
+	BeginTx(ctx context.Context) (core_postgres_pool.Tx, error)
 }
 
 func NewRepository(pool core_postgres_pool.Pool) *Repository {
 	return &Repository{
 		pool: pool,
 	}
+}
+
+func (r *Repository) BeginTx(ctx context.Context) (core_postgres_pool.Tx, error) {
+	return r.pool.Begin(ctx)
 }

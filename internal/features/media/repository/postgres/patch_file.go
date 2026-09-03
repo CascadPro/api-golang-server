@@ -12,7 +12,12 @@ import (
 )
 
 // PatchFile, fields to update: "Filename", "Size", "Deleted", "DeletedAt"
-func (r *Repository) PatchFile(ctx context.Context, fileID string, file domain.File) (domain.File, error) {
+func (r *Repository) patchFile(
+	ctx context.Context,
+	db core_postgres_pool.Querier,
+	fileID string,
+	file domain.File,
+) (domain.File, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
@@ -27,7 +32,7 @@ func (r *Repository) PatchFile(ctx context.Context, fileID string, file domain.F
 		RETURNING id, version, tag, filename, mime_type, size, deleted, deleted_at, created_at;
 	`
 
-	row := r.pool.QueryRow(ctx, query, file.Filename, file.Size, file.Deleted, file.DeletedAt, fileID, file.Version)
+	row := db.QueryRow(ctx, query, file.Filename, file.Size, file.Deleted, file.DeletedAt, fileID, file.Version)
 
 	var model FileModel
 	if err := row.Scan(
@@ -54,4 +59,21 @@ func (r *Repository) PatchFile(ctx context.Context, fileID string, file domain.F
 	}
 
 	return domainFromModel(model), nil
+}
+
+func (r *Repository) PatchFile(
+	ctx context.Context,
+	fileID string,
+	file domain.File,
+) (domain.File, error) {
+	return r.patchFile(ctx, r.pool, fileID, file)
+}
+
+func (r *Repository) PatchFileTx(
+	ctx context.Context,
+	tx core_postgres_pool.Tx,
+	fileID string,
+	file domain.File,
+) (domain.File, error) {
+	return r.patchFile(ctx, tx, fileID, file)
 }
