@@ -18,7 +18,7 @@ func (a *App) initWorkers(ctx context.Context) error {
 
 	outboxWorkerHandler := worker_outbox.NewHandler(outboxMediaHandler)
 
-	outboxWorker, err := worker_outbox.New(repository, outboxWorkerHandler, a.logger)
+	outboxWorker, err := worker_outbox.New(repository, outboxWorkerHandler, a.logger, worker_outbox.NewConfigMust())
 	if err != nil {
 		return fmt.Errorf("create outbox worker: %w", err)
 	}

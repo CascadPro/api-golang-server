@@ -26,6 +26,7 @@ func New(
 	repository core_postgres_outbox.RepositoryMethods,
 	handler HandlerMethods,
 	logger *core_logger.Logger,
+	cfg Config,
 ) (*Worker, error) {
 	workerID, err := uuid.NewV7()
 	if err != nil {
@@ -38,9 +39,9 @@ func New(
 		logger:     logger,
 
 		workerID:  workerID,
-		interval:  5 * time.Second,
-		batchSize: 50,
-		lockTTL:   time.Minute,
+		interval:  cfg.Interval,
+		batchSize: cfg.BatchSize,
+		lockTTL:   cfg.LockTTL,
 	}, nil
 }
 
