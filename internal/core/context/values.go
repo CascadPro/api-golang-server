@@ -72,3 +72,17 @@ func IPFromContext(ctx context.Context) (net.IP, error) {
 
 	return ip, nil
 }
+
+func RequestIDFromContext(ctx context.Context) (uuid.UUID, error) {
+	uidString, ok := ctx.Value(CtxKeyRequestID).(string)
+	if !ok {
+		return uuid.Nil, fmt.Errorf("`RequestID` must be `string`: %w", core_errors.ErrInvalidArgument)
+	}
+
+	uid, err := uuid.Parse(uidString)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("`RequestID` must be `UUID`: %w", core_errors.ErrInvalidArgument)
+	}
+
+	return uid, nil
+}

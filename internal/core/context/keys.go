@@ -9,4 +9,5 @@ var (
 	CtxKeyMimeType  = CtxKey(3)
 	CtxKeyTag       = CtxKey(4)
 	CtxKeyIP        = CtxKey(5)
+	CtxKeyRequestID = CtxKey(6)
 )
