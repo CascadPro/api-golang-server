@@ -20,6 +20,8 @@ type RepositoryMethods interface {
 	MarkEventProcessed(ctx context.Context, id uuid.UUID) error
 
 	MarkEventFailed(ctx context.Context, id uuid.UUID, err error) error
+
+	IncrementAttempt(ctx context.Context, id uuid.UUID) error
 }
 
 func NewRepository(pool core_postgres_pool.Pool) *Repository {

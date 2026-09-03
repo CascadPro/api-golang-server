@@ -9,7 +9,7 @@ CREATE TABLE infrastructure.outbox_events (
   aggregate_id UUID                         DEFAULT NULL,
   payload      JSONB              NOT NULL,
 
-  attempts   INTEGER NOT NULL DEFAULT 0,
+  attempts   INTEGER NOT NULL DEFAULT 1,
   last_error TEXT             DEFAULT NULL,
 
   processed_at TIMESTAMPTZ          DEFAULT NULL,
