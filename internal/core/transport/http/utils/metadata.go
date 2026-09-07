@@ -36,12 +36,22 @@ func GetSessionMetadata(
 		location = domain.NewSessionMetadataLocation(ipinfo.Country, ipinfo.City, ipinfo.Lat, ipinfo.Lng)
 	}
 
+	appName := userAgent.AppName
+	if appName == "" {
+		appName = userAgent.Browser
+	}
+
+	appVersion := userAgent.AppVersion
+	if appVersion == "" {
+		appVersion = userAgent.BrowserVersion
+	}
+
 	device := domain.NewSessionMetadataDevice(
 		userAgent.OS,
 		userAgent.Model,
-		userAgent.AppName,
+		appName,
 		userAgent.Type,
-		userAgent.AppVersion,
+		appVersion,
 	)
 
 	return domain.NewSessionMetadata(location, device), nil
