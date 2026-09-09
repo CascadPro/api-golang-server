@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
+	media_errors "github.com/CascadePro/api-golang-server/internal/features/media/errors"
 )
 
 func (r *Repository) GetFile(ctx context.Context, fileID string) (domain.File, []byte, error) {
@@ -46,7 +46,7 @@ func (r *Repository) GetFile(ctx context.Context, fileID string) (domain.File, [
 		err = core_postgres_pool.MapErrors(err)
 
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
-			return domain.File{}, nil, fmt.Errorf("%v: file with id=%s: %w", err, fileID, core_errors.ErrNotFound)
+			return domain.File{}, nil, fmt.Errorf("%v: file with id=%s: %w", err, fileID, media_errors.ErrFileNotFound)
 		}
 
 		return domain.File{}, nil, fmt.Errorf("scan error: %w", err)

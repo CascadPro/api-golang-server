@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
+	media_errors "github.com/CascadePro/api-golang-server/internal/features/media/errors"
 )
 
 // PatchFile, fields to update: "Filename", "Size", "Deleted", "DeletedAt"
@@ -51,7 +51,7 @@ func (r *Repository) patchFile(
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
 			return domain.File{}, fmt.Errorf(
 				"file with id=%s concurrently accessed: %w",
-				fileID, core_errors.ErrConflict,
+				fileID, media_errors.ErrFileNotFound,
 			)
 		}
 

@@ -9,6 +9,7 @@ import (
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
 	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
+	media_errors "github.com/CascadePro/api-golang-server/internal/features/media/errors"
 )
 
 func (r *Repository) CreateFile(ctx context.Context, file *domain.File) (domain.File, error) {
@@ -43,7 +44,7 @@ func (r *Repository) CreateFile(ctx context.Context, file *domain.File) (domain.
 		if errors.Is(err, core_postgres_pool.ErrViolatesUniqueConstraint) {
 			return domain.File{}, fmt.Errorf(
 				"%v: file with id=%s is already exists: %w",
-				err, id, core_errors.ErrInvalidArgument,
+				err, id, media_errors.ErrFileAlreadyExists,
 			)
 		}
 
