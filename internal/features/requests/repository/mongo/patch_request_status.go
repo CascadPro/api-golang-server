@@ -9,6 +9,7 @@ import (
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_mongo_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/mongo/pool"
+	requests_errors "github.com/CascadePro/api-golang-server/internal/features/requests/errors"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -70,7 +71,7 @@ func defaultPatch(ctx context.Context, coll *mongo.Collection, filter bson.D, up
 	if err != nil {
 		err = core_mongo_pool.MapErrors(err)
 		if errors.Is(err, core_mongo_pool.ErrNotFound) {
-			return fmt.Errorf("request has concurrently accessed: %w", core_errors.ErrConflict)
+			return fmt.Errorf("request has concurrently accessed: %w", requests_errors.ErrRequestNotFound)
 		}
 		return fmt.Errorf("mongo update one: %w", err)
 	}

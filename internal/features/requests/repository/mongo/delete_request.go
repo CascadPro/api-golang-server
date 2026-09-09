@@ -7,6 +7,7 @@ import (
 
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_mongo_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/mongo/pool"
+	requests_errors "github.com/CascadePro/api-golang-server/internal/features/requests/errors"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -24,7 +25,7 @@ func (r *Repository) DeleteRequest(ctx context.Context, id uuid.UUID) error {
 	if _, err := r.pool.Requests().DeleteOne(ctx, filter); err != nil {
 		err = core_mongo_pool.MapErrors(err)
 		if errors.Is(err, core_mongo_pool.ErrNotFound) {
-			return fmt.Errorf("request with id='%s': %w", id, core_errors.ErrNotFound)
+			return fmt.Errorf("request with id='%s': %w", id, requests_errors.ErrRequestNotFound)
 		}
 		return fmt.Errorf("mongo delete one: %w", err)
 	}
