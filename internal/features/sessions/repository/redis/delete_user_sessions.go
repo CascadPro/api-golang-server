@@ -10,6 +10,7 @@ import (
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
+	sessions_errors "github.com/CascadePro/api-golang-server/internal/features/sessions/errors"
 	"github.com/google/uuid"
 )
 
@@ -29,7 +30,7 @@ func (r *Repository) DeleteUserSessions(ctx context.Context, userID uuid.UUID, s
 	keys, err := r.pool.GetKeys(ctx, 0, rootKey+"*", 0)
 	if err != nil {
 		if errors.Is(err, core_redis_pool.ErrNoValue) {
-			return fmt.Errorf("keys with user_id='%s': %v: %w", userID, err, core_errors.ErrNotFound)
+			return fmt.Errorf("keys with user_id='%s': %v: %w", userID, err, sessions_errors.ErrSessionNotFound)
 		}
 
 		return fmt.Errorf("redis get keys: %w", err)
@@ -48,7 +49,7 @@ func (r *Repository) DeleteUserSessions(ctx context.Context, userID uuid.UUID, s
 	}
 
 	if len(keys) == 0 {
-		return fmt.Errorf("nothing to delete: %w", core_errors.ErrNotFound)
+		return fmt.Errorf("nothing to delete: %w", sessions_errors.ErrSessionNotFound)
 	}
 
 	if err := r.pool.Del(ctx, keys...); err != nil {

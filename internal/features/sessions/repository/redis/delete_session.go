@@ -9,6 +9,7 @@ import (
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
+	sessions_errors "github.com/CascadePro/api-golang-server/internal/features/sessions/errors"
 	"github.com/google/uuid"
 )
 
@@ -27,7 +28,7 @@ func (r *Repository) DeleteSession(ctx context.Context, userID uuid.UUID, sessio
 
 	if err := r.pool.Del(ctx, key); err != nil {
 		if errors.Is(err, core_redis_pool.ErrNoValue) {
-			return fmt.Errorf("session with id='%s': %w", sessionID, core_errors.ErrNotFound)
+			return fmt.Errorf("session with id='%s': %w", sessionID, sessions_errors.ErrSessionNotFound)
 		}
 
 		return fmt.Errorf("del session: %w", err)
