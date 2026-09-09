@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
@@ -33,7 +34,9 @@ type GetRequestsResponse request_http_dto.GetRequestsResponse
 func (h *HttpHandler) GetRequests(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
-	responseHandler := core_http_response.NewResponseHandler(log, rw)
+	locale := core_context.Locale(ctx)
+
+	responseHandler := core_http_response.NewResponseHandler(log, locale, rw)
 
 	var request GetRequestsRequest
 	if err := core_http_request.DecodeAndValidate(r, &request); err != nil {

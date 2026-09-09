@@ -3,6 +3,7 @@ package requests_transport_http
 import (
 	"net/http"
 
+	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_request "github.com/CascadePro/api-golang-server/internal/core/transport/http/request"
@@ -32,7 +33,9 @@ type PatchRequestRequest struct {
 func (h *HttpHandler) PatchRequest(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
-	responseHandler := core_http_response.NewResponseHandler(log, rw)
+	locale := core_context.Locale(ctx)
+
+	responseHandler := core_http_response.NewResponseHandler(log, locale, rw)
 
 	requestID, err := core_http_request.GetUUIDPathValue(r, "id")
 	if err != nil {

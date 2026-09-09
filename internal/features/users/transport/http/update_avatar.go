@@ -28,7 +28,9 @@ import (
 func (h *HttpHandler) UpdateAvatar(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
-	responseHandler := core_http_response.NewResponseHandler(log, rw)
+	locale := core_context.Locale(ctx)
+
+	responseHandler := core_http_response.NewResponseHandler(log, locale, rw)
 
 	userID, err := core_context.UserID(ctx)
 	if err != nil {

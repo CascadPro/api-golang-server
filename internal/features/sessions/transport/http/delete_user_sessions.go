@@ -3,6 +3,7 @@ package sessions_transport_http
 import (
 	"net/http"
 
+	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
 )
@@ -20,7 +21,9 @@ import (
 func (h *HttpHandler) DeleteUserSessions(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
-	responseHandler := core_http_response.NewResponseHandler(log, rw)
+	locale := core_context.Locale(ctx)
+
+	responseHandler := core_http_response.NewResponseHandler(log, locale, rw)
 
 	if err := h.sessionsService.DeleteUserSessions(ctx); err != nil {
 		responseHandler.ErrorResponse(err, "failed to delete user session")
