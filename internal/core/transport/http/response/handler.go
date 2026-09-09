@@ -8,19 +8,23 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	core_i18n "github.com/CascadePro/api-golang-server/internal/core/i18n"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	"go.uber.org/zap"
+	"golang.org/x/text/language"
 )
 
 type ResponseHandler struct {
-	log *core_logger.Logger
-	rw  http.ResponseWriter
+	log    *core_logger.Logger
+	locale language.Tag
+	rw     http.ResponseWriter
 }
 
-func NewResponseHandler(log *core_logger.Logger, rw http.ResponseWriter) *ResponseHandler {
+func NewResponseHandler(log *core_logger.Logger, locale language.Tag, rw http.ResponseWriter) *ResponseHandler {
 	return &ResponseHandler{
-		log: log,
-		rw:  rw,
+		log:    log,
+		locale: locale,
+		rw:     rw,
 	}
 }
 
@@ -49,6 +53,12 @@ func (h *ResponseHandler) ErrorResponse(err error, msg string) {
 	descriptor := mapError(err)
 
 	h.logError(descriptor, err, msg)
+
+	descriptor.Message = core_i18n.Translate(
+		h.locale,
+		string(descriptor.Code),
+		"Internal server error",
+	)
 
 	h.errorResponse(descriptor)
 }
