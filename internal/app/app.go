@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	core_config "github.com/CascadePro/api-golang-server/internal/core/config"
+	core_i18n "github.com/CascadePro/api-golang-server/internal/core/i18n"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
 	"go.uber.org/zap"
@@ -33,6 +34,11 @@ func New(
 	app := &App{
 		cfg:    cfg,
 		logger: logger,
+	}
+
+	logger.Debug("initializing i18n localization")
+	if err := core_i18n.Init(); err != nil {
+		return nil, fmt.Errorf("init localization: %w", err)
 	}
 
 	logger.Debug("initializing app infrastructure")
