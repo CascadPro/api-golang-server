@@ -1,7 +1,6 @@
 package core_http_middleware
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -26,9 +25,7 @@ func RequestID() Middleware {
 			r.Header.Set(requestIDHeader, requestID)
 			w.Header().Set(requestIDHeader, requestID)
 
-			ctx := r.Context()
-
-			ctx = context.WithValue(ctx, core_context.CtxKeyRequestID, requestID)
+			ctx := core_context.WithRequestID(r.Context(), requestID)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
@@ -110,7 +107,7 @@ func IP() Middleware {
 
 			log.Info("client ip for this request", zap.String("ip", ip.String()))
 
-			ctx = context.WithValue(ctx, core_context.CtxKeyIP, ip)
+			ctx = core_context.WithClientIP(ctx, ip)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

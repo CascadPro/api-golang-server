@@ -1,7 +1,6 @@
 package core_http_middleware
 
 import (
-	"context"
 	"net/http"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
@@ -13,7 +12,7 @@ func Locale() Middleware {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			locale := core_i18n.Resolve(r.Header.Get("Accept-Language"))
 
-			ctx := context.WithValue(r.Context(), core_context.CtxKeyLocale, locale)
+			ctx := core_context.WithLocale(r.Context(), locale)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

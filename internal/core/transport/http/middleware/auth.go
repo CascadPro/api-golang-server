@@ -1,7 +1,6 @@
 package core_http_middleware
 
 import (
-	"context"
 	"net/http"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
@@ -36,9 +35,9 @@ func Authorization(issuer core_jwt_security.AccessTokenVerifier, rolesArr ...dom
 				}
 			}
 
-			ctx = context.WithValue(ctx, core_context.CtxKeyUserID, accessToken.UserID.String())
-			ctx = context.WithValue(ctx, core_context.CtxKeyUserRole, accessToken.Role)
-			ctx = context.WithValue(ctx, core_context.CtxKeySessionID, accessToken.SessionID)
+			ctx = core_context.WithUserID(ctx, accessToken.UserID)
+			ctx = core_context.WithUserRole(ctx, accessToken.Role)
+			ctx = core_context.WithSessionID(ctx, accessToken.SessionID)
 
 			next.ServeHTTP(rw, r.WithContext(ctx))
 		})

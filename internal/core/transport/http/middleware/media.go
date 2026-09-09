@@ -1,7 +1,6 @@
 package core_http_middleware
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -152,8 +151,8 @@ func Media() Middleware {
 				}
 			}
 
-			ctx = context.WithValue(ctx, core_context.CtxKeyMimeType, mime)
-			ctx = context.WithValue(ctx, core_context.CtxKeyTag, tag)
+			ctx = core_context.WithFileMimeType(ctx, mime)
+			ctx = core_context.WithFileTag(ctx, tag)
 
 			next.ServeHTTP(rw, r.WithContext(ctx))
 		})
