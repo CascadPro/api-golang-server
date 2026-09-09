@@ -57,7 +57,9 @@ func Panic() Middleware {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			log := core_logger.FromContext(ctx)
-			responseHandler := core_http_response.NewResponseHandler(log, w)
+			locale := core_context.Locale(ctx)
+
+			responseHandler := core_http_response.NewResponseHandler(log, locale, w)
 
 			defer func() {
 				if p := recover(); p != nil {
