@@ -39,20 +39,19 @@ func Init() error {
 	return nil
 }
 
-func Resolve(acceptLanguage string) string {
+func Resolve(acceptLanguage string) language.Tag {
 	if strings.TrimSpace(acceptLanguage) == "" {
-		return "en"
+		return language.English
 	}
 
 	tags, _, err := language.ParseAcceptLanguage(acceptLanguage)
 	if err != nil || len(tags) == 0 {
-		return "en"
+		return language.English
 	}
 
 	tag, _ := language.MatchStrings(matcher, tags[0].String())
-	base, _ := tag.Base()
 
-	return base.String()
+	return tag
 }
 
 func Translate(locale language.Tag, code, fallback string) string {
