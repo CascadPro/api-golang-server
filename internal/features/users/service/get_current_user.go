@@ -6,6 +6,7 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	users_errors "github.com/CascadePro/api-golang-server/internal/features/users/errors"
 	"github.com/google/uuid"
 )
 
@@ -19,7 +20,7 @@ func (s *Service) GetCurrentUser(ctx context.Context, id uuid.UUID) (domain.User
 		return domain.User{}, nil, fmt.Errorf("get user from repository: %w", err)
 	}
 	if !user.Activated {
-		return domain.User{}, nil, fmt.Errorf("you must activate your account before usage: %w", core_errors.ErrConflict)
+		return domain.User{}, nil, fmt.Errorf("you must activate your account before usage: %w", users_errors.ErrUserNotActivated)
 	}
 
 	var placeholder []byte

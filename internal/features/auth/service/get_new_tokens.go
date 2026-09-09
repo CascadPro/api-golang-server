@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	auth_errors "github.com/CascadePro/api-golang-server/internal/features/auth/errors"
+	users_errors "github.com/CascadePro/api-golang-server/internal/features/users/errors"
 )
 
 func (s *Service) GetNewTokens(ctx context.Context, token string) (string, error) {
 	claims, err := s.tokenIssuer.ParseRefresh(token)
 	if err != nil {
-		return "", fmt.Errorf("parse refresh token: %w", err)
+		return "", fmt.Errorf("parse refresh token: %v: %w", err, auth_errors.ErrInvalidRefreshToken)
 	}
 
 	user, err := s.userPostgresRepo.GetUser(ctx, domain.User{ID: claims.UserID})
@@ -19,7 +20,7 @@ func (s *Service) GetNewTokens(ctx context.Context, token string) (string, error
 		return "", fmt.Errorf("get user from repository: %w", err)
 	}
 	if !user.Activated {
-		return "", fmt.Errorf("user is not activated: %w", core_errors.ErrConflict)
+		return "", fmt.Errorf("user is not activated: %w", users_errors.ErrUserNotActivated)
 	}
 
 	accessClaims, err := s.tokenIssuer.IssueAccess(claims.UserID, claims.SessionID, user.Role)

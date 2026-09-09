@@ -11,6 +11,7 @@ import (
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
+	sessions_errors "github.com/CascadePro/api-golang-server/internal/features/sessions/errors"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -30,7 +31,7 @@ func (r *Repository) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]d
 	keys, err := r.pool.GetKeys(ctx, 0, key, 0)
 	if err != nil {
 		if errors.Is(err, core_redis_pool.ErrNoValue) {
-			return nil, fmt.Errorf("keys with user_id='%s': %v: %w", userID, err, core_errors.ErrNotFound)
+			return nil, fmt.Errorf("keys with user_id='%s': %v: %w", userID, err, sessions_errors.ErrSessionNotFound)
 		}
 
 		return nil, fmt.Errorf("redis get keys: %w", err)
@@ -54,8 +55,8 @@ func (r *Repository) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]d
 			return nil, fmt.Errorf("redis hash get all: at index %d: %w", i, core_redis_pool.MapErrors(err))
 		}
 
-		splittedKey := strings.Split(keys[i], ":")
-		sessionID := splittedKey[len(splittedKey)-1]
+		splitKey := strings.Split(keys[i], ":")
+		sessionID := splitKey[len(splitKey)-1]
 
 		session, err := modelToDomain(sessionID, model)
 		if err != nil {
@@ -66,7 +67,7 @@ func (r *Repository) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]d
 		sessions = append(sessions, session)
 	}
 	if len(sessions) == 0 {
-		return nil, fmt.Errorf("sessions with user_id='%s': %w", userID, core_errors.ErrNotFound)
+		return nil, fmt.Errorf("sessions with user_id='%s': %w", userID, sessions_errors.ErrSessionNotFound)
 	}
 
 	sort.Slice(sessions, func(i, j int) bool {

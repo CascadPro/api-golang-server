@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/s3/pool"
 	core_media_utils "github.com/CascadePro/api-golang-server/internal/core/utils/media"
+	media_errors "github.com/CascadePro/api-golang-server/internal/features/media/errors"
 )
 
 func (s *Service) GetFileContent(ctx context.Context, fileID string, w, h, quality *int) (domain.File, []byte, error) {
@@ -22,7 +22,7 @@ func (s *Service) GetFileContent(ctx context.Context, fileID string, w, h, quali
 	result, err := s.coreS3Repo.GetObject(ctx, key)
 	if err != nil {
 		if errors.Is(err, core_s3_pool.ErrNotFound) {
-			return domain.File{}, nil, fmt.Errorf("file with id=%s in S3 bucket: %w", fileID, core_errors.ErrNotFound)
+			return domain.File{}, nil, fmt.Errorf("file with id=%s in S3 bucket: %w", fileID, media_errors.ErrFileNotFound)
 		}
 
 		return domain.File{}, nil, err

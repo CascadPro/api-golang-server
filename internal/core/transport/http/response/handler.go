@@ -2,7 +2,6 @@ package core_http_response
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -47,45 +46,11 @@ func (h *ResponseHandler) JsonResponse(body any, statusCode int) {
 }
 
 func (h *ResponseHandler) ErrorResponse(err error, msg string) {
-	var (
-		statusCode int
-		logFunc    func(string, ...zap.Field)
-	)
+	descriptor := mapError(err)
 
-	switch {
-	case errors.Is(err, core_errors.ErrInvalidArgument),
-		errors.Is(err, core_errors.ErrEmptyRequestBody):
-		statusCode = http.StatusBadRequest
-		logFunc = h.log.Warn
+	h.logError(descriptor, err, msg)
 
-	case errors.Is(err, core_errors.ErrUnauthorized):
-		statusCode = http.StatusUnauthorized
-		logFunc = h.log.Warn
-
-	case errors.Is(err, core_errors.ErrForbidden):
-		statusCode = http.StatusForbidden
-		logFunc = h.log.Warn
-
-	case errors.Is(err, core_errors.ErrNotFound):
-		statusCode = http.StatusNotFound
-		logFunc = h.log.Debug
-
-	case errors.Is(err, core_errors.ErrConflict):
-		statusCode = http.StatusConflict
-		logFunc = h.log.Warn
-
-	case errors.Is(err, core_errors.ErrTooManyRequests):
-		statusCode = http.StatusTooManyRequests
-		logFunc = h.log.Warn
-
-	default:
-		statusCode = http.StatusInternalServerError
-		logFunc = h.log.Error
-	}
-
-	logFunc(msg, zap.Error(err))
-
-	h.errorResponse(statusCode, err, msg)
+	h.errorResponse(descriptor)
 }
 
 func (h *ResponseHandler) PanicResponse(p any, msg string) {
@@ -94,15 +59,54 @@ func (h *ResponseHandler) PanicResponse(p any, msg string) {
 
 	h.log.Error(msg, zap.Error(err))
 
-	h.errorResponse(statusCode, err, msg)
+	descriptor := ErrorDescriptor{
+		Code:       core_errors.CodeInternal,
+		StatusCode: statusCode,
+		Message:    msg,
+	}
+
+	h.errorResponse(descriptor)
 }
 
-func (h *ResponseHandler) errorResponse(statusCode int, err error, msg string) {
+func (h *ResponseHandler) errorResponse(descriptor ErrorDescriptor) {
 	body := ErrorResponse{
-		Error:     err.Error(),
-		Message:   msg,
+		Code:      string(descriptor.Code),
+		Message:   descriptor.Message,
+		Fields:    descriptor.Fields,
 		Timestamp: time.Now().UTC(),
 	}
 
-	h.JsonResponse(body, statusCode)
+	h.JsonResponse(body, descriptor.StatusCode)
+}
+
+func (h *ResponseHandler) logError(descriptor ErrorDescriptor, err error, msg string) {
+	switch descriptor.StatusCode {
+	case http.StatusBadRequest,
+		http.StatusUnauthorized,
+		http.StatusForbidden,
+		http.StatusConflict,
+		http.StatusTooManyRequests:
+
+		h.log.Warn(
+			msg,
+			zap.String("code", string(descriptor.Code)),
+			zap.Error(err),
+		)
+
+	case http.StatusNotFound:
+
+		h.log.Debug(
+			msg,
+			zap.String("code", string(descriptor.Code)),
+			zap.Error(err),
+		)
+
+	default:
+
+		h.log.Error(
+			msg,
+			zap.String("code", string(descriptor.Code)),
+			zap.Error(err),
+		)
+	}
 }

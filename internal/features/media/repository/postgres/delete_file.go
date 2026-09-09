@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
+	media_errors "github.com/CascadePro/api-golang-server/internal/features/media/errors"
 )
 
 func (r *Repository) deleteFile(ctx context.Context, db core_postgres_pool.Querier, fileID string) error {
@@ -28,7 +28,7 @@ func (r *Repository) deleteFile(ctx context.Context, db core_postgres_pool.Queri
 		return fmt.Errorf("exec query: %w", err)
 	}
 	if cmd.RowsAffected() == 0 {
-		return fmt.Errorf("file with id=%s: %w", fileID, core_errors.ErrNotFound)
+		return fmt.Errorf("file with id=%s: %w", fileID, media_errors.ErrFileAlreadyExists)
 	}
 
 	return nil

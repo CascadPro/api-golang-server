@@ -7,6 +7,7 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	users_errors "github.com/CascadePro/api-golang-server/internal/features/users/errors"
 	"github.com/google/uuid"
 )
 
@@ -27,7 +28,7 @@ func (s *Service) UpdateAvatar(ctx context.Context, userID uuid.UUID, uploadedFi
 		return fmt.Errorf("get user from repository: %w", err)
 	}
 	if !user.Activated {
-		return fmt.Errorf("user is not activated: %w", core_errors.ErrConflict)
+		return fmt.Errorf("user is not activated: %w", users_errors.ErrUserNotActivated)
 	}
 
 	oldAvatarID := user.AvatarFileID

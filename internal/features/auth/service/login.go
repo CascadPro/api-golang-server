@@ -6,10 +6,11 @@ import (
 	"net"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_http_request "github.com/CascadePro/api-golang-server/internal/core/transport/http/request"
 	core_http_utils "github.com/CascadePro/api-golang-server/internal/core/transport/http/utils"
 	core_utils "github.com/CascadePro/api-golang-server/internal/core/utils"
+	auth_errors "github.com/CascadePro/api-golang-server/internal/features/auth/errors"
+	users_errors "github.com/CascadePro/api-golang-server/internal/features/users/errors"
 )
 
 func (s *Service) Login(
@@ -22,17 +23,16 @@ func (s *Service) Login(
 	if err != nil {
 		return "", "", fmt.Errorf("get user: %w", err)
 	}
-
 	if !userDomain.Activated {
-		return "", "", fmt.Errorf("you must activate an account before usage: %w", core_errors.ErrConflict)
+		return "", "", fmt.Errorf("you must activate an account before usage: %w", users_errors.ErrUserNotActivated)
 	}
 
 	isMatching, err := core_utils.CompareStringAndHash(*user.PasswordHash, *userDomain.PasswordHash)
 	if err != nil {
-		return "", "", fmt.Errorf("compare password hash: %w", err)
+		return "", "", fmt.Errorf("compare password hash: %w", auth_errors.ErrInvalidCredentials)
 	}
 	if !isMatching {
-		return "", "", fmt.Errorf("compare password hash: %w", core_errors.ErrUnauthorized)
+		return "", "", fmt.Errorf("compare password hash: %w", auth_errors.ErrInvalidCredentials)
 	}
 
 	settings, err := s.settingsPostgresRepo.GetUserSettings(ctx, domain.UserSettings{UserID: userDomain.ID})

@@ -9,6 +9,7 @@ import (
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
+	users_errors "github.com/CascadePro/api-golang-server/internal/features/users/errors"
 	"github.com/google/uuid"
 )
 
@@ -59,7 +60,7 @@ func (r *Repository) GetUser(ctx context.Context, user domain.User) (domain.User
 		err = core_postgres_pool.MapErrors(err)
 
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
-			return domain.User{}, fmt.Errorf("%v: %s: %w", err, errStr, core_errors.ErrNotFound)
+			return domain.User{}, fmt.Errorf("%v: %s: %w", err, errStr, users_errors.ErrUserNotFound)
 		}
 
 		return domain.User{}, fmt.Errorf("scan error: %w", err)

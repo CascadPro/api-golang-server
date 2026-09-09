@@ -9,6 +9,7 @@ import (
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
+	sessions_errors "github.com/CascadePro/api-golang-server/internal/features/sessions/errors"
 	"github.com/google/uuid"
 )
 
@@ -35,7 +36,7 @@ func (r *Repository) GetSession(ctx context.Context, userID uuid.UUID, sessionID
 		err = core_redis_pool.MapErrors(err)
 
 		if errors.Is(err, core_redis_pool.ErrNoValue) {
-			return domain.Session{}, fmt.Errorf("session with id='%s': %w", sessionID, core_errors.ErrNotFound)
+			return domain.Session{}, fmt.Errorf("session with id='%s': %w", sessionID, sessions_errors.ErrSessionNotFound)
 		}
 
 		return domain.Session{}, fmt.Errorf("session model to domain: %w", err)

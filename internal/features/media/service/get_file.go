@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
+	media_errors "github.com/CascadePro/api-golang-server/internal/features/media/errors"
 )
 
 func (s *Service) GetFile(ctx context.Context, fileID string) (domain.File, error) {
@@ -22,7 +22,7 @@ func (s *Service) GetFile(ctx context.Context, fileID string) (domain.File, erro
 		return domain.File{}, fmt.Errorf(
 			"file with name '%s' was deleted on %s (UTC): %w",
 			file.Filename, file.DeletedAt.Format("02 January, 2006 at 15:04:05"),
-			core_errors.ErrNotFound,
+			media_errors.ErrFileDeleted,
 		)
 	}
 
