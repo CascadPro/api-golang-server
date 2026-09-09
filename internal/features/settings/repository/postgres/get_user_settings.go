@@ -9,6 +9,7 @@ import (
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
+	settings_errors "github.com/CascadePro/api-golang-server/internal/features/settings/errors"
 	"github.com/google/uuid"
 )
 
@@ -48,7 +49,7 @@ func (r *Repository) GetUserSettings(ctx context.Context, settings domain.UserSe
 		err = core_postgres_pool.MapErrors(err)
 
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
-			return domain.UserSettings{}, fmt.Errorf("%v: %s: %w", err, errStr, core_errors.ErrNotFound)
+			return domain.UserSettings{}, fmt.Errorf("%v: %s: %w", err, errStr, settings_errors.ErrSettingsNotFound)
 		}
 
 		return domain.UserSettings{}, fmt.Errorf("scan error: %w", err)
