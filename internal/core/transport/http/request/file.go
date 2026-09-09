@@ -27,12 +27,12 @@ func GetFile(rw http.ResponseWriter, r *http.Request, maxSize int64) (*domain.Fi
 		return nil, nil, fmt.Errorf("read file: %w", err)
 	}
 
-	tag, err := core_context.TagFromContext(r.Context())
+	tag, err := core_context.FileTag(r.Context())
 	if err != nil {
 		return nil, nil, fmt.Errorf("get tag from context: %w", err)
 	}
 
-	mimeType, err := core_context.MimeTypeFromContext(r.Context())
+	mimeType, err := core_context.FileMimeType(r.Context())
 	if err != nil {
 		return nil, nil, fmt.Errorf("get mime type from context: %w", err)
 	}

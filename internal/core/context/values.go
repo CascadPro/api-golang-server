@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func UserIDFromContext(ctx context.Context) (uuid.UUID, error) {
+func UserID(ctx context.Context) (uuid.UUID, error) {
 	uidString, ok := ctx.Value(CtxKeyUserID).(string)
 	if !ok {
 		return uuid.Nil, fmt.Errorf("`UserID` must be `string`: %w", core_errors.ErrInvalidArgument)
@@ -25,7 +25,7 @@ func UserIDFromContext(ctx context.Context) (uuid.UUID, error) {
 	return uid, nil
 }
 
-func UserRoleFromContext(ctx context.Context) (domain.UserRole, error) {
+func UserRole(ctx context.Context) (domain.UserRole, error) {
 	r, ok := ctx.Value(CtxKeyUserRole).(domain.UserRole)
 	if !ok {
 		return domain.RoleRegular, fmt.Errorf("`Role` must be `UserRole`: %w", core_errors.ErrInvalidArgument)
@@ -34,7 +34,7 @@ func UserRoleFromContext(ctx context.Context) (domain.UserRole, error) {
 	return r, nil
 }
 
-func SessionIDFromContext(ctx context.Context) (string, error) {
+func SessionID(ctx context.Context) (string, error) {
 	sid, ok := ctx.Value(CtxKeySessionID).(string)
 	if !ok {
 		return "", fmt.Errorf("`SessionID` must be `string`: %w", core_errors.ErrInvalidArgument)
@@ -46,7 +46,7 @@ func SessionIDFromContext(ctx context.Context) (string, error) {
 	return sid, nil
 }
 
-func MimeTypeFromContext(ctx context.Context) (domain.FileMimeType, error) {
+func FileMimeType(ctx context.Context) (domain.FileMimeType, error) {
 	m, ok := ctx.Value(CtxKeyMimeType).(domain.FileMimeType)
 	if !ok {
 		return domain.FileMimeTypeNil, fmt.Errorf("`MimeType` must be `FileMimeType`: %w", core_errors.ErrInvalidArgument)
@@ -55,7 +55,7 @@ func MimeTypeFromContext(ctx context.Context) (domain.FileMimeType, error) {
 	return m, nil
 }
 
-func TagFromContext(ctx context.Context) (domain.FileTag, error) {
+func FileTag(ctx context.Context) (domain.FileTag, error) {
 	t, ok := ctx.Value(CtxKeyTag).(domain.FileTag)
 	if !ok {
 		return domain.FileTagNil, fmt.Errorf("`Tag` must be `FileTag`: %w", core_errors.ErrInvalidArgument)
@@ -64,7 +64,7 @@ func TagFromContext(ctx context.Context) (domain.FileTag, error) {
 	return t, nil
 }
 
-func IPFromContext(ctx context.Context) (net.IP, error) {
+func ClientIP(ctx context.Context) (net.IP, error) {
 	ip, ok := ctx.Value(CtxKeyIP).(net.IP)
 	if !ok {
 		return nil, fmt.Errorf("`IP` must be `net.IP`: %w", core_errors.ErrInvalidArgument)
@@ -73,7 +73,7 @@ func IPFromContext(ctx context.Context) (net.IP, error) {
 	return ip, nil
 }
 
-func RequestIDFromContext(ctx context.Context) (uuid.UUID, error) {
+func RequestID(ctx context.Context) (uuid.UUID, error) {
 	uidString, ok := ctx.Value(CtxKeyRequestID).(string)
 	if !ok {
 		return uuid.Nil, fmt.Errorf("`RequestID` must be `string`: %w", core_errors.ErrInvalidArgument)

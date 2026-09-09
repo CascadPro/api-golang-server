@@ -45,7 +45,7 @@ func (s *Service) MarkFileDeleted(ctx context.Context, fileID string) error {
 	}
 
 	event := domain.NewOutboxEvent(domain.EventTypeMediaDeleteFile, nil, payload)
-	if requestID, err := core_context.RequestIDFromContext(ctx); err == nil {
+	if requestID, err := core_context.RequestID(ctx); err == nil {
 		event.AggregateID = &requestID
 	}
 

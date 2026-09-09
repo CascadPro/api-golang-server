@@ -42,7 +42,7 @@ func (s *Service) DeleteFile(ctx context.Context, fileTag domain.FileTag, fileID
 	}
 
 	event := domain.NewOutboxEvent(domain.EventTypeMediaDeleteFile, nil, payload)
-	if requestID, err := core_context.RequestIDFromContext(ctx); err == nil {
+	if requestID, err := core_context.RequestID(ctx); err == nil {
 		event.AggregateID = &requestID
 	}
 

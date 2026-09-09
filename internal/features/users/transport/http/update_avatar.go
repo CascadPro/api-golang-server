@@ -30,7 +30,7 @@ func (h *HttpHandler) UpdateAvatar(rw http.ResponseWriter, r *http.Request) {
 	log := core_logger.FromContext(ctx)
 	responseHandler := core_http_response.NewResponseHandler(log, rw)
 
-	userID, err := core_context.UserIDFromContext(ctx)
+	userID, err := core_context.UserID(ctx)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get user ID from context")
 		return

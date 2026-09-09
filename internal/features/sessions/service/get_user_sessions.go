@@ -9,12 +9,12 @@ import (
 )
 
 func (s *Service) GetUserSessions(ctx context.Context) ([]domain.Session, error) {
-	userID, err := core_context.UserIDFromContext(ctx)
+	userID, err := core_context.UserID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get userID from context: %w", err)
 	}
 
-	sessionID, err := core_context.SessionIDFromContext(ctx)
+	sessionID, err := core_context.SessionID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get sessionID from context: %w", err)
 	}

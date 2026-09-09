@@ -65,7 +65,7 @@ func (cfg *RateLimitConfig) Middleware() Middleware {
 			log := core_logger.FromContext(ctx)
 			responseHandler := core_http_response.NewResponseHandler(log, rw)
 
-			clientIP, err := core_context.IPFromContext(ctx)
+			clientIP, err := core_context.ClientIP(ctx)
 			if err != nil {
 				responseHandler.ErrorResponse(err, "failed to get client ip address")
 				return

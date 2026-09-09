@@ -47,7 +47,7 @@ func (h *HttpHandler) Login(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ip, err := core_context.IPFromContext(ctx)
+	ip, err := core_context.ClientIP(ctx)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get client ip")
 

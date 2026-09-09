@@ -14,7 +14,7 @@ func (s *Service) DeleteSession(ctx context.Context, sessionID string) error {
 		return fmt.Errorf("validate session id: %w", err)
 	}
 
-	userID, err := core_context.UserIDFromContext(ctx)
+	userID, err := core_context.UserID(ctx)
 	if err != nil {
 		return fmt.Errorf("get userID from context: %w", err)
 	}

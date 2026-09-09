@@ -15,7 +15,7 @@ func (s *Service) PatchRequestStatus(ctx context.Context, id uuid.UUID, status d
 		return fmt.Errorf("`ID` can't be NULL: %w", core_errors.ErrInvalidArgument)
 	}
 
-	userID, err := core_context.UserIDFromContext(ctx)
+	userID, err := core_context.UserID(ctx)
 	if err != nil {
 		return fmt.Errorf("get user id from context: %w", err)
 	}

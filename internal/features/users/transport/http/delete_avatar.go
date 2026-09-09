@@ -23,7 +23,7 @@ func (h *HttpHandler) DeleteAvatar(rw http.ResponseWriter, r *http.Request) {
 	log := core_logger.FromContext(ctx)
 	responseHandler := core_http_response.NewResponseHandler(log, rw)
 
-	userID, err := core_context.UserIDFromContext(ctx)
+	userID, err := core_context.UserID(ctx)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get userID from context")
 		return

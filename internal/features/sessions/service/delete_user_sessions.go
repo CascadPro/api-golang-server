@@ -8,12 +8,12 @@ import (
 )
 
 func (s *Service) DeleteUserSessions(ctx context.Context) error {
-	sessionID, err := core_context.SessionIDFromContext(ctx)
+	sessionID, err := core_context.SessionID(ctx)
 	if err != nil {
 		return fmt.Errorf("get sessionID from context: %w", err)
 	}
 
-	userID, err := core_context.UserIDFromContext(ctx)
+	userID, err := core_context.UserID(ctx)
 	if err != nil {
 		return fmt.Errorf("get userID from context: %w", err)
 	}
