@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	auth_errors "github.com/CascadePro/api-golang-server/internal/features/auth/errors"
 	"github.com/google/uuid"
 )
 
@@ -17,12 +18,12 @@ func (s *Service) Register(ctx context.Context, patch domain.UserPatch, tokenStr
 
 	tokenDomain, err := s.tokenPostgresRepo.GetToken(ctx, tokenDto)
 	if err != nil {
-		return fmt.Errorf("get token: %w", err)
+		return fmt.Errorf("get token: %v: %w", err, auth_errors.ErrInvalidCredentials)
 	}
 
 	userDomain, err := s.userPostgresRepo.GetUser(ctx, domain.User{ID: tokenDomain.UserID})
 	if err != nil {
-		return fmt.Errorf("get user: %w", err)
+		return fmt.Errorf("get user: %v: %w", err, auth_errors.ErrInvalidCredentials)
 	}
 
 	patchedUser, err := userDomain.ApplyPatch(patch)
@@ -31,7 +32,7 @@ func (s *Service) Register(ctx context.Context, patch domain.UserPatch, tokenStr
 	}
 
 	if _, err = s.userPostgresRepo.PatchUser(ctx, tokenDomain.UserID, patchedUser); err != nil {
-		return fmt.Errorf("patch user: %w", err)
+		return fmt.Errorf("patch user: %v: %w", err, auth_errors.ErrInvalidCredentials)
 	}
 
 	settings := domain.NewUserSettings(userDomain.ID, domain.SessionExpire1Month)
