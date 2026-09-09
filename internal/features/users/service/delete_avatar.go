@@ -6,6 +6,7 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	users_errors "github.com/CascadePro/api-golang-server/internal/features/users/errors"
 	"github.com/google/uuid"
 )
 
@@ -19,7 +20,7 @@ func (s *Service) DeleteAvatar(ctx context.Context, userID uuid.UUID) error {
 		return fmt.Errorf("get user from repository: %w", err)
 	}
 	if user.AvatarFileID == nil {
-		return fmt.Errorf("user has no avatar: %w", core_errors.ErrNotFound)
+		return fmt.Errorf("user has no avatar: %w", users_errors.ErrAvatarNotFound)
 	}
 
 	if err := s.mediaService.DeleteFile(ctx, domain.FileTagAvatars, *user.AvatarFileID); err != nil {
