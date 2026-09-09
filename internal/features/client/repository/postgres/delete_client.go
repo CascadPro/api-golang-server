@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	client_errors "github.com/CascadePro/api-golang-server/internal/features/client/errors"
 	"github.com/google/uuid"
 )
 
@@ -26,7 +27,7 @@ func (r *Repository) DeleteClient(ctx context.Context, id uuid.UUID) error {
 		return fmt.Errorf("exec query: %w", err)
 	}
 	if cmd.RowsAffected() == 0 {
-		return fmt.Errorf("client with id=%s: %w", id, core_errors.ErrNotFound)
+		return fmt.Errorf("client with id=%s: %w", id, client_errors.ErrClientNotFound)
 	}
 
 	return nil

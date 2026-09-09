@@ -8,6 +8,7 @@ import (
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
+	client_errors "github.com/CascadePro/api-golang-server/internal/features/client/errors"
 	"github.com/google/uuid"
 )
 
@@ -33,7 +34,7 @@ func (r *Repository) GetClient(ctx context.Context, id uuid.UUID) (domain.Client
 		err = core_postgres_pool.MapErrors(err)
 
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
-			return domain.Client{}, fmt.Errorf("%v: client with id='%s': %w", err, id, core_errors.ErrNotFound)
+			return domain.Client{}, fmt.Errorf("%v: client with id='%s': %w", err, id, client_errors.ErrClientNotFound)
 		}
 
 		return domain.Client{}, fmt.Errorf("scan error: %w", err)
