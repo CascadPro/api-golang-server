@@ -17,6 +17,7 @@ func (a *App) initHttp() error {
 		core_http_middleware.Trace(),
 		core_http_middleware.Panic(),
 		core_http_middleware.IP(),
+		core_http_middleware.Locale(),
 	)
 
 	apiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)

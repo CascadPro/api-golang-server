@@ -9,6 +9,7 @@ import (
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 	"github.com/google/uuid"
+	"golang.org/x/text/language"
 )
 
 func UserID(ctx context.Context) (uuid.UUID, error) {
@@ -85,4 +86,13 @@ func RequestID(ctx context.Context) (uuid.UUID, error) {
 	}
 
 	return uid, nil
+}
+
+func Locale(ctx context.Context) language.Tag {
+	locale, ok := ctx.Value(CtxKeyLocale).(language.Tag)
+	if !ok {
+		return language.English
+	}
+
+	return locale
 }

@@ -10,4 +10,5 @@ var (
 	CtxKeyTag       = CtxKey("tag")
 	CtxKeyIP        = CtxKey("ip")
 	CtxKeyRequestID = CtxKey("request_id")
+	CtxKeyLocale    = CtxKey("locale")
 )

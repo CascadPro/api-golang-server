@@ -55,7 +55,9 @@ func Media() Middleware {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			log := core_logger.FromContext(ctx)
-			responseHandler := core_http_response.NewResponseHandler(log, rw)
+			locale := core_context.Locale(ctx)
+
+			responseHandler := core_http_response.NewResponseHandler(log, locale, rw)
 
 			ct := r.Header.Get("Content-Type")
 			if ct == "" || !strings.HasPrefix(ct, "multipart/form-data") {
