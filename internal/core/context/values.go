@@ -13,7 +13,7 @@ import (
 )
 
 func UserID(ctx context.Context) (uuid.UUID, error) {
-	uidString, ok := ctx.Value(CtxKeyUserID).(string)
+	uidString, ok := ctx.Value(ctxKeyUserID).(string)
 	if !ok {
 		return uuid.Nil, fmt.Errorf("`UserID` must be `string`: %w", core_errors.ErrInvalidArgument)
 	}
@@ -27,7 +27,7 @@ func UserID(ctx context.Context) (uuid.UUID, error) {
 }
 
 func UserRole(ctx context.Context) (domain.UserRole, error) {
-	r, ok := ctx.Value(CtxKeyUserRole).(domain.UserRole)
+	r, ok := ctx.Value(ctxKeyUserRole).(domain.UserRole)
 	if !ok {
 		return domain.RoleRegular, fmt.Errorf("`Role` must be `UserRole`: %w", core_errors.ErrInvalidArgument)
 	}
@@ -36,7 +36,7 @@ func UserRole(ctx context.Context) (domain.UserRole, error) {
 }
 
 func SessionID(ctx context.Context) (string, error) {
-	sid, ok := ctx.Value(CtxKeySessionID).(string)
+	sid, ok := ctx.Value(ctxKeySessionID).(string)
 	if !ok {
 		return "", fmt.Errorf("`SessionID` must be `string`: %w", core_errors.ErrInvalidArgument)
 	}
@@ -48,7 +48,7 @@ func SessionID(ctx context.Context) (string, error) {
 }
 
 func FileMimeType(ctx context.Context) (domain.FileMimeType, error) {
-	m, ok := ctx.Value(CtxKeyMimeType).(domain.FileMimeType)
+	m, ok := ctx.Value(ctxKeyMimeType).(domain.FileMimeType)
 	if !ok {
 		return domain.FileMimeTypeNil, fmt.Errorf("`MimeType` must be `FileMimeType`: %w", core_errors.ErrInvalidArgument)
 	}
@@ -57,7 +57,7 @@ func FileMimeType(ctx context.Context) (domain.FileMimeType, error) {
 }
 
 func FileTag(ctx context.Context) (domain.FileTag, error) {
-	t, ok := ctx.Value(CtxKeyTag).(domain.FileTag)
+	t, ok := ctx.Value(ctxKeyTag).(domain.FileTag)
 	if !ok {
 		return domain.FileTagNil, fmt.Errorf("`Tag` must be `FileTag`: %w", core_errors.ErrInvalidArgument)
 	}
@@ -66,7 +66,7 @@ func FileTag(ctx context.Context) (domain.FileTag, error) {
 }
 
 func ClientIP(ctx context.Context) (net.IP, error) {
-	ip, ok := ctx.Value(CtxKeyIP).(net.IP)
+	ip, ok := ctx.Value(ctxKeyIP).(net.IP)
 	if !ok {
 		return nil, fmt.Errorf("`IP` must be `net.IP`: %w", core_errors.ErrInvalidArgument)
 	}
@@ -75,7 +75,7 @@ func ClientIP(ctx context.Context) (net.IP, error) {
 }
 
 func RequestID(ctx context.Context) (uuid.UUID, error) {
-	uidString, ok := ctx.Value(CtxKeyRequestID).(string)
+	uidString, ok := ctx.Value(ctxKeyRequestID).(string)
 	if !ok {
 		return uuid.Nil, fmt.Errorf("`RequestID` must be `string`: %w", core_errors.ErrInvalidArgument)
 	}
@@ -89,7 +89,7 @@ func RequestID(ctx context.Context) (uuid.UUID, error) {
 }
 
 func Locale(ctx context.Context) language.Tag {
-	locale, ok := ctx.Value(CtxKeyLocale).(language.Tag)
+	locale, ok := ctx.Value(ctxKeyLocale).(language.Tag)
 	if !ok {
 		return language.English
 	}
