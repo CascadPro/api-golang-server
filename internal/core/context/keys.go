@@ -1,13 +1,13 @@
 package core_context
 
-type CtxKey int
+type CtxKey string
 
 var (
-	CtxKeyUserID    = CtxKey(0)
-	CtxKeyUserRole  = CtxKey(1)
-	CtxKeySessionID = CtxKey(2)
-	CtxKeyMimeType  = CtxKey(3)
-	CtxKeyTag       = CtxKey(4)
-	CtxKeyIP        = CtxKey(5)
-	CtxKeyRequestID = CtxKey(6)
+	CtxKeyUserID    = CtxKey("user_id")
+	CtxKeyUserRole  = CtxKey("user_role")
+	CtxKeySessionID = CtxKey("session_id")
+	CtxKeyMimeType  = CtxKey("mime_type")
+	CtxKeyTag       = CtxKey("tag")
+	CtxKeyIP        = CtxKey("ip")
+	CtxKeyRequestID = CtxKey("request_id")
 )
