@@ -1,0 +1,131 @@
+{
+  "invalid_argument": {
+    "description": "Некорректный аргумент",
+    "other": "Некорректный аргумент"
+  },
+  "validation_error": {
+    "description": "Ошибка валидации",
+    "other": "Ошибка валидации"
+  },
+  "unauthorized": {
+    "description": "Требуется авторизация",
+    "other": "Требуется авторизация"
+  },
+  "forbidden": {
+    "description": "Доступ запрещён",
+    "other": "Доступ запрещён"
+  },
+  "not_found": {
+    "description": "Ресурс не найден",
+    "other": "Ресурс не найден"
+  },
+  "conflict": {
+    "description": "Конфликт данных",
+    "other": "Конфликт данных"
+  },
+  "too_many_requests": {
+    "description": "Слишком много запросов",
+    "other": "Слишком много запросов"
+  },
+
+  "invalid_credentials": {
+    "description": "Неверная почта или пароль",
+    "other": "Неверная почта или пароль"
+  },
+  "user_not_found": {
+    "description": "Пользователь не найден",
+    "other": "Пользователь не найден"
+  },
+  "user_not_activated": {
+    "description": "Пользователь не активирован",
+    "other": "Пользователь не активирован"
+  },
+
+  "email_already_exists": {
+    "description": "Пользователь с такой почтой уже существует",
+    "other": "Пользователь с такой почтой уже существует"
+  },
+  "username_exists": {
+    "description": "Это имя пользователя уже занято",
+    "other": "Это имя пользователя уже занято"
+  },
+
+  "client_not_found": {
+    "description": "Клиент не найден",
+    "other": "Клиент не найден"
+  },
+  "client_already_exists": {
+    "description": "Такой клиент уже существует",
+    "other": "Такой клиент уже существует"
+  },
+
+  "file_not_found": {
+    "description": "Файл не найден",
+    "other": "Файл не найден"
+  },
+  "file_already_exists": {
+    "description": "Файл уже существует",
+    "other": "Файл уже существует"
+  },
+  "file_access_denied": {
+    "description": "Нет доступа к файлу",
+    "other": "Нет доступа к файлу"
+  },
+  "unsupported_file": {
+    "description": "Неподдерживаемый тип файла",
+    "other": "Неподдерживаемый тип файла"
+  },
+  "file_too_large": {
+    "description": "Файл слишком большой",
+    "other": "Файл слишком большой"
+  },
+
+  "request_not_found": {
+    "description": "Запрос не найден",
+    "other": "Запрос не найден"
+  },
+  "request_already_exists": {
+    "description": "Такой запрос уже существует",
+    "other": "Такой запрос уже существует"
+  },
+  "request_access_denied": {
+    "description": "Нет доступа к запросу",
+    "other": "Нет доступа к запросу"
+  },
+  "request_already_handled": {
+    "description": "Запрос уже обработан",
+    "other": "Запрос уже обработан"
+  },
+
+  "session_not_found": {
+    "description": "Сессия не найдена",
+    "other": "Сессия не найдена"
+  },
+  "session_expired": {
+    "description": "Срок действия сессии истёк",
+    "other": "Срок действия сессии истёк"
+  },
+  "session_revoked": {
+    "description": "Сессия отозвана",
+    "other": "Сессия отозвана"
+  },
+
+  "settings_not_found": {
+    "description": "Настройки не найдены",
+    "other": "Настройки не найдены"
+  },
+
+  "invalid_token": {
+    "description": "Недействительный токен",
+    "other": "Недействительный токен"
+  },
+  "token_expired": {
+    "description": "Срок действия токена истёк",
+    "other": "Срок действия токена истёк"
+  },
+
+  "internal_error": {
+    "description": "Внутренняя ошибка сервера",
+    "other": "Внутренняя ошибка сервера"
+  }
+}

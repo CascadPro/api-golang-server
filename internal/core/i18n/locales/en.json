@@ -1,0 +1,131 @@
+{
+  "invalid_argument": {
+    "description": "Invalid argument",
+    "other": "Invalid argument"
+  },
+  "validation_error": {
+    "description": "Validation error",
+    "other": "Validation error"
+  },
+  "unauthorized": {
+    "description": "Authentication required",
+    "other": "Authentication required"
+  },
+  "forbidden": {
+    "description": "Access denied",
+    "other": "Access denied"
+  },
+  "not_found": {
+    "description": "Resource not found",
+    "other": "Resource not found"
+  },
+  "conflict": {
+    "description": "Data conflict",
+    "other": "Data conflict"
+  },
+  "too_many_requests": {
+    "description": "Too many requests",
+    "other": "Too many requests"
+  },
+
+  "invalid_credentials": {
+    "description": "Invalid email or password",
+    "other": "Invalid email or password"
+  },
+  "user_not_found": {
+    "description": "User not found",
+    "other": "User not found"
+  },
+  "user_not_activated": {
+    "description": "User is not activated",
+    "other": "User is not activated"
+  },
+
+  "email_already_exists": {
+    "description": "A user with this email already exists",
+    "other": "A user with this email already exists"
+  },
+  "username_exists": {
+    "description": "This username is already taken",
+    "other": "This username is already taken"
+  },
+
+  "client_not_found": {
+    "description": "Client not found",
+    "other": "Client not found"
+  },
+  "client_already_exists": {
+    "description": "Client already exists",
+    "other": "Client already exists"
+  },
+
+  "file_not_found": {
+    "description": "File not found",
+    "other": "File not found"
+  },
+  "file_already_exists": {
+    "description": "File already exists",
+    "other": "File already exists"
+  },
+  "file_access_denied": {
+    "description": "File access denied",
+    "other": "File access denied"
+  },
+  "unsupported_file": {
+    "description": "Unsupported file type",
+    "other": "Unsupported file type"
+  },
+  "file_too_large": {
+    "description": "File is too large",
+    "other": "File is too large"
+  },
+
+  "request_not_found": {
+    "description": "Request not found",
+    "other": "Request not found"
+  },
+  "request_already_exists": {
+    "description": "Request already exists",
+    "other": "Request already exists"
+  },
+  "request_access_denied": {
+    "description": "Request access denied",
+    "other": "Request access denied"
+  },
+  "request_already_handled": {
+    "description": "Request has already been handled",
+    "other": "Request has already been handled"
+  },
+
+  "session_not_found": {
+    "description": "Session not found",
+    "other": "Session not found"
+  },
+  "session_expired": {
+    "description": "Session has expired",
+    "other": "Session has expired"
+  },
+  "session_revoked": {
+    "description": "Session has been revoked",
+    "other": "Session has been revoked"
+  },
+
+  "settings_not_found": {
+    "description": "Settings not found",
+    "other": "Settings not found"
+  },
+
+  "invalid_token": {
+    "description": "Invalid token",
+    "other": "Invalid token"
+  },
+  "token_expired": {
+    "description": "Token has expired",
+    "other": "Token has expired"
+  },
+
+  "internal_error": {
+    "description": "Internal server error",
+    "other": "Internal server error"
+  }
+}
