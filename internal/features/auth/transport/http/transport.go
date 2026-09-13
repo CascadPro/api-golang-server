@@ -47,10 +47,9 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 			Middleware: []core_http_middleware.Middleware{rateLimit.Middleware()},
 		},
 		{
-			Method:     core_http.MethodPost,
-			Path:       "/logout",
-			Handler:    h.Logout,
-			Middleware: []core_http_middleware.Middleware{core_http_middleware.Authorization(h.tokenIssuer)},
+			Method:  core_http.MethodPost,
+			Path:    "/logout",
+			Handler: h.Logout,
 		},
 		{
 			Method:  core_http.MethodGet,

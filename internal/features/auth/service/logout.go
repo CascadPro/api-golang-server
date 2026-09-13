@@ -3,22 +3,15 @@ package auth_service
 import (
 	"context"
 	"fmt"
-
-	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 )
 
-func (s *Service) Logout(ctx context.Context) error {
-	userID, err := core_context.UserID(ctx)
+func (s *Service) Logout(ctx context.Context, refreshToken string) error {
+	refreshClaims, err := s.tokenIssuer.ParseRefresh(refreshToken)
 	if err != nil {
-		return fmt.Errorf("get userID from context: %w", err)
+		return fmt.Errorf("parse refresh token: %w", err)
 	}
 
-	sessionID, err := core_context.SessionID(ctx)
-	if err != nil {
-		return fmt.Errorf("get sessionID from context: %w", err)
-	}
-
-	if err := s.sessionsRedisRepo.DeleteSession(ctx, userID, sessionID); err != nil {
+	if err := s.sessionsRedisRepo.DeleteSession(ctx, refreshClaims.UserID, refreshClaims.SessionID); err != nil {
 		return fmt.Errorf("delete session: %w", err)
 	}
 

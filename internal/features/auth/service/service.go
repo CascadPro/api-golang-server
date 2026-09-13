@@ -29,7 +29,7 @@ type ServiceMethods interface {
 	Register(context.Context, domain.UserPatch, string) error
 	Login(context.Context, domain.User, net.IP, *core_http_request.UserAgent) (string, string, error)
 	GetNewTokens(context.Context, string) (string, error)
-	Logout(context.Context) error
+	Logout(context.Context, string) error
 }
 
 func NewService(

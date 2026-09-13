@@ -6,6 +6,7 @@ import (
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
+	core_http_utils "github.com/CascadePro/api-golang-server/internal/core/transport/http/utils"
 )
 
 // Logout godoc
@@ -25,17 +26,18 @@ func (h *HttpHandler) Logout(rw http.ResponseWriter, r *http.Request) {
 
 	responseHandler := core_http_response.NewResponseHandler(log, locale, rw)
 
-	if err := h.authService.Logout(ctx); err != nil {
+	cookie, err := core_http_utils.ParseCookie(r, refreshTokenCookie)
+	if err != nil {
+		responseHandler.ErrorResponse(err, "failed to get refresh token from http request")
+		return
+	}
+
+	if err := h.authService.Logout(ctx, cookie.Value); err != nil {
 		responseHandler.ErrorResponse(err, "failed to logout")
-
 		return
 	}
 
-	if err := core_http_response.DeleteCookie(rw, "refresh_token"); err != nil {
-		responseHandler.ErrorResponse(err, "failed to delete cookie")
-
-		return
-	}
+	_ = core_http_response.DeleteCookie(rw, refreshTokenCookie)
 
 	responseHandler.NoContentResponse()
 }
