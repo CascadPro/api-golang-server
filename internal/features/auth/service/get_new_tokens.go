@@ -15,6 +15,11 @@ func (s *Service) GetNewTokens(ctx context.Context, token string) (string, error
 		return "", fmt.Errorf("parse refresh token: %v: %w", err, auth_errors.ErrInvalidRefreshToken)
 	}
 
+	_, err = s.sessionsRedisRepo.GetSession(ctx, claims.UserID, claims.SessionID)
+	if err != nil {
+		return "", fmt.Errorf("get session from repository: %v: %w", err, auth_errors.ErrInvalidRefreshToken)
+	}
+
 	user, err := s.userPostgresRepo.GetUser(ctx, domain.User{ID: claims.UserID})
 	if err != nil {
 		return "", fmt.Errorf("get user from repository: %w", err)
