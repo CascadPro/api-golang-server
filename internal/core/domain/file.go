@@ -108,15 +108,6 @@ func (f *File) Validate() error {
 		return fmt.Errorf("`Size` can't be below or equal zero: %w", core_errors.ErrInvalidArgument)
 	}
 
-	if f.Tag == FileTagAvatars || f.Tag == FileTagImages || f.Tag == FileTagVideos {
-		if f.placeholder == nil {
-			return fmt.Errorf(
-				"`Placeholder` can't be NULL for images, avatars and videos: %w",
-				core_errors.ErrInvalidArgument,
-			)
-		}
-	}
-
 	if err := f.ValidateDeleted(); err != nil {
 		return err
 	}

@@ -18,8 +18,7 @@ CREATE TABLE media.files (
   CHECK (
     (deleted AND deleted_at IS NOT NULL) OR NOT deleted
     AND
-    ((tag IN ('avatars', 'images', 'videos') AND placeholder IS NOT NULL) OR
-    (tag NOT IN ('avatars', 'images', 'videos') AND placeholder IS NULL))
+    (tag NOT IN ('avatars', 'images', 'videos') AND placeholder IS NULL)
     AND
     tag != 'avatars' OR (tag = 'avatars' AND size <= 10485760)
     AND
