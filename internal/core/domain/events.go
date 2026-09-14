@@ -10,7 +10,8 @@ import (
 type EventType string
 
 const (
-	EventTypeMediaDeleteFile = EventType("media.delete_file")
+	EventTypeMediaDeleteFile    = EventType("media.delete_file")
+	EventTypeMediaAvatarProcess = EventType("media.process_avatar")
 )
 
 type OutboxEvent struct {
@@ -48,6 +49,16 @@ type EventTypeMediaDeleteFilePayload struct {
 func NewEventTypeMediaDeleteFilePayload(tag FileTag, fileID string) EventTypeMediaDeleteFilePayload {
 	return EventTypeMediaDeleteFilePayload{
 		Tag:    tag,
+		FileID: fileID,
+	}
+}
+
+type EventTypeMediaAvatarProcessPayload struct {
+	FileID string `json:"file_id"`
+}
+
+func NewEventTypeMediaAvatarProcessPayload(fileID string) EventTypeMediaAvatarProcessPayload {
+	return EventTypeMediaAvatarProcessPayload{
 		FileID: fileID,
 	}
 }
