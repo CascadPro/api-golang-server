@@ -1,6 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS infrastructure;
 
-CREATE TYPE outbox_events_type AS ENUM ('media.delete_file');
+CREATE TYPE outbox_events_type AS ENUM ('media.delete_file', 'media.process_avatar');
 
 CREATE TABLE infrastructure.outbox_events (
   id UUID PRIMARY KEY,

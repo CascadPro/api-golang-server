@@ -62,6 +62,29 @@ func (s *Service) UpdateAvatar(ctx context.Context, userID uuid.UUID, uploadedFi
 		_ = tx.Rollback(ctx)
 	}()
 
+	payload, err := updateAvatarEventPayload(file.ID)
+	if err != nil {
+		_ = tx.Rollback(ctx)
+
+		_ = s.mediaService.DeleteFile(ctx, domain.FileTagAvatars, file.ID)
+
+		return fmt.Errorf("create outbox payload: %w", err)
+	}
+
+	event := domain.NewOutboxEvent(
+		domain.EventTypeMediaAvatarProcess,
+		&userID,
+		payload,
+	)
+
+	if _, err := s.outboxPostgresRepo.CreateEvent(ctx, tx, event); err != nil {
+		_ = tx.Rollback(ctx)
+
+		_ = s.mediaService.DeleteFile(ctx, domain.FileTagAvatars, file.ID)
+
+		return fmt.Errorf("create outbox event: %w", err)
+	}
+
 	// 4. Update user inside transaction.
 	if _, err := s.usersPostgresRepo.PatchUserTx(ctx, tx, userID, patched); err != nil {
 		_ = tx.Rollback(ctx)
@@ -72,31 +95,12 @@ func (s *Service) UpdateAvatar(ctx context.Context, userID uuid.UUID, uploadedFi
 		return fmt.Errorf("update user in transaction: %w", err)
 	}
 
-	// 5. If old avatar exists, create deletion event.
+	// 6. If old avatar exists, create deletion event.
 	if oldAvatarID != nil {
-		payload, err := json.Marshal(
-			domain.NewEventTypeMediaDeleteFilePayload(domain.FileTagAvatars, *oldAvatarID),
-		)
-		if err != nil {
+		if err := s.mediaService.DeleteFileTx(ctx, tx, domain.FileTagAvatars, *oldAvatarID); err != nil {
 			_ = tx.Rollback(ctx)
 
-			_ = s.mediaService.DeleteFile(ctx, domain.FileTagAvatars, file.ID)
-
-			return fmt.Errorf("marshal outbox payload: %w", err)
-		}
-
-		event := domain.NewOutboxEvent(
-			domain.EventTypeMediaDeleteFile,
-			&userID,
-			payload,
-		)
-
-		if _, err := s.outboxPostgresRepo.CreateEvent(ctx, tx, event); err != nil {
-			_ = tx.Rollback(ctx)
-
-			_ = s.mediaService.DeleteFile(ctx, domain.FileTagAvatars, file.ID)
-
-			return fmt.Errorf("create outbox event: %w", err)
+			return fmt.Errorf("delete old avatar: %w", err)
 		}
 	}
 
@@ -111,4 +115,15 @@ func (s *Service) UpdateAvatar(ctx context.Context, userID uuid.UUID, uploadedFi
 	}
 
 	return nil
+}
+
+func updateAvatarEventPayload(fileID string) ([]byte, error) {
+	payload, err := json.Marshal(
+		domain.NewEventTypeMediaAvatarProcessPayload(fileID),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("marshal outbox payload: %w", err)
+	}
+
+	return payload, nil
 }

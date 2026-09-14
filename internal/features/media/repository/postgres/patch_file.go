@@ -27,7 +27,7 @@ func (r *Repository) patchFile(
 
 	query := `
 		UPDATE media.files
-		SET (version = version + 1, filename = $1, size = $2, deleted = $3, deleted_at = $4)
+		SET version = version + 1, filename = $1, size = $2, deleted = $3, deleted_at = $4
 		WHERE (id = $5 AND version = $6)
 		RETURNING id, version, tag, filename, mime_type, size, deleted, deleted_at, created_at;
 	`

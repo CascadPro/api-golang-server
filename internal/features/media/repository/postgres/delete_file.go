@@ -21,7 +21,7 @@ func (r *Repository) deleteFile(ctx context.Context, db core_postgres_pool.Queri
 	query := `
 		DELETE FROM media.files
 		WHERE id = $1;
-	`
+		`
 
 	cmd, err := db.Exec(ctx, query, fileID)
 	if err != nil {

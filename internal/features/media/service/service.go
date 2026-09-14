@@ -5,6 +5,7 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_postgres_outbox "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/outbox"
+	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
 	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/s3/pool"
 	media_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/media/repository/postgres"
 )
@@ -21,6 +22,7 @@ type ServiceMethods interface {
 	GetFilePlaceholder(context.Context, string) ([]byte, error)
 	UploadFile(context.Context, *domain.File, []byte) (domain.File, error)
 	DeleteFile(context.Context, domain.FileTag, string) error
+	DeleteFileTx(context.Context, core_postgres_pool.Tx, domain.FileTag, string) error
 	MarkFileDeleted(context.Context, string) error
 }
 

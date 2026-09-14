@@ -39,18 +39,13 @@ func (h *HttpHandler) UpdateAvatar(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	const maxFileSize = 10 << 20 // 10 MB
-	uploadedFile, content, err := core_http_request.GetFile(rw, r, maxFileSize)
+	uploadedFile, content, err := core_http_request.GetAvatar(rw, r, maxFileSize)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get file from request")
 		return
 	}
 	if uploadedFile.Tag != domain.FileTagAvatars {
 		responseHandler.ErrorResponse(core_errors.ErrInvalidArgument, "invalid file tag, expected 'avatars'")
-		return
-	}
-
-	if err := uploadedFile.GeneratePlaceholder(content); err != nil {
-		responseHandler.ErrorResponse(err, "failed to generate placeholder for file")
 		return
 	}
 

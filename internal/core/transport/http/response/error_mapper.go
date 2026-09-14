@@ -111,9 +111,15 @@ func mapError(err error) ErrorDescriptor {
 			StatusCode: http.StatusForbidden,
 		}
 
-	case errors.Is(err, media_errors.ErrUnsupportedFile):
+	case errors.Is(err, media_errors.ErrUnsupportedFormat):
 		return ErrorDescriptor{
-			Code:       core_errors.CodeUnsupportedFile,
+			Code:       core_errors.CodeUnsupportedFormat,
+			StatusCode: 400,
+		}
+
+	case errors.Is(err, media_errors.ErrInvalidImage):
+		return ErrorDescriptor{
+			Code:       core_errors.CodeInvalidImage,
 			StatusCode: 400,
 		}
 

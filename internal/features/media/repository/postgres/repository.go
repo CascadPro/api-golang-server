@@ -21,6 +21,8 @@ type RepositoryMethods interface {
 	PatchFile(ctx context.Context, fileID string, file domain.File) (domain.File, error)
 	PatchFileTx(ctx context.Context, tx core_postgres_pool.Tx, fileID string, file domain.File) (domain.File, error)
 
+	PatchPlaceholder(ctx context.Context, fileID string, version int64, placeholder []byte) error
+
 	BeginTx(ctx context.Context) (core_postgres_pool.Tx, error)
 }
 

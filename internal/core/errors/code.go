@@ -25,8 +25,9 @@ const (
 	CodeFileNotFound      Code = "file_not_found"
 	CodeFileAlreadyExists Code = "file_already_exists"
 	CodeFileAccessDenied  Code = "file_access_denied"
-	CodeUnsupportedFile   Code = "unsupported_file"
 	CodeFileTooLarge      Code = "file_too_large"
+	CodeUnsupportedFormat Code = "unsupported_format"
+	CodeInvalidImage      Code = "invalid_image"
 
 	CodeRequestNotFound       Code = "request_not_found"
 	CodeRequestAlreadyExists  Code = "request_already_exists"

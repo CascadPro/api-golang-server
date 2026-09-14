@@ -27,6 +27,9 @@ func (h *Handler) Handle(ctx context.Context, event domain.OutboxEvent) error {
 	case domain.EventTypeMediaDeleteFile:
 		return h.mediaHandler.HandleDeleteFile(ctx, event)
 
+	case domain.EventTypeMediaAvatarProcess:
+		return h.mediaHandler.HandleProcessAvatar(ctx, event)
+
 	default:
 		return fmt.Errorf("unsupported event type: %s", event.Type)
 	}
