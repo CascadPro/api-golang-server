@@ -7,8 +7,37 @@ import (
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 )
+
+func (s *Service) deleteFile(ctx context.Context, tx core_postgres_pool.Tx, fileTag domain.FileTag, fileID string) error {
+	if err := s.mediaPostgresRepo.DeleteFileTx(ctx, tx, fileID); err != nil {
+		_ = tx.Rollback(ctx)
+
+		return fmt.Errorf("delete file from repository: %w", err)
+	}
+
+	payload, err := deleteFileEventPayload(fileTag, fileID)
+	if err != nil {
+		_ = tx.Rollback(ctx)
+
+		return fmt.Errorf("create outbox payload: %w", err)
+	}
+
+	event := domain.NewOutboxEvent(domain.EventTypeMediaDeleteFile, nil, payload)
+	if requestID, err := core_context.RequestID(ctx); err == nil {
+		event.AggregateID = &requestID
+	}
+
+	if _, err := s.outboxPostgresRepo.CreateEvent(ctx, tx, event); err != nil {
+		_ = tx.Rollback(ctx)
+
+		return fmt.Errorf("create outbox event: %w", err)
+	}
+
+	return nil
+}
 
 func (s *Service) DeleteFile(ctx context.Context, fileTag domain.FileTag, fileID string) error {
 	if err := core_validation.ValidateArray(domain.FileTags, fileTag); err != nil {
@@ -28,28 +57,8 @@ func (s *Service) DeleteFile(ctx context.Context, fileTag domain.FileTag, fileID
 		_ = tx.Rollback(ctx)
 	}()
 
-	if err := s.mediaPostgresRepo.DeleteFileTx(ctx, tx, fileID); err != nil {
-		_ = tx.Rollback(ctx)
-
-		return fmt.Errorf("delete file from repository: %w", err)
-	}
-
-	payload, err := deleteFileEventPayload(domain.FileTagAvatars, fileID)
-	if err != nil {
-		_ = tx.Rollback(ctx)
-
-		return fmt.Errorf("create outbox payload: %w", err)
-	}
-
-	event := domain.NewOutboxEvent(domain.EventTypeMediaDeleteFile, nil, payload)
-	if requestID, err := core_context.RequestID(ctx); err == nil {
-		event.AggregateID = &requestID
-	}
-
-	if _, err := s.outboxPostgresRepo.CreateEvent(ctx, tx, event); err != nil {
-		_ = tx.Rollback(ctx)
-
-		return fmt.Errorf("create outbox event: %w", err)
+	if err := s.deleteFile(ctx, tx, fileTag, fileID); err != nil {
+		return err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
@@ -57,6 +66,18 @@ func (s *Service) DeleteFile(ctx context.Context, fileTag domain.FileTag, fileID
 	}
 
 	return nil
+}
+
+func (s *Service) DeleteFileTx(ctx context.Context, tx core_postgres_pool.Tx, fileTag domain.FileTag, fileID string) error {
+	if err := core_validation.ValidateArray(domain.FileTags, fileTag); err != nil {
+		return fmt.Errorf("validate file tag: %w", err)
+	}
+
+	if err := core_validation.ValidateID(fileID, domain.FileIDByteLength); err != nil {
+		return fmt.Errorf("validate file id: %w", err)
+	}
+
+	return s.deleteFile(ctx, tx, fileTag, fileID)
 }
 
 func deleteFileEventPayload(tag domain.FileTag, fileID string) ([]byte, error) {
