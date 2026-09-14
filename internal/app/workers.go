@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	core_postgres_outbox "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/outbox"
+	media_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/media/repository/postgres"
 	worker_outbox "github.com/CascadePro/api-golang-server/internal/workers/outbox"
 	outbox_media_handler "github.com/CascadePro/api-golang-server/internal/workers/outbox/handler/media"
 	"go.uber.org/zap"
@@ -13,8 +14,10 @@ import (
 func (a *App) initWorkers(ctx context.Context) error {
 	repository := core_postgres_outbox.NewRepository(a.infrastructure.Postgres)
 
+	mediaRepository := media_postgres_repository.NewRepository(a.infrastructure.Postgres)
+
 	a.logger.Debug("initializing outbox handler", zap.String("handler", "media"))
-	outboxMediaHandler := outbox_media_handler.New(a.infrastructure.S3)
+	outboxMediaHandler := outbox_media_handler.New(a.infrastructure.S3, mediaRepository)
 
 	outboxWorkerHandler := worker_outbox.NewHandler(outboxMediaHandler)
 
