@@ -8,6 +8,7 @@ var (
 	ErrFileAlreadyExists       = errors.New("file already exists")
 	ErrFileAccessDenied        = errors.New("file access denied")
 	ErrFileDeleted             = errors.New("file was deleted")
-	ErrUnsupportedFile         = errors.New("unsupported file")
 	ErrFileTooLarge            = errors.New("file too large")
+	ErrUnsupportedFormat       = errors.New("unsupported file")
+	ErrInvalidImage            = errors.New("invalid image")
 )

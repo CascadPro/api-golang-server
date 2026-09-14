@@ -19,7 +19,7 @@ func (s *Service) GetFilePlaceholder(ctx context.Context, fileID string) ([]byte
 		return nil, fmt.Errorf("get file from repository: %w", err)
 	}
 	if file.Tag != domain.FileTagAvatars && file.Tag != domain.FileTagImages && file.Tag != domain.FileTagVideos {
-		return nil, fmt.Errorf("this type of file don't have placeholder: %w", media_errors.ErrUnsupportedFile)
+		return nil, fmt.Errorf("this type of file don't have placeholder: %w", media_errors.ErrUnsupportedFormat)
 	}
 	if len(placeholder) <= 0 {
 		return nil, fmt.Errorf("placeholder bytes is empty: %w", media_errors.ErrFilePlaceholderNotFound)
