@@ -1,6 +1,8 @@
 package core_media_utils
 
 import (
+	"bytes"
+	"fmt"
 	"image"
 	"image/color"
 	"io"
@@ -14,8 +16,15 @@ const (
 	placeholderQuality   = 20
 )
 
-// Mode    – задаёт тип сжатия (lossy / lossless). Мы используем lossy.
-// Quality – качество 0‑100 (тип LossyQuality).
+func DecodeImage(data []byte) (image.Image, Format, error) {
+	img, format, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return nil, FormatNil, fmt.Errorf("decode image: %w", err)
+	}
+
+	return img, Format(format), nil
+}
+
 func encodeWebP(w io.Writer, img image.Image, quality int) error {
 	opts := &webp.EncodeOptions{
 		Mode:    webp.EncodeLossy,
