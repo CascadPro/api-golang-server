@@ -42,7 +42,8 @@ func (h *HttpHandler) UploadDoc(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uploadedFile, content, err := core_http_request.GetFile(rw, r, 1<<20)
+	const maxFileSize = 1 << 20
+	uploadedFile, content, err := core_http_request.GetDocument(rw, r, maxFileSize)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get file from request")
 		return
