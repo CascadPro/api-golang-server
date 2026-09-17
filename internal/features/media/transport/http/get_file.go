@@ -3,6 +3,7 @@ package media_transport_http
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
@@ -10,6 +11,7 @@ import (
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_request "github.com/CascadePro/api-golang-server/internal/core/transport/http/request"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
+	core_http_utils "github.com/CascadePro/api-golang-server/internal/core/transport/http/utils"
 )
 
 func (h *HttpHandler) GetFile(rw http.ResponseWriter, r *http.Request) {
@@ -47,6 +49,14 @@ func (h *HttpHandler) GetFile(rw http.ResponseWriter, r *http.Request) {
 	}
 	if content == nil {
 		responseHandler.ErrorResponse(core_errors.ErrNotFound, "failed to get file")
+	}
+
+	if file.Tag == domain.FileTagAvatars {
+		core_http_utils.SetCacheControl(rw, core_http_utils.CacheControlOptions{
+			Type:      core_http_utils.CacheControlTypePublic,
+			MaxAge:    24 * time.Hour,
+			Immutable: true,
+		})
 	}
 
 	responseHandler.MediaContentResponse(content, file.MimeType)

@@ -41,7 +41,10 @@ var (
 )
 
 var (
-	FileTags = []FileTag{FileTagAvatars, FileTagDocs, FileTagImages, FileTagVideos}
+	FileTags              = []FileTag{FileTagAvatars, FileTagDocs, FileTagImages, FileTagVideos}
+	FileMimeTypesPictures = []FileMimeType{FileMimeTypeJpeg, FileMimeTypePng, FileMimeTypeGif, FileMimeTypeWebp}
+	FileMimeTypesVideos   = []FileMimeType{FileMimeTypeMMp4}
+	FileMimeTypesDocs     = []FileMimeType{FileMimeTypeJson, FileMimeTypePdf, FileMimeTypeDocx, FileMimeTypeXlsx, FileMimeTypePptx}
 )
 
 type File struct {
