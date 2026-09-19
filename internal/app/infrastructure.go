@@ -8,19 +8,23 @@ import (
 	core_mongo_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/mongo/pool"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
+	core_redis_realtime "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/realtime"
 	core_s3_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/s3/pool"
 	core_jwt_security "github.com/CascadePro/api-golang-server/internal/core/security/jwt"
+	core_ws_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/ws/middleware"
 	core_validation_init "github.com/CascadePro/api-golang-server/internal/core/validation/init"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 type Infrastructure struct {
-	Postgres    *core_postgres_pool.ConnectionPool
-	Redis       *core_redis_pool.ConnectionPool
-	Mongo       *core_mongo_pool.ConnectionPool
-	S3          *core_s3_pool.ConnectionPool
-	IPInfo      *core_ipinfo_pool.ConnectionPool
-	TokenIssuer *core_jwt_security.Issuer
+	Postgres        *core_postgres_pool.ConnectionPool
+	Redis           *core_redis_pool.ConnectionPool
+	Mongo           *core_mongo_pool.ConnectionPool
+	S3              *core_s3_pool.ConnectionPool
+	IPInfo          *core_ipinfo_pool.ConnectionPool
+	TokenIssuer     *core_jwt_security.Issuer
+	Publisher       *core_redis_realtime.Publisher
+	WsAuthenticator *core_ws_middleware.Authenticator
 }
 
 func (a *App) initInfrastructure(ctx context.Context) error {
@@ -98,6 +102,8 @@ func (a *App) initInfrastructure(ctx context.Context) error {
 		return fmt.Errorf("initialize JWT issuer")
 	}
 
+	publisher := core_redis_realtime.NewPublisher(redisPool)
+
 	a.infrastructure = &Infrastructure{
 		Postgres:    pgPool,
 		Redis:       redisPool,
@@ -105,6 +111,7 @@ func (a *App) initInfrastructure(ctx context.Context) error {
 		S3:          s3Pool,
 		IPInfo:      ipInfoPool,
 		TokenIssuer: tokenIssuer,
+		Publisher:   publisher,
 	}
 
 	return nil

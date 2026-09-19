@@ -8,6 +8,7 @@ import (
 	core_i18n "github.com/CascadePro/api-golang-server/internal/core/i18n"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
+	core_ws_server "github.com/CascadePro/api-golang-server/internal/core/transport/ws/server"
 	"go.uber.org/zap"
 )
 
@@ -17,7 +18,9 @@ type App struct {
 
 	infrastructure *Infrastructure
 	features       *Features
-	httpServer     *core_http_server.HttpServer
+
+	httpServer *core_http_server.HttpServer
+	wsServer   *core_ws_server.Server
 }
 
 func New(
@@ -56,6 +59,13 @@ func New(
 		app.infrastructure.Close(ctx)
 
 		return nil, fmt.Errorf("init features: %w", err)
+	}
+
+	logger.Debug("initializing app websocket server")
+	if err := app.initWebsocket(ctx); err != nil {
+		app.infrastructure.Close(ctx)
+
+		return nil, fmt.Errorf("init websocket server: %w", err)
 	}
 
 	logger.Debug("initializing app http server")

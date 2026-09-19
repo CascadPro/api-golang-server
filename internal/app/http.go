@@ -1,6 +1,7 @@
 package app
 
 import (
+	core_http "github.com/CascadePro/api-golang-server/internal/core/transport/http"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
 )
@@ -29,6 +30,12 @@ func (a *App) initHttp() error {
 		a.features.Settings,
 		a.features.Users,
 	)
+
+	a.features.Root.RegisterRoutes(core_http_server.Route{
+		Method:  core_http.MethodGet,
+		Path:    "/ws",
+		Handler: a.wsServer.ServeHTTP,
+	})
 
 	httpServer.RegisterRouters(
 		a.features.Root,

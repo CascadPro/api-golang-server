@@ -9,6 +9,7 @@ import (
 	core_postgres_token "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/token"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
+	core_ws_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/ws/middleware"
 	auth_service "github.com/CascadePro/api-golang-server/internal/features/auth/service"
 	auth_transport_http "github.com/CascadePro/api-golang-server/internal/features/auth/transport/http"
 	client_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/client/repository/postgres"
@@ -17,6 +18,8 @@ import (
 	media_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/media/repository/postgres"
 	media_service "github.com/CascadePro/api-golang-server/internal/features/media/service"
 	media_transport_http "github.com/CascadePro/api-golang-server/internal/features/media/transport/http"
+	presence_redis_repository "github.com/CascadePro/api-golang-server/internal/features/presence/repository/redis"
+	presence_service "github.com/CascadePro/api-golang-server/internal/features/presence/service"
 	requests_mongo_repository "github.com/CascadePro/api-golang-server/internal/features/requests/repository/mongo"
 	requests_service "github.com/CascadePro/api-golang-server/internal/features/requests/service"
 	requests_transport_http "github.com/CascadePro/api-golang-server/internal/features/requests/transport/http"
@@ -42,6 +45,8 @@ type Features struct {
 	Requests *core_http_server.Router
 	Sessions *core_http_server.Router
 	Auth     *core_http_server.Router
+
+	Presence *presence_service.Service
 }
 
 func (a *App) initFeatures() error {
@@ -56,6 +61,10 @@ func (a *App) initFeatures() error {
 			zap.String("path", fmt.Sprintf("%s/*", path)),
 		)
 	}
+
+	// Presence service
+	a.logger.Debug("initializing feature", zap.String("feature", "presence"))
+	presenceRedisRepo := presence_redis_repository.NewRepository(a.infrastructure.Redis)
 
 	// Root routes
 	logFeatureInit("root", "")
@@ -124,7 +133,8 @@ func (a *App) initFeatures() error {
 	sessionsRouter := core_http_server.NewRouter("/sessions", core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
 
 	sessionsRedisRepo := sessions_redis_repository.NewRepository(a.infrastructure.Redis)
-	sessionsService := session_service.NewService(sessionsRedisRepo)
+	presenceService := presence_service.NewService(presenceRedisRepo, sessionsRedisRepo)
+	sessionsService := session_service.NewService(sessionsRedisRepo, presenceService, a.infrastructure.Publisher)
 	sessionsHttpHandler := sessions_transport_http.NewHttpHandler(sessionsService)
 
 	sessionsRouter.RegisterRoutes(sessionsHttpHandler.Routes()...)
@@ -139,6 +149,10 @@ func (a *App) initFeatures() error {
 
 	authRouter.RegisterRoutes(authHttpHandler.Routes()...)
 
+	wsAuthenticator := core_ws_middleware.NewAuthenticator(sessionsRedisRepo, a.infrastructure.TokenIssuer)
+
+	a.infrastructure.WsAuthenticator = wsAuthenticator
+
 	a.features = &Features{
 		Root:     rootRouter,
 		Media:    mediaRouter,
@@ -148,6 +162,8 @@ func (a *App) initFeatures() error {
 		Requests: requestsRouter,
 		Sessions: sessionsRouter,
 		Auth:     authRouter,
+
+		Presence: presenceService,
 	}
 
 	return nil
