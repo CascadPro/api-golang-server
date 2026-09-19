@@ -14,6 +14,7 @@ const (
 	SessionFolder   = RedisFolderName("cascade__session")
 	CacheFolder     = RedisFolderName("cascade__cache")
 	RateLimitFolder = RedisFolderName("cascade__rate_limit")
+	PresenceFolder  = RedisFolderName("cascade__presence")
 )
 
 type Pool interface {
@@ -22,6 +23,9 @@ type Pool interface {
 	Set(ctx context.Context, key string, value any, expiration time.Duration) error
 	Del(ctx context.Context, keys ...string) error
 	Eval(ctx context.Context, script string, keys []string, args ...any) (any, error)
+
+	Publish(ctx context.Context, channel string, message any) error
+	Subscribe(ctx context.Context, channels ...string) *redis.PubSub
 
 	HGet(ctx context.Context, key, field string) (string, error)
 	HGetAll(ctx context.Context, key string) *redis.MapStringStringCmd
