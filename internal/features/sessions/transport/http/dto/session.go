@@ -3,16 +3,17 @@ package sessions_http_dto
 import (
 	"time"
 
-	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	session_service "github.com/CascadePro/api-golang-server/internal/features/sessions/service"
 )
 
-type SessionDto struct {
+type SessionDTO struct {
 	ID           string             `json:"id"             example:"831f21c1798a7972fa9cda12dac0"`
 	IP           string             `json:"ip"             example:"0.0.0.0"`
 	CreatedAt    time.Time          `json:"created_at"     example:"2006-01-02T15-04-05.000000"`
 	LastActiveAt time.Time          `json:"last_active_at" example:"2006-01-02T15-04-05.000000"`
 	ExpiresAt    time.Time          `json:"expires_at"     example:"2006-01-02T15-04-05.000000"`
 	Metadata     SessionDtoMetadata `json:"metadata"`
+	Online       bool               `json:"online"         example:"true"`
 }
 
 type SessionDtoMetadata struct {
@@ -35,13 +36,14 @@ type SessionDtoMetadataDevice struct {
 	Version string `json:"vers,omitempty"  example:"1.0.0"`
 }
 
-func SessionDomainToDTO(session domain.Session) SessionDto {
-	return SessionDto{
+func SessionDomainToDTO(session session_service.Session) SessionDTO {
+	return SessionDTO{
 		ID:           session.ID,
 		IP:           session.IP.String(),
 		CreatedAt:    session.CreatedAt,
 		LastActiveAt: session.LastActiveAt,
 		ExpiresAt:    session.CreatedAt.Add(time.Duration(session.ExpirationTime)),
+		Online:       session.Online,
 		Metadata: SessionDtoMetadata{
 			Location: SessionDtoMetadataLocation(session.Metadata.Location),
 			Device:   SessionDtoMetadataDevice(session.Metadata.Device),
@@ -49,8 +51,8 @@ func SessionDomainToDTO(session domain.Session) SessionDto {
 	}
 }
 
-func SessionDomainsToDTOs(domains []domain.Session) []SessionDto {
-	sessions := []SessionDto{}
+func SessionDomainsToDTOs(domains []session_service.Session) []SessionDTO {
+	sessions := []SessionDTO{}
 
 	for _, session := range domains {
 		sessions = append(sessions, SessionDomainToDTO(session))

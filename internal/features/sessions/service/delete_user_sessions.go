@@ -5,6 +5,9 @@ import (
 	"fmt"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
+	"go.uber.org/zap"
 )
 
 func (s *Service) DeleteUserSessions(ctx context.Context) error {
@@ -21,6 +24,15 @@ func (s *Service) DeleteUserSessions(ctx context.Context) error {
 	if err := s.sessionsRedisRepo.DeleteUserSessions(ctx, userID, sessionID); err != nil {
 		return fmt.Errorf("delete user sessions from repository: %w", err)
 	}
+
+	log := core_logger.FromContext(ctx)
+
+	go func(log *core_logger.Logger) {
+		event := domain.NewRealtimeEvent(domain.RealtimeEventSessionRevoked, &userID, nil, nil)
+		if err := s.publisher.Publish(ctx, event); err != nil {
+			log.Error("publish session revoked event", zap.Error(err))
+		}
+	}(log)
 
 	return nil
 }

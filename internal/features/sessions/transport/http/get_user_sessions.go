@@ -4,15 +4,15 @@ import (
 	"net/http"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
-	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
+	session_service "github.com/CascadePro/api-golang-server/internal/features/sessions/service"
 	sessions_http_dto "github.com/CascadePro/api-golang-server/internal/features/sessions/transport/http/dto"
 )
 
 type GetUserSessionsResponse struct {
-	Current  sessions_http_dto.SessionDto   `json:"current_session"`
-	Sessions []sessions_http_dto.SessionDto `json:"sessions"`
+	Current  sessions_http_dto.SessionDTO   `json:"current_session"`
+	Sessions []sessions_http_dto.SessionDTO `json:"sessions"`
 }
 
 // GetUserSessions godoc
@@ -45,7 +45,7 @@ func (h *HttpHandler) GetUserSessions(rw http.ResponseWriter, r *http.Request) {
 	responseHandler.JsonResponse(response, http.StatusOK)
 }
 
-func sessionsResponseFromDomain(sessions []domain.Session) GetUserSessionsResponse {
+func sessionsResponseFromDomain(sessions []session_service.Session) GetUserSessionsResponse {
 	return GetUserSessionsResponse{
 		Current:  sessions_http_dto.SessionDomainToDTO(sessions[0]),
 		Sessions: sessions_http_dto.SessionDomainsToDTOs(sessions[1:]),

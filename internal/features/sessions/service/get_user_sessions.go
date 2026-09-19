@@ -5,10 +5,9 @@ import (
 	"fmt"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
-	"github.com/CascadePro/api-golang-server/internal/core/domain"
 )
 
-func (s *Service) GetUserSessions(ctx context.Context) ([]domain.Session, error) {
+func (s *Service) GetUserSessions(ctx context.Context) ([]Session, error) {
 	userID, err := core_context.UserID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get userID from context: %w", err)
@@ -24,25 +23,46 @@ func (s *Service) GetUserSessions(ctx context.Context) ([]domain.Session, error)
 		return nil, fmt.Errorf("get user sessions: %w", err)
 	}
 
-	var idx int = -1
-	for i, s := range sessions {
-		if s.ID == sessionID {
-			idx = i
+	sessionIDs := make([]string, 0, len(sessions))
+
+	for _, session := range sessions {
+		sessionIDs = append(sessionIDs, session.ID)
+	}
+
+	onlineSessions, err := s.presenceService.GetOnlineSessions(ctx, userID, sessionIDs)
+	if err != nil {
+		return nil, fmt.Errorf("get online sessions: %w", err)
+	}
+
+	result := make([]Session, 0, len(sessions))
+
+	for _, session := range sessions {
+		result = append(
+			result,
+			Session{
+				Session: session,
+				Online:  onlineSessions[session.ID],
+			},
+		)
+	}
+
+	for i := range result {
+		if result[i].ID != sessionID {
+			continue
+		}
+
+		if i == 0 {
 			break
 		}
+
+		current := result[i]
+
+		copy(result[1:i+1], result[0:i])
+
+		result[0] = current
+
+		break
 	}
 
-	if idx > 0 {
-		// Current session get
-		current := sessions[idx]
-
-		// 						 " "   :  "idx"                   "idx+1"   :   " "
-		// Slice from start to current, plus slice from current+1 to  end
-		sessions = append(sessions[:idx], sessions[idx+1:]...)
-
-		// Placing current session at the start
-		sessions = append([]domain.Session{current}, sessions...)
-	}
-
-	return sessions, nil
+	return result, nil
 }
