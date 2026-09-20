@@ -18,9 +18,10 @@ const (
 	RealtimeEventPresenceOnline  = RealtimeEventType("presence.online")
 	RealtimeEventPresenceOffline = RealtimeEventType("presence.offline")
 
-	RealtimeEventSessionRevoked = RealtimeEventType("session.revoked")
-	RealtimeEventSessionCreated = RealtimeEventType("session.created")
-	RealtimeEventSessionUpdated = RealtimeEventType("session.updated")
+	RealtimeEventSessionRevoked  = RealtimeEventType("session.revoked")
+	RealtimeEventSessionsRevoked = RealtimeEventType("session.revoked.all")
+	RealtimeEventSessionCreated  = RealtimeEventType("session.created")
+	RealtimeEventSessionUpdated  = RealtimeEventType("session.updated")
 
 	RealtimeEventNil = RealtimeEventType("")
 )
@@ -70,5 +71,23 @@ func NewRealtimeEventPresenceData(userID uuid.UUID, sessionID string) RealtimeEv
 	return RealtimeEventPresenceData{
 		UserID:    userID,
 		SessionID: sessionID,
+	}
+}
+
+type SessionRevokeDataReason string
+
+const (
+	SessionRevokeDataUserRevoked = SessionRevokeDataReason("user_revoked")
+)
+
+type RealtimeEventSessionRevokeData struct {
+	SessionID string                  `json:"sid"`
+	Reason    SessionRevokeDataReason `json:"reason"`
+}
+
+func NewRealtimeEventSessionRevokeData(sessionID string, reason SessionRevokeDataReason) RealtimeEventSessionRevokeData {
+	return RealtimeEventSessionRevokeData{
+		SessionID: sessionID,
+		Reason:    reason,
 	}
 }
