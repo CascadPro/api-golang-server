@@ -9,7 +9,12 @@ import (
 )
 
 func (a *App) initWebsocket(ctx context.Context) error {
-	hub := core_ws_hub.NewHub(a.infrastructure.Publisher, a.features.Presence, a.logger)
+	hub := core_ws_hub.NewHub(
+		ctx,
+		a.infrastructure.Publisher,
+		a.features.Presence,
+		a.logger,
+	)
 
 	if err := a.infrastructure.Publisher.Subscribe(ctx, hub.HandleEvent); err != nil {
 		return fmt.Errorf("initialize websocket subscriber: %w", err)
