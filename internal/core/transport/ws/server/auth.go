@@ -23,20 +23,31 @@ type authResponse struct {
 }
 
 func (s *Server) AuthorizeClient(conn *core_ws_conn.Conn) (*core_jwt_security.AccessClaims, error) {
-	conn.SetReadDeadline(time.Now().Add(authTimeout))
-
-	var message authRequest
-	if err := conn.ReadJSON(&message); err != nil {
-		return nil, fmt.Errorf("read client message: %w", core_errors.ErrInvalidArgument)
+	if err := conn.SetReadDeadline(time.Now().Add(authTimeout)); err != nil {
+		return nil, err
 	}
 
-	if message.Type != domain.RealtimeEventAuthRequest || message.Token == "" {
-		return nil, core_errors.ErrInvalidArgument
+	var message authRequest
+
+	if err := conn.ReadJSON(&message); err != nil {
+		return nil, fmt.Errorf("read authentication message: %w", core_errors.ErrInvalidArgument)
+	}
+
+	if message.Type != domain.RealtimeEventAuthRequest {
+		return nil, fmt.Errorf("invalid authentication event: %w", core_errors.ErrInvalidArgument)
+	}
+
+	if message.Token == "" {
+		return nil, fmt.Errorf("authentication token is required: %w", core_errors.ErrUnauthorized)
 	}
 
 	claims, err := s.authenticator.Authenticate(conn.Context(), message.Token)
 	if err != nil {
-		return nil, fmt.Errorf("authenticate: %v: %w", err, core_errors.ErrUnauthorized)
+		return nil, fmt.Errorf("authenticate websocket client: %w", err)
+	}
+
+	if err := conn.SetReadDeadline(time.Time{}); err != nil {
+		return nil, err
 	}
 
 	response := authResponse{
@@ -44,8 +55,9 @@ func (s *Server) AuthorizeClient(conn *core_ws_conn.Conn) (*core_jwt_security.Ac
 		Message: "authenticated",
 	}
 
-	conn.SetReadDeadline(time.Time{})
-	conn.WriteJSON(response)
+	if err := conn.WriteJSON(response); err != nil {
+		return nil, fmt.Errorf("write authentication response: %w", err)
+	}
 
 	return claims, nil
 }

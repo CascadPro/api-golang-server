@@ -101,3 +101,22 @@ func (h *Handler) logError(descriptor ErrorDescriptor, err error, msg string) {
 		)
 	}
 }
+
+func (h *Handler) AuthErrorResponse(err error) {
+	descriptor := mapError(err)
+
+	message := core_i18n.Translate(h.locale, string(descriptor.Code), "Authentication failed")
+
+	body := NewAuthErrorResponse(descriptor.Code, message)
+
+	if err := h.conn.WriteJSON(body); err != nil {
+		h.logger.Error("failed to write websocket auth error", zap.Error(err))
+		return
+	}
+
+	_ = h.conn.WriteControl(
+		websocket.CloseMessage,
+		websocket.FormatCloseMessage(descriptor.StatusCode, ""),
+		time.Now().Add(time.Second),
+	)
+}

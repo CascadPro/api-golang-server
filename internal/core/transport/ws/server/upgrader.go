@@ -13,8 +13,10 @@ import (
 
 func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
 	logger := core_logger.FromContext(ctx)
 	locale := core_context.Locale(ctx)
+
 	responseHandler := core_http_response.NewResponseHandler(logger, locale, rw)
 
 	conn, err := s.upgrader.Upgrade(rw, r, nil)
@@ -25,11 +27,16 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	wsConn := core_ws_conn.NewConn(ctx, conn)
 
+	wsConn.SetReadLimit(core_ws_client.MaxMessageSize)
+
 	handler := core_ws_response.NewHandler(wsConn, logger, locale)
 
 	claims, err := s.AuthorizeClient(wsConn)
 	if err != nil {
-		handler.ErrorResponse(err, "failed to authorize client")
+		handler.AuthErrorResponse(err)
+
+		_ = wsConn.Close()
+
 		return
 	}
 
@@ -40,7 +47,13 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		s.presence,
 	)
 
-	s.hub.Register(client)
+	if err := s.hub.Register(client); err != nil {
+		handler.ErrorResponse(err, "failed to register websocket client")
+
+		_ = wsConn.Close()
+
+		return
+	}
 
 	client.Serve(s.hub.Unregister)
 }
