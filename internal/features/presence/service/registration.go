@@ -8,22 +8,27 @@ import (
 	"github.com/google/uuid"
 )
 
+type RegisterResult struct {
+	WasSessionOnline bool
+	WasUserOnline    bool
+}
+
 type UnregisterResult struct {
 	SessionOffline bool
 	UserOffline    bool
 }
 
-func (s *Service) Register(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (bool, error) {
-	ok, err := s.presenceRedisRepo.Register(ctx, userID, sessionID, connectionID)
+func (s *Service) Register(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (RegisterResult, error) {
+	result, err := s.presenceRedisRepo.Register(ctx, userID, sessionID, connectionID)
 	if err != nil {
-		return false, fmt.Errorf("register presence in repository: %w", err)
+		return RegisterResult{}, fmt.Errorf("register presence in repository: %w", err)
 	}
 
 	if err := s.sessionsRedisRepo.PatchLastActive(ctx, userID, sessionID); err != nil {
-		return false, fmt.Errorf("patch last active in repository: %w", err)
+		return RegisterResult{}, fmt.Errorf("patch last active in repository: %w", err)
 	}
 
-	return ok, nil
+	return parseRegisterResult(result), nil
 }
 
 func (s *Service) Unregister(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (UnregisterResult, error) {
@@ -39,9 +44,16 @@ func (s *Service) Unregister(ctx context.Context, userID uuid.UUID, sessionID, c
 	return parseUnregisterResult(result), nil
 }
 
+func parseRegisterResult(result presence_redis_repository.RegisterResult) RegisterResult {
+	return RegisterResult{
+		WasSessionOnline: result.WasSessionOnline != 0,
+		WasUserOnline:    result.WasUserOnline != 0,
+	}
+}
+
 func parseUnregisterResult(result presence_redis_repository.UnregisterResult) UnregisterResult {
 	return UnregisterResult{
-		SessionOffline: result.SessionOffline,
-		UserOffline:    result.UserOffline,
+		SessionOffline: result.RemainingSession == 0,
+		UserOffline:    result.RemainingUser == 0,
 	}
 }

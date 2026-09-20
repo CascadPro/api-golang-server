@@ -27,6 +27,7 @@ func (r *Repository) Heartbeat(ctx context.Context, userID uuid.UUID, sessionID,
 	}
 
 	value, ok := result.(int64)
+
 	if !ok || value != 1 {
 		return fmt.Errorf("presence lease expired")
 	}

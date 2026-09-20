@@ -14,7 +14,7 @@ type Service struct {
 }
 
 type ServiceMethods interface {
-	Register(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (bool, error)
+	Register(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (RegisterResult, error)
 	Unregister(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (UnregisterResult, error)
 
 	GetOnlineSessions(ctx context.Context, userID uuid.UUID, sessionIDs []string) (map[string]bool, error)

@@ -9,12 +9,12 @@ import (
 )
 
 func (p *Publisher) Subscribe(ctx context.Context, handler func(domain.RealtimeEvent)) error {
-	ctx, cancel := context.WithTimeout(ctx, p.pool.OpTimeout())
-	defer cancel()
-
 	pubsub := p.pool.Subscribe(ctx, ChannelKey)
 
-	if _, err := pubsub.Receive(ctx); err != nil {
+	receiveCtx, cancel := context.WithTimeout(ctx, p.pool.OpTimeout())
+	defer cancel()
+
+	if _, err := pubsub.Receive(receiveCtx); err != nil {
 		_ = pubsub.Close()
 
 		return fmt.Errorf("subscribe realtime channel: %w", err)
@@ -34,11 +34,18 @@ func (p *Publisher) Subscribe(ctx context.Context, handler func(domain.RealtimeE
 				}
 
 				var model EventModel
+
 				if err := json.Unmarshal([]byte(message.Payload), &model); err != nil {
 					continue
 				}
 
-				handler(modelToDomain(model))
+				event := modelToDomain(model)
+
+				if err := event.Validate(); err != nil {
+					continue
+				}
+
+				handler(event)
 			}
 		}
 	}()

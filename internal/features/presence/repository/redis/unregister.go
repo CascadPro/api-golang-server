@@ -5,25 +5,30 @@ import (
 	"fmt"
 	"time"
 
+	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 	"github.com/google/uuid"
 )
 
 type UnregisterResult struct {
-	SessionOffline bool
-	UserOffline    bool
+	RemainingSession int
+	RemainingUser    int
 }
 
 func (r *Repository) Unregister(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (UnregisterResult, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
+	member := presenceMember(sessionID, connectionID)
+
+	sessionPrefix := fmt.Sprintf("%s:%s:", core_redis_pool.PresenceFolder, sessionID)
+
 	result, err := r.pool.Eval(
 		ctx,
 		unregisterScript,
 		[]string{presenceKey(userID)},
-		sessionID,
-		connectionID,
 		time.Now().UnixMilli(),
+		member,
+		sessionPrefix,
 	)
 	if err != nil {
 		return UnregisterResult{}, fmt.Errorf("unregister presence: %w", err)
@@ -49,7 +54,7 @@ func (r *Repository) Unregister(ctx context.Context, userID uuid.UUID, sessionID
 	}
 
 	return UnregisterResult{
-		SessionOffline: remainingSession == 0,
-		UserOffline:    remainingUser == 0,
+		RemainingSession: int(remainingSession),
+		RemainingUser:    int(remainingUser),
 	}, nil
 }

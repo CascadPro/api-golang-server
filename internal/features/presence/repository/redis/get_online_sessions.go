@@ -3,7 +3,6 @@ package presence_redis_repository
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,7 +22,12 @@ func (r *Repository) GetOnlineSessions(ctx context.Context, userID uuid.UUID, se
 		return result, nil
 	}
 
-	raw, err := r.pool.Eval(ctx, getOnlineSessionsScript, []string{presenceKey(userID)}, time.Now().UnixMilli())
+	raw, err := r.pool.Eval(
+		ctx,
+		getOnlineSessionsScript,
+		[]string{presenceKey(userID)},
+		time.Now().UnixMilli(),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("get online sessions: %w", err)
 	}
@@ -39,12 +43,10 @@ func (r *Repository) GetOnlineSessions(ctx context.Context, userID uuid.UUID, se
 			continue
 		}
 
-		_, after, ok := strings.Cut(member, ":")
+		sessionID, _, ok := parsePresenceMember(member)
 		if !ok {
 			continue
 		}
-
-		sessionID := strings.SplitN(after, ":", 3)[1]
 
 		if _, exists := result[sessionID]; exists {
 			result[sessionID] = true

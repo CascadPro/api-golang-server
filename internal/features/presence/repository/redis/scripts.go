@@ -6,8 +6,8 @@ local key = KEYS[1]
 local now = ARGV[1]
 local expires = ARGV[2]
 local member = ARGV[3]
+local session_prefix = ARGV[4]
 
--- Удаляем протухшие websocket connections.
 redis.call(
 	"ZREMRANGEBYSCORE",
 	key,
@@ -15,9 +15,28 @@ redis.call(
 	now
 )
 
--- Был ли пользователь online до регистрации этого connection?
-local was_online =
+local was_user_online =
 	redis.call("ZCARD", key) > 0
+
+local was_session_online = 0
+
+local members = redis.call(
+	"ZRANGE",
+	key,
+	0,
+	-1
+)
+
+for _, current_member in ipairs(members) do
+	if string.sub(
+		current_member,
+		1,
+		string.len(session_prefix)
+	) == session_prefix then
+		was_session_online = 1
+		break
+	end
+end
 
 redis.call(
 	"ZADD",
@@ -26,11 +45,10 @@ redis.call(
 	member
 )
 
-if was_online then
-	return 0
-end
-
-return 1
+return {
+	was_session_online,
+	was_user_online and 1 or 0
+}
 `
 
 const heartbeatScript = `
@@ -65,10 +83,8 @@ const unregisterScript = `
 local key = KEYS[1]
 
 local now = ARGV[1]
-local session_id = ARGV[2]
-local connection_id = ARGV[3]
-
-local member = session_id .. ":" .. connection_id
+local member = ARGV[2]
+local session_prefix = ARGV[3]
 
 redis.call(
 	"ZREM",
@@ -92,18 +108,19 @@ local members = redis.call(
 	-1
 )
 
-local prefix = session_id .. ":"
-
-for _, member in ipairs(members) do
-	if string.sub(member, 1, string.len(prefix)) == prefix then
-		remaining_session = remaining_session + 1
+for _, current_member in ipairs(members) do
+	if string.sub(
+		current_member,
+		1,
+		string.len(session_prefix)
+	) == session_prefix then
+		remaining_session =
+			remaining_session + 1
 	end
 end
 
-local remaining_user = redis.call(
-	"ZCARD",
-	key
-)
+local remaining_user =
+	redis.call("ZCARD", key)
 
 return {
 	remaining_session,
