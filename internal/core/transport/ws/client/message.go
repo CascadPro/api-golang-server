@@ -29,15 +29,3 @@ func (m *ClientMessage) Validate() error {
 
 	return nil
 }
-
-type AuthClientMessageData struct {
-	AccessToken string `json:"access_token"`
-}
-
-func (d *AuthClientMessageData) Validate() error {
-	if d.AccessToken == "" {
-		return fmt.Errorf("`access_token` is required: %w", core_errors.ErrUnauthorized)
-	}
-
-	return nil
-}

@@ -4,12 +4,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_ws_conn "github.com/CascadePro/api-golang-server/internal/core/transport/ws/conn"
 	core_ws_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/ws/middleware"
 	presence_redis_repository "github.com/CascadePro/api-golang-server/internal/features/presence/repository/redis"
 	presence_service "github.com/CascadePro/api-golang-server/internal/features/presence/service"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
 )
 
 const (
@@ -34,7 +37,12 @@ type Client struct {
 	closeOnce sync.Once
 }
 
-func NewClient(conn *core_ws_conn.Conn, userID uuid.UUID, sessionID string, presence presence_service.ServiceMethods) *Client {
+func NewClient(
+	conn *core_ws_conn.Conn,
+	userID uuid.UUID,
+	sessionID string,
+	presence presence_service.ServiceMethods,
+) *Client {
 	return &Client{
 		ID:        uuid.NewString(),
 		UserID:    userID,
@@ -50,7 +58,6 @@ func NewClient(conn *core_ws_conn.Conn, userID uuid.UUID, sessionID string, pres
 
 func (c *Client) Serve(unregister func(*Client)) {
 	go c.readPump(unregister)
-
 	go c.writePump(unregister)
 }
 
@@ -65,7 +72,10 @@ func (c *Client) readPump(unregister func(*Client)) {
 	defer unregister(c)
 
 	c.conn.SetReadLimit(maxMessageSize)
-	_ = c.conn.SetReadDeadline(time.Now().Add(pongWait))
+
+	if err := c.conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
+		return
+	}
 
 	c.conn.SetPongHandler(func(string) error {
 		return c.conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -107,11 +117,9 @@ func (c *Client) writePump(unregister func(*Client)) {
 			}
 
 			if message.closeAfter {
-				_ = c.conn.WriteControl(
-					websocket.CloseMessage,
-					websocket.FormatCloseMessage(int(message.closeCode), string(message.closeReason)),
-					time.Now().Add(writeWait),
-				)
+				closeBody := websocket.FormatCloseMessage(int(message.closeCode), string(message.closeReason))
+
+				_ = c.conn.WriteControl(websocket.CloseMessage, closeBody, time.Now().Add(writeWait))
 
 				unregister(c)
 				return
@@ -129,10 +137,26 @@ func (c *Client) writePump(unregister func(*Client)) {
 			}
 
 		case <-presenceTicker.C:
-			if err := c.presence.Heartbeat(c.conn.Context(), c.UserID, c.SessionID, c.ID); err != nil {
+			if err := c.presence.Heartbeat(
+				c.conn.Context(),
+				c.UserID,
+				c.SessionID,
+				c.ID,
+			); err != nil {
 				unregister(c)
 				return
 			}
 		}
 	}
+}
+
+func (c *Client) logError(id string, t domain.RealtimeEventType, err error) {
+	log := core_logger.FromContext(c.conn.Context())
+
+	log.Error(
+		"marshal websocket event",
+		zap.String("event_id", id),
+		zap.String("event_type", string(t)),
+		zap.Error(err),
+	)
 }

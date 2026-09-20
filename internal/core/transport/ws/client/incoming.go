@@ -11,21 +11,33 @@ import (
 
 func incomingHandler(conn *core_ws_conn.Conn) error {
 	ctx := conn.Context()
+
 	log := core_logger.FromContext(ctx)
 	locale := core_context.Locale(ctx)
+
 	responseHandler := core_ws_response.NewHandler(conn, log, locale)
 
 	_, data, err := conn.ReadMessage()
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to read message")
+		responseHandler.ErrorResponse(err, "failed to read websocket message")
 		return err
 	}
 
 	var message ClientMessage
+
 	if err := json.Unmarshal(data, &message); err != nil {
-		responseHandler.ErrorResponse(err, "failed to unmarshal client message")
+		responseHandler.ErrorResponse(err, "failed to unmarshal websocket message")
 		return err
 	}
 
+	if err := message.Validate(); err != nil {
+		responseHandler.ErrorResponse(err, "invalid websocket message")
+		return err
+	}
+
+	// Сейчас после authentication сервер не принимает
+	// клиентские события.
+	//
+	// Здесь позже появится dispatcher.
 	return nil
 }

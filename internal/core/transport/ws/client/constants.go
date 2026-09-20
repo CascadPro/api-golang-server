@@ -11,3 +11,7 @@ type CloseCode int
 const (
 	CloseCodeSessionRevoked = CloseCode(4001)
 )
+
+const (
+	MaxMessageSize = 64 * 1024
+)
