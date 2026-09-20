@@ -9,13 +9,16 @@ import (
 type Conn struct {
 	*websocket.Conn
 
-	ctx context.Context
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
-func NewConn(ctx context.Context, conn *websocket.Conn) *Conn {
+func NewConn(ctx context.Context, cancel context.CancelFunc, conn *websocket.Conn) *Conn {
 	return &Conn{
 		Conn: conn,
-		ctx:  ctx,
+
+		ctx:    ctx,
+		cancel: cancel,
 	}
 }
 
@@ -26,4 +29,8 @@ func (c *Conn) Context() context.Context {
 func (c *Conn) WithContext(ctx context.Context) *Conn {
 	c.ctx = ctx
 	return c
+}
+
+func (c *Conn) CancelContext() {
+	c.cancel()
 }

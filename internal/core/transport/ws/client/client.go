@@ -64,7 +64,10 @@ func (c *Client) Serve(unregister func(*Client)) {
 func (c *Client) Close() {
 	c.closeOnce.Do(func() {
 		close(c.done)
+
 		_ = c.conn.Close()
+
+		c.conn.CancelContext()
 	})
 }
 
@@ -108,11 +111,17 @@ func (c *Client) writePump(unregister func(*Client)) {
 		case message := <-c.send:
 			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
 				unregister(c)
+
+				c.conn.CancelContext()
+
 				return
 			}
 
 			if err := c.conn.WriteMessage(websocket.TextMessage, message.data); err != nil {
 				unregister(c)
+
+				c.conn.CancelContext()
+
 				return
 			}
 
@@ -122,17 +131,25 @@ func (c *Client) writePump(unregister func(*Client)) {
 				_ = c.conn.WriteControl(websocket.CloseMessage, closeBody, time.Now().Add(writeWait))
 
 				unregister(c)
+
+				c.conn.CancelContext()
 				return
 			}
 
 		case <-ticker.C:
 			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
 				unregister(c)
+
+				c.conn.CancelContext()
+
 				return
 			}
 
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				unregister(c)
+
+				c.conn.CancelContext()
+
 				return
 			}
 
@@ -144,6 +161,9 @@ func (c *Client) writePump(unregister func(*Client)) {
 				c.ID,
 			); err != nil {
 				unregister(c)
+
+				c.conn.CancelContext()
+
 				return
 			}
 		}

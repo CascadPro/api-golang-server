@@ -1,6 +1,7 @@
 package core_ws_server
 
 import (
+	"context"
 	"net/http"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
@@ -25,7 +26,9 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wsConn := core_ws_conn.NewConn(ctx, conn)
+	wsCtx, cancel := context.WithCancel(ctx)
+
+	wsConn := core_ws_conn.NewConn(wsCtx, cancel, conn)
 
 	wsConn.SetReadLimit(core_ws_client.MaxMessageSize)
 

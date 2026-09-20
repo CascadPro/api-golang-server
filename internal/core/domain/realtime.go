@@ -38,7 +38,7 @@ type RealtimeEvent struct {
 
 func NewRealtimeEvent(eventType RealtimeEventType, userID *uuid.UUID, sessionID *string, data any) RealtimeEvent {
 	return RealtimeEvent{
-		ID:        UninitializedID,
+		ID:        uuid.NewString(),
 		Type:      eventType,
 		UserID:    userID,
 		SessionID: sessionID,
@@ -47,6 +47,10 @@ func NewRealtimeEvent(eventType RealtimeEventType, userID *uuid.UUID, sessionID 
 }
 
 func (e *RealtimeEvent) Validate() error {
+	if e.ID == "" {
+		return fmt.Errorf("`ID` can't be empty: %w", core_errors.ErrInvalidArgument)
+	}
+
 	if e.Type == RealtimeEventNil {
 		return fmt.Errorf("`Type` can't be NULL: %w", core_errors.ErrInvalidArgument)
 	}
