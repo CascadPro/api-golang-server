@@ -11,9 +11,11 @@ import (
 )
 
 type Server struct {
-	hub           *core_ws_hub.Hub
-	presence      presence_service.ServiceMethods
+	hub      *core_ws_hub.Hub
+	presence presence_service.ServiceMethods
+
 	authenticator core_ws_middleware.AuthenticatorMethods
+	authLimiter   *core_ws_middleware.WSRateLimiter
 
 	upgrader websocket.Upgrader
 }
@@ -22,6 +24,7 @@ func NewServer(
 	hub *core_ws_hub.Hub,
 	presence presence_service.ServiceMethods,
 	authenticator core_ws_middleware.AuthenticatorMethods,
+	authLimiter *core_ws_middleware.WSRateLimiter,
 	allowedOrigins string,
 ) *Server {
 	origins := make(map[string]struct{})
@@ -35,17 +38,15 @@ func NewServer(
 	}
 
 	return &Server{
-		hub:           hub,
-		presence:      presence,
+		hub:      hub,
+		presence: presence,
+
 		authenticator: authenticator,
+		authLimiter:   authLimiter,
 
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  4096,
 			WriteBufferSize: 4096,
-
-			Subprotocols: []string{
-				"bearer",
-			},
 
 			CheckOrigin: func(r *http.Request) bool {
 				origin := r.Header.Get("Origin")
