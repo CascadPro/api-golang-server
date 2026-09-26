@@ -6,9 +6,7 @@ import (
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
-	"go.uber.org/zap"
 )
 
 func (s *Service) DeleteSession(ctx context.Context, sessionID string) error {
@@ -25,18 +23,16 @@ func (s *Service) DeleteSession(ctx context.Context, sessionID string) error {
 		return fmt.Errorf("delete session from repository: %w", err)
 	}
 
-	log := core_logger.FromContext(ctx)
-	publishCtx := context.WithoutCancel(ctx)
+	payload, err := marshalOutboxEventPayload(domain.RealtimeEventSessionRevoked, &userID, sessionID)
+	if err != nil {
+		return err
+	}
 
-	go func(log *core_logger.Logger) {
-		data := domain.NewRealtimeEventSessionRevokeData(sessionID, domain.SessionRevokeDataUserRevoked)
+	event := domain.NewOutboxEvent(domain.EventTypeRealtimePublish, &userID, payload)
 
-		event := domain.NewRealtimeEvent(domain.RealtimeEventSessionRevoked, &userID, nil, data)
-
-		if err := s.publisher.Publish(publishCtx, event); err != nil {
-			log.Error("publish session revoked event", zap.Error(err))
-		}
-	}(log)
+	if _, err := s.outboxPostgresRepo.CreateEvent(ctx, event); err != nil {
+		return fmt.Errorf("create outbox event: %w", err)
+	}
 
 	return nil
 }

@@ -77,7 +77,7 @@ func (s *Service) UpdateAvatar(ctx context.Context, userID uuid.UUID, uploadedFi
 		payload,
 	)
 
-	if _, err := s.outboxPostgresRepo.CreateEvent(ctx, tx, event); err != nil {
+	if _, err := s.outboxPostgresRepo.CreateEventTx(ctx, tx, event); err != nil {
 		_ = tx.Rollback(ctx)
 
 		_ = s.mediaService.DeleteFile(ctx, domain.FileTagAvatars, file.ID)
@@ -119,7 +119,7 @@ func (s *Service) UpdateAvatar(ctx context.Context, userID uuid.UUID, uploadedFi
 
 func updateAvatarEventPayload(fileID string) ([]byte, error) {
 	payload, err := json.Marshal(
-		domain.NewEventTypeMediaAvatarProcessPayload(fileID),
+		domain.NewEventMediaAvatarProcessPayload(fileID),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("marshal outbox payload: %w", err)

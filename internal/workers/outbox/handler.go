@@ -6,19 +6,25 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	outbox_media_handler "github.com/CascadePro/api-golang-server/internal/workers/outbox/handler/media"
+	outbox_realtime_handler "github.com/CascadePro/api-golang-server/internal/workers/outbox/handler/realtime"
 )
 
 type Handler struct {
-	mediaHandler outbox_media_handler.HandlerMethods
+	mediaHandler    outbox_media_handler.HandlerMethods
+	realtimeHandler outbox_realtime_handler.HandlerMethods
 }
 
 type HandlerMethods interface {
 	Handle(ctx context.Context, event domain.OutboxEvent) error
 }
 
-func NewHandler(mediaHandler outbox_media_handler.HandlerMethods) *Handler {
+func NewHandler(
+	mediaHandler outbox_media_handler.HandlerMethods,
+	realtimeHandler outbox_realtime_handler.HandlerMethods,
+) *Handler {
 	return &Handler{
-		mediaHandler: mediaHandler,
+		mediaHandler:    mediaHandler,
+		realtimeHandler: realtimeHandler,
 	}
 }
 
@@ -29,6 +35,9 @@ func (h *Handler) Handle(ctx context.Context, event domain.OutboxEvent) error {
 
 	case domain.EventTypeMediaAvatarProcess:
 		return h.mediaHandler.HandleProcessAvatar(ctx, event)
+
+	case domain.EventTypeRealtimePublish:
+		return h.realtimeHandler.HandlePublishEvent(ctx, event)
 
 	default:
 		return fmt.Errorf("unsupported event type: %s", event.Type)

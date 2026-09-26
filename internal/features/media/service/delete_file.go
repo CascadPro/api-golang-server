@@ -30,7 +30,7 @@ func (s *Service) deleteFile(ctx context.Context, tx core_postgres_pool.Tx, file
 		event.AggregateID = &requestID
 	}
 
-	if _, err := s.outboxPostgresRepo.CreateEvent(ctx, tx, event); err != nil {
+	if _, err := s.outboxPostgresRepo.CreateEventTx(ctx, tx, event); err != nil {
 		_ = tx.Rollback(ctx)
 
 		return fmt.Errorf("create outbox event: %w", err)
@@ -82,7 +82,7 @@ func (s *Service) DeleteFileTx(ctx context.Context, tx core_postgres_pool.Tx, fi
 
 func deleteFileEventPayload(tag domain.FileTag, fileID string) ([]byte, error) {
 	payload, err := json.Marshal(
-		domain.NewEventTypeMediaDeleteFilePayload(tag, fileID),
+		domain.NewEventMediaDeleteFilePayload(tag, fileID),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("marshal outbox payload: %w", err)
