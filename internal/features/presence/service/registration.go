@@ -2,8 +2,10 @@ package presence_service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	presence_redis_repository "github.com/CascadePro/api-golang-server/internal/features/presence/repository/redis"
 	"github.com/google/uuid"
 )
@@ -25,7 +27,9 @@ func (s *Service) Register(ctx context.Context, userID uuid.UUID, sessionID, con
 	}
 
 	if err := s.sessionsRedisRepo.PatchLastActive(ctx, userID, sessionID); err != nil {
-		return RegisterResult{}, fmt.Errorf("patch last active in repository: %w", err)
+		if !errors.Is(err, core_errors.ErrNotFound) {
+			return RegisterResult{}, fmt.Errorf("patch last active in repository: %w", err)
+		}
 	}
 
 	return parseRegisterResult(result), nil
@@ -38,7 +42,9 @@ func (s *Service) Unregister(ctx context.Context, userID uuid.UUID, sessionID, c
 	}
 
 	if err := s.sessionsRedisRepo.PatchLastActive(ctx, userID, sessionID); err != nil {
-		return UnregisterResult{}, fmt.Errorf("patch last active in repository: %w", err)
+		if !errors.Is(err, core_errors.ErrNotFound) {
+			return UnregisterResult{}, fmt.Errorf("patch last active in repository: %w", err)
+		}
 	}
 
 	return parseUnregisterResult(result), nil

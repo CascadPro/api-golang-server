@@ -24,10 +24,15 @@ func (r *Repository) PatchLastActive(ctx context.Context, userID uuid.UUID, sess
 	}
 
 	key := fmt.Sprintf("%s:%s:%s", core_redis_pool.SessionFolder, userID, sessionID)
+
+	if _, err := r.pool.HGet(ctx, key, string(HashFieldLastActive)); err != nil {
+		return fmt.Errorf("hash get last active: %w", err)
+	}
+
 	now := time.Now()
 
 	if err := r.pool.HSet(ctx, key, string(HashFieldLastActive), now); err != nil {
-		return fmt.Errorf("patch last active: %w", err)
+		return fmt.Errorf("hash patch last active: %w", err)
 	}
 
 	return nil
