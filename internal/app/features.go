@@ -9,6 +9,7 @@ import (
 	core_postgres_token "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/token"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
+	core_ws_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/ws/middleware"
 	auth_service "github.com/CascadePro/api-golang-server/internal/features/auth/service"
 	auth_transport_http "github.com/CascadePro/api-golang-server/internal/features/auth/transport/http"
 	client_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/client/repository/postgres"
@@ -17,6 +18,8 @@ import (
 	media_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/media/repository/postgres"
 	media_service "github.com/CascadePro/api-golang-server/internal/features/media/service"
 	media_transport_http "github.com/CascadePro/api-golang-server/internal/features/media/transport/http"
+	presence_redis_repository "github.com/CascadePro/api-golang-server/internal/features/presence/repository/redis"
+	presence_service "github.com/CascadePro/api-golang-server/internal/features/presence/service"
 	requests_mongo_repository "github.com/CascadePro/api-golang-server/internal/features/requests/repository/mongo"
 	requests_service "github.com/CascadePro/api-golang-server/internal/features/requests/service"
 	requests_transport_http "github.com/CascadePro/api-golang-server/internal/features/requests/transport/http"
@@ -42,7 +45,16 @@ type Features struct {
 	Requests *core_http_server.Router
 	Sessions *core_http_server.Router
 	Auth     *core_http_server.Router
+
+	Presence *presence_service.Service
 }
+
+const (
+	createRateLimit  = int64(15)
+	createRateWindow = time.Minute * 15
+	avatarRateLimit  = int64(10)
+	avatarRateWindow = time.Minute * 5
+)
 
 func (a *App) initFeatures() error {
 	tokenPostgresRepository := core_postgres_token.NewRepository(a.infrastructure.Postgres)
@@ -57,10 +69,18 @@ func (a *App) initFeatures() error {
 		)
 	}
 
+	// Common Middlewares
+	createRateLimiter := core_http_middleware.NewHTTPRateLimiter(a.infrastructure.Redis, createRateLimit, createRateWindow)
+	avatarRateLimiter := core_http_middleware.NewHTTPRateLimiter(a.infrastructure.Redis, avatarRateLimit, avatarRateWindow)
+
+	// Presence service
+	a.logger.Debug("initializing feature", zap.String("feature", "presence"))
+	presenceRedisRepo := presence_redis_repository.NewRepository(a.infrastructure.Redis)
+
 	// Root routes
 	logFeatureInit("root", "")
 
-	rootRateLimit := core_http_middleware.NewRateLimitConfig(100, time.Minute*5)
+	rootRateLimit := core_http_middleware.NewHTTPRateLimiter(a.infrastructure.Redis, 100, time.Minute*5)
 	rootRouter := core_http_server.NewRouter("", rootRateLimit.Middleware())
 
 	rootHttpHandler := root_transport_http.NewHttpHandler()
@@ -68,7 +88,7 @@ func (a *App) initFeatures() error {
 
 	// Media routes
 	logFeatureInit("media", "/media")
-	mediaRateLimit := core_http_middleware.NewRateLimitConfig(25, time.Minute*10)
+	mediaRateLimit := core_http_middleware.NewHTTPRateLimiter(a.infrastructure.Redis, 25, time.Minute*10)
 	mediaRouter := core_http_server.NewRouter("/media", mediaRateLimit.Middleware())
 
 	mediaPostgresRepo := media_postgres_repository.NewRepository(a.infrastructure.Postgres)
@@ -84,7 +104,7 @@ func (a *App) initFeatures() error {
 
 	usersPostgresRepository := users_postgres_repository.NewRepository(a.infrastructure.Postgres)
 	usersService := users_service.NewService(mediaService, usersPostgresRepository, outboxPostgresRepository)
-	usersHttpHandler := users_transport_http.NewHttpHandler(usersService)
+	usersHttpHandler := users_transport_http.NewHttpHandler(usersService, avatarRateLimiter)
 
 	usersRouter.RegisterRoutes(usersHttpHandler.Routes()...)
 
@@ -105,8 +125,8 @@ func (a *App) initFeatures() error {
 
 	clientPostgresRepository := client_postgres_repository.NewRepository(a.infrastructure.Postgres)
 	clientService := client_service.NewService(clientPostgresRepository)
-	clientHttpHandler := client_transport_http.NewHttpHandler(clientService, a.infrastructure.TokenIssuer)
 
+	clientHttpHandler := client_transport_http.NewHttpHandler(clientService, a.infrastructure.TokenIssuer, createRateLimiter)
 	clientRouter.RegisterRoutes(clientHttpHandler.Routes()...)
 
 	// Requests route
@@ -115,7 +135,7 @@ func (a *App) initFeatures() error {
 
 	requestsMongoRepository := requests_mongo_repository.NewRepository(a.infrastructure.Mongo)
 	requestsService := requests_service.NewService(mediaService, clientService, usersPostgresRepository, requestsMongoRepository)
-	requestsHttpHandler := requests_transport_http.NewHttpHandler(requestsService, a.infrastructure.TokenIssuer)
+	requestsHttpHandler := requests_transport_http.NewHttpHandler(requestsService, a.infrastructure.TokenIssuer, avatarRateLimiter)
 
 	requestsRouter.RegisterRoutes(requestsHttpHandler.Routes()...)
 
@@ -124,7 +144,8 @@ func (a *App) initFeatures() error {
 	sessionsRouter := core_http_server.NewRouter("/sessions", core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
 
 	sessionsRedisRepo := sessions_redis_repository.NewRepository(a.infrastructure.Redis)
-	sessionsService := session_service.NewService(sessionsRedisRepo)
+	presenceService := presence_service.NewService(presenceRedisRepo, sessionsRedisRepo)
+	sessionsService := session_service.NewService(sessionsRedisRepo, presenceService, outboxPostgresRepository)
 	sessionsHttpHandler := sessions_transport_http.NewHttpHandler(sessionsService)
 
 	sessionsRouter.RegisterRoutes(sessionsHttpHandler.Routes()...)
@@ -132,12 +153,17 @@ func (a *App) initFeatures() error {
 	// Auth routes
 	logFeatureInit("authentication", "/api/v1/auth")
 	authRouter := core_http_server.NewRouter("/auth")
+	authRateLimiter := core_http_middleware.NewHTTPRateLimiter(a.infrastructure.Redis, 5, time.Minute)
 
 	authService := auth_service.NewService(usersPostgresRepository, settingsPostgresRepository,
-		tokenPostgresRepository, ipInfoRepository, sessionsRedisRepo, a.infrastructure.TokenIssuer)
-	authHttpHandler := auth_transport_http.NewHttpHandler(authService, a.infrastructure.TokenIssuer)
+		tokenPostgresRepository, ipInfoRepository, sessionsRedisRepo, a.infrastructure.TokenIssuer, outboxPostgresRepository)
+	authHttpHandler := auth_transport_http.NewHttpHandler(authService, a.infrastructure.TokenIssuer, authRateLimiter)
 
 	authRouter.RegisterRoutes(authHttpHandler.Routes()...)
+
+	wsAuthenticator := core_ws_middleware.NewAuthenticator(sessionsRedisRepo, a.infrastructure.TokenIssuer)
+
+	a.infrastructure.WsAuthenticator = wsAuthenticator
 
 	a.features = &Features{
 		Root:     rootRouter,
@@ -148,6 +174,8 @@ func (a *App) initFeatures() error {
 		Requests: requestsRouter,
 		Sessions: sessionsRouter,
 		Auth:     authRouter,
+
+		Presence: presenceService,
 	}
 
 	return nil

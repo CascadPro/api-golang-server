@@ -8,6 +8,7 @@ import (
 	core_i18n "github.com/CascadePro/api-golang-server/internal/core/i18n"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
+	core_ws_server "github.com/CascadePro/api-golang-server/internal/core/transport/ws/server"
 	"go.uber.org/zap"
 )
 
@@ -17,7 +18,12 @@ type App struct {
 
 	infrastructure *Infrastructure
 	features       *Features
-	httpServer     *core_http_server.HttpServer
+
+	httpServer *core_http_server.HttpServer
+	wsServer   *core_ws_server.Server
+
+	workerCancel context.CancelFunc
+	workerDone   chan struct{}
 }
 
 func New(
@@ -58,6 +64,13 @@ func New(
 		return nil, fmt.Errorf("init features: %w", err)
 	}
 
+	logger.Debug("initializing app websocket server")
+	if err := app.initWebsocket(ctx); err != nil {
+		app.infrastructure.Close(ctx)
+
+		return nil, fmt.Errorf("init websocket server: %w", err)
+	}
+
 	logger.Debug("initializing app http server")
 	if err := app.initHttp(); err != nil {
 		app.infrastructure.Close(ctx)
@@ -69,5 +82,42 @@ func New(
 }
 
 func (a *App) Run(ctx context.Context) error {
-	return a.httpServer.Run(ctx)
+	err := a.httpServer.Run(ctx)
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), a.cfg.ShutdownTimeout)
+	defer cancel()
+
+	a.logger.Warn("Shutting down the server...")
+
+	if wsErr := a.wsServer.Shutdown(shutdownCtx); wsErr != nil {
+		a.logger.Error("failed to shutdown websocket server", zap.Error(wsErr))
+
+		if err == nil {
+			err = fmt.Errorf("shutdown websocket server: %w", wsErr)
+		}
+	}
+
+	a.logger.Warn("Shut down websocket server")
+
+	if a.workerCancel != nil {
+		a.workerCancel()
+	}
+
+	if a.workerDone != nil {
+		select {
+		case <-a.workerDone:
+		case <-shutdownCtx.Done():
+			if err == nil {
+				err = fmt.Errorf("outbox worker shutdown: %w", shutdownCtx.Err())
+			}
+		}
+	}
+
+	a.logger.Warn("Stopped app workers")
+
+	a.infrastructure.Close(shutdownCtx)
+
+	a.logger.Warn("Closed app infrastructure")
+
+	return err
 }

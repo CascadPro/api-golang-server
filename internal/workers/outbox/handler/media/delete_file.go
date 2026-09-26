@@ -10,7 +10,7 @@ import (
 )
 
 func (h *Handler) HandleDeleteFile(ctx context.Context, event domain.OutboxEvent) error {
-	var payload domain.EventTypeMediaDeleteFilePayload
+	var payload domain.EventMediaDeleteFilePayload
 
 	if err := json.Unmarshal(event.Payload, &payload); err != nil {
 		return fmt.Errorf("decode media delete payload: %w", err)

@@ -2,10 +2,12 @@ package users_service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	media_errors "github.com/CascadePro/api-golang-server/internal/features/media/errors"
 	users_errors "github.com/CascadePro/api-golang-server/internal/features/users/errors"
 	"github.com/google/uuid"
 )
@@ -28,7 +30,9 @@ func (s *Service) GetCurrentUser(ctx context.Context, id uuid.UUID) (domain.User
 	if user.AvatarFileID != nil {
 		placeholder, err = s.mediaService.GetFilePlaceholder(ctx, *user.AvatarFileID)
 		if err != nil {
-			return domain.User{}, nil, fmt.Errorf("get avatar placeholder: %w", err)
+			if !errors.Is(err, media_errors.ErrFilePlaceholderNotFound) {
+				return domain.User{}, nil, fmt.Errorf("get avatar placeholder: %w", err)
+			}
 		}
 	}
 

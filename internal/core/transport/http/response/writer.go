@@ -1,6 +1,11 @@
 package core_http_response
 
-import "net/http"
+import (
+	"bufio"
+	"fmt"
+	"net"
+	"net/http"
+)
 
 const StatusCodeUninitialized = -1
 
@@ -27,4 +32,22 @@ func (rw *ResponseWriter) GetStatusCode() int {
 	}
 
 	return rw.statusCode
+}
+
+// Hijack implements http.Hijacker.
+//
+// WebSocket upgrades require the underlying ResponseWriter to expose
+// http.Hijacker. Since ResponseWriter wraps the original writer,
+// we explicitly forward the call.
+func (rw *ResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	hijacker, ok := rw.ResponseWriter.(http.Hijacker)
+	if !ok {
+		return nil, nil, fmt.Errorf("response writer does not implement http.Hijacker")
+	}
+
+	return hijacker.Hijack()
+}
+
+func (rw *ResponseWriter) Unwrap() http.ResponseWriter {
+	return rw.ResponseWriter
 }

@@ -98,6 +98,14 @@ func (p *ConnectionPool) TxPipeline() redis.Pipeliner {
 	return p.client.TxPipeline()
 }
 
+func (p *ConnectionPool) Publish(ctx context.Context, channel string, message any) error {
+	return MapErrors(p.client.Publish(ctx, channel, message).Err())
+}
+
+func (p *ConnectionPool) Subscribe(ctx context.Context, channels ...string) *redis.PubSub {
+	return p.client.Subscribe(ctx, channels...)
+}
+
 func (p *ConnectionPool) Close() {
 	_ = p.client.Close()
 }

@@ -14,7 +14,8 @@ type Repository struct {
 }
 
 type RepositoryMethods interface {
-	CreateEvent(ctx context.Context, tx core_postgres_pool.Tx, event domain.OutboxEvent) (domain.OutboxEvent, error)
+	CreateEvent(ctx context.Context, event domain.OutboxEvent) (domain.OutboxEvent, error)
+	CreateEventTx(ctx context.Context, tx core_postgres_pool.Tx, event domain.OutboxEvent) (domain.OutboxEvent, error)
 
 	GetPendingEvents(ctx context.Context, workerID uuid.UUID, limit int, ttl time.Duration) ([]domain.OutboxEvent, error)
 

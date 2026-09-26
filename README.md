@@ -35,7 +35,7 @@ _\*README was made with AI_
 
 | Technology               | Purpose                     |
 | ------------------------ | --------------------------- |
-| **Go 1.25.10**           | Backend runtime             |
+| **Go 1.26.8**            | Backend runtime             |
 | **PostgreSQL 16**        | Primary relational database |
 | **Redis 5**              | Cache and session storage   |
 | **MongoDB 8**            | Document-oriented data      |

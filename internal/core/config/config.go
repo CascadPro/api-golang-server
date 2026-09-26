@@ -19,10 +19,11 @@ const (
 )
 
 type Config struct {
-	TimeZone       *time.Location
-	Connection     Connection `envconfig:"CONNECTION" default:"online"`
-	EnvMode        EnvMode    `envconfig:"ENV_MODE" default:"dev"`
-	AllowedOrigins string     `envconfig:"ALLOWED_ORIGINS" default:""`
+	TimeZone        *time.Location
+	Connection      Connection    `envconfig:"CONNECTION" default:"online"`
+	EnvMode         EnvMode       `envconfig:"ENV_MODE" default:"dev"`
+	AllowedOrigins  string        `envconfig:"ALLOWED_ORIGINS" default:""`
+	ShutdownTimeout time.Duration `envconfig:"SHUTDOWN_TIMEOUT" default:"1min"`
 }
 
 func NewConfig() (*Config, error) {

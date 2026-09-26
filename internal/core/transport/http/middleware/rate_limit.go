@@ -1,7 +1,6 @@
 package core_http_middleware
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -9,56 +8,28 @@ import (
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
+	core_redis_rate_limit "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/rate_limit"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
 )
 
-type RateLimitConfig struct {
-	// Максимальное количество запросов
-	Limit int64
-	// Временной интервал
-	Window time.Duration
+type HTTPRateLimiter struct {
+	repository core_redis_rate_limit.RateLimiterMethods
 }
 
-var luaScript string = `
-	local key = KEYS[1]
-	local limit = tonumber(ARGV[1])
-	local window = tonumber(ARGV[2])
+type HTTPRateLimitMiddleware interface {
+	Middleware() Middleware
+}
 
-	local current = redis.call('GET', key)
+func NewHTTPRateLimiter(pool core_redis_pool.Pool, limit int64, window time.Duration) *HTTPRateLimiter {
+	repository := core_redis_rate_limit.New(pool, limit, window)
 
-	if current == false then
-		redis.call('SET', key, 1)
-		redis.call('EXPIRE', key, window)
-		return {1, limit - 1, window}
-	end
-
-	local count = tonumber(current)
-
-	if count >= limit then
-		local ttl = redis.call('TTL', key)
-		return {0, 0, ttl}
-	end
-
-	local new_count = redis.call('INCR', key)
-	local ttl = redis.call('TTL', key)
-
-	if ttl == -1 then
-		redis.call('EXPIRE', key, window)
-		ttl = window
-	end
-
-	return {1, limit - new_count, ttl}
-`
-
-func NewRateLimitConfig(limit int64, window time.Duration) *RateLimitConfig {
-	return &RateLimitConfig{
-		Limit:  limit,
-		Window: window,
+	return &HTTPRateLimiter{
+		repository: repository,
 	}
 }
 
-func (cfg *RateLimitConfig) Middleware() Middleware {
+func (rl *HTTPRateLimiter) Middleware() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -73,44 +44,22 @@ func (cfg *RateLimitConfig) Middleware() Middleware {
 				return
 			}
 
-			rdb, err := core_redis_pool.New(r.Context(), core_redis_pool.NewConfigMust())
+			result, err := rl.repository.Allow(ctx, r.URL.String(), clientIP)
 			if err != nil {
-				responseHandler.ErrorResponse(err, "failed to init redis connection pool")
-
-				return
-			}
-			defer rdb.Close()
-
-			key := fmt.Sprintf("%s:%s:%s", core_redis_pool.RateLimitFolder, r.URL.String(), clientIP)
-
-			result, err := rdb.Eval(
-				r.Context(),
-				luaScript,
-				[]string{key},
-				cfg.Limit,
-				int64(cfg.Window.Seconds()),
-			)
-			if err != nil {
-				responseHandler.ErrorResponse(err, "failed to execute redis query")
-
+				responseHandler.ErrorResponse(err, "failed to do repository execution")
 				return
 			}
 
-			resultSlice := result.([]any)
-			allowed := resultSlice[0].(int64) == 1
-			remaining := resultSlice[1].(int64)
-			ttl := resultSlice[2].(int64)
+			remaining := strconv.FormatInt(result.Remaining, 10)
+			reset := strconv.FormatInt(time.Now().Add(result.RetryAfter).Unix(), 10)
+			retryAfter := strconv.FormatInt(result.RetryAfter.Milliseconds(), 10)
 
-			resetTime := time.Now().Add(time.Duration(ttl) * time.Second).Unix()
+			rw.Header().Add("X-RateLimit-Remaining", remaining)
+			rw.Header().Add("X-RateLimit-Reset", reset)
+			rw.Header().Add("X-RateLimit-Retry-After", retryAfter)
 
-			rw.Header().Add("X-RateLimit-Limit", strconv.FormatInt(cfg.Limit, 10))
-			rw.Header().Add("X-RateLimit-Remaining", strconv.FormatInt(remaining, 10))
-			rw.Header().Add("X-RateLimit-Reset", strconv.FormatInt(resetTime, 10))
-
-			if !allowed {
-				msg := fmt.Sprintf("try again after %v seconds", ttl)
-				responseHandler.ErrorResponse(core_errors.ErrTooManyRequests, msg)
-
+			if !result.Allowed {
+				responseHandler.ErrorResponse(core_errors.ErrTooManyRequests, "requests limit is overrated")
 				return
 			}
 
