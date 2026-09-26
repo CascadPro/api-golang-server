@@ -3,9 +3,15 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
 
 	core_ws_hub "github.com/CascadePro/api-golang-server/internal/core/transport/ws/hub"
+	core_ws_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/ws/middleware"
 	core_ws_server "github.com/CascadePro/api-golang-server/internal/core/transport/ws/server"
+)
+
+const (
+	authRateLimit = 5
 )
 
 func (a *App) initWebsocket(ctx context.Context) error {
@@ -20,10 +26,17 @@ func (a *App) initWebsocket(ctx context.Context) error {
 		return fmt.Errorf("initialize websocket subscriber: %w", err)
 	}
 
+	authRateLimiter := core_ws_middleware.NewWSRateLimiter(
+		a.infrastructure.Redis,
+		authRateLimit,
+		time.Minute,
+	)
+
 	wsServer := core_ws_server.NewServer(
 		hub,
 		a.features.Presence,
 		a.infrastructure.WsAuthenticator,
+		authRateLimiter,
 		a.cfg.AllowedOrigins,
 	)
 
