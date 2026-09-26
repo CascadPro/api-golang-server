@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	authRateLimit = 5
+	authRateLimit = 25
 )
 
 func (a *App) initWebsocket(ctx context.Context) error {

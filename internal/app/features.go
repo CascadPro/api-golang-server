@@ -145,7 +145,7 @@ func (a *App) initFeatures() error {
 
 	sessionsRedisRepo := sessions_redis_repository.NewRepository(a.infrastructure.Redis)
 	presenceService := presence_service.NewService(presenceRedisRepo, sessionsRedisRepo)
-	sessionsService := session_service.NewService(sessionsRedisRepo, presenceService, a.infrastructure.Publisher)
+	sessionsService := session_service.NewService(sessionsRedisRepo, presenceService, outboxPostgresRepository)
 	sessionsHttpHandler := sessions_transport_http.NewHttpHandler(sessionsService)
 
 	sessionsRouter.RegisterRoutes(sessionsHttpHandler.Routes()...)
