@@ -72,7 +72,7 @@ func (s *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		wsConn,
 		claims.UserID,
 		claims.SessionID,
-		s.presence,
+		s.dispatcher,
 	)
 
 	if err := s.hub.Register(client); err != nil {

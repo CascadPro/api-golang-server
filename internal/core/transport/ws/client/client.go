@@ -8,16 +8,16 @@ import (
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_ws_conn "github.com/CascadePro/api-golang-server/internal/core/transport/ws/conn"
-	presence_service "github.com/CascadePro/api-golang-server/internal/features/presence/service"
+	core_ws_dispatcher "github.com/CascadePro/api-golang-server/internal/core/transport/ws/dispatcher"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 )
 
 const (
+	pingPeriod     = 10 * time.Second
 	writeWait      = 10 * time.Second
 	pongWait       = 60 * time.Second
-	pingPeriod     = 25 * time.Second
 	maxMessageSize = 64 * 1024
 	sendBufferSize = 32
 )
@@ -31,7 +31,7 @@ type Client struct {
 	send chan ChannelMessage
 	done chan struct{}
 
-	presence presence_service.ServiceMethods
+	dispatcher *core_ws_dispatcher.Dispatcher
 
 	closeOnce sync.Once
 
@@ -42,7 +42,7 @@ func NewClient(
 	conn *core_ws_conn.Conn,
 	userID uuid.UUID,
 	sessionID string,
-	presence presence_service.ServiceMethods,
+	dispatcher *core_ws_dispatcher.Dispatcher,
 ) *Client {
 	return &Client{
 		ID:        uuid.NewString(),
@@ -53,7 +53,7 @@ func NewClient(
 		send: make(chan ChannelMessage, sendBufferSize),
 		done: make(chan struct{}),
 
-		presence: presence,
+		dispatcher: dispatcher,
 	}
 }
 
@@ -116,7 +116,7 @@ func (c *Client) Close() {
 	})
 }
 
-func (c *Client) logError(id string, t domain.RealtimeEventType, err error) {
+func (c *Client) logMarshalError(id string, t domain.RealtimeEventType, err error) {
 	log := core_logger.FromContext(c.conn.Context())
 
 	log.Error(
@@ -124,5 +124,17 @@ func (c *Client) logError(id string, t domain.RealtimeEventType, err error) {
 		zap.String("event_id", id),
 		zap.String("event_type", string(t)),
 		zap.Error(err),
+	)
+}
+
+func (c *Client) logError(msg string, err error) {
+	log := core_logger.FromContext(c.conn.Context())
+
+	log.Error(
+		msg,
+		zap.Error(err),
+		zap.String("client_id", c.ID),
+		zap.String("session_id", c.SessionID),
+		zap.String("user_id", c.UserID.String()),
 	)
 }

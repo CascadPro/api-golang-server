@@ -1,15 +1,36 @@
-package core_ws_client
+package core_ws_dispatcher
 
 import (
 	"encoding/json"
+	"fmt"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
+	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
+	core_jwt_security "github.com/CascadePro/api-golang-server/internal/core/security/jwt"
 	core_ws_conn "github.com/CascadePro/api-golang-server/internal/core/transport/ws/conn"
 	core_ws_response "github.com/CascadePro/api-golang-server/internal/core/transport/ws/response"
+	presence_service "github.com/CascadePro/api-golang-server/internal/features/presence/service"
 )
 
-func incomingHandler(conn *core_ws_conn.Conn) error {
+type Dispatcher struct {
+	Presence presence_service.ServiceMethods
+
+	tokenIssuer core_jwt_security.AccessTokenVerifier
+}
+
+func NewDispatcher(
+	presence presence_service.ServiceMethods,
+	tokenIssuer core_jwt_security.AccessTokenVerifier,
+) *Dispatcher {
+	return &Dispatcher{
+		Presence: presence,
+
+		tokenIssuer: tokenIssuer,
+	}
+}
+
+func (d *Dispatcher) Handler(conn *core_ws_conn.Conn) error {
 	ctx := conn.Context()
 
 	log := core_logger.FromContext(ctx)
@@ -23,7 +44,7 @@ func incomingHandler(conn *core_ws_conn.Conn) error {
 		return err
 	}
 
-	var message ClientMessage
+	var message Message
 
 	if err := json.Unmarshal(data, &message); err != nil {
 		responseHandler.ErrorResponse(err, "failed to unmarshal websocket message")
@@ -35,9 +56,10 @@ func incomingHandler(conn *core_ws_conn.Conn) error {
 		return err
 	}
 
-	// Сейчас после authentication сервер не принимает
-	// клиентские события.
-	//
-	// Здесь позже появится dispatcher.
-	return nil
+	switch message.Type {
+	default:
+		return fmt.Errorf("unsupported message type: %w", core_errors.ErrInvalidArgument)
+	}
+
+	// return nil
 }
