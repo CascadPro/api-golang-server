@@ -26,11 +26,6 @@ func (c *Conn) Context() context.Context {
 	return c.ctx
 }
 
-func (c *Conn) WithContext(ctx context.Context) *Conn {
-	c.ctx = ctx
-	return c
-}
-
 func (c *Conn) CancelContext() {
 	c.cancel()
 }

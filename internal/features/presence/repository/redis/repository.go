@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	LeaseTTL          = 45 * time.Second
-	HeartbeatInterval = 20 * time.Second
+	LeaseTTL          = 60 * time.Second
+	HeartbeatInterval = 15 * time.Second
 )
 
 type Repository struct {

@@ -1,6 +1,7 @@
 package core_ws_client
 
 import (
+	"context"
 	"time"
 
 	core_ws_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/ws/middleware"
@@ -23,12 +24,13 @@ func (c *Client) readPump(unregister func(*Client)) {
 	})
 
 	handler := core_ws_middleware.ChainMiddleware(
-		incomingHandler,
+		c.dispatcher.Handler,
 		core_ws_middleware.Panic(),
 	)
 
 	for {
 		if err := handler(c.conn); err != nil {
+			c.logError("websocket read pump", err)
 			return
 		}
 	}
@@ -49,17 +51,13 @@ func (c *Client) writePump(unregister func(*Client)) {
 		case message := <-c.send:
 			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
 				unregister(c)
-
-				c.conn.CancelContext()
-
+				c.Close()
 				return
 			}
 
 			if err := c.conn.WriteMessage(websocket.TextMessage, message.data); err != nil {
 				unregister(c)
-
-				c.conn.CancelContext()
-
+				c.Close()
 				return
 			}
 
@@ -70,39 +68,32 @@ func (c *Client) writePump(unregister func(*Client)) {
 
 				unregister(c)
 
-				c.conn.CancelContext()
+				c.conn.Close()
 				return
 			}
 
 		case <-ticker.C:
 			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
 				unregister(c)
-
-				c.conn.CancelContext()
-
+				c.Close()
 				return
 			}
 
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				unregister(c)
-
-				c.conn.CancelContext()
-
+				c.Close()
 				return
 			}
 
 		case <-presenceTicker.C:
-			if err := c.presence.Heartbeat(
-				c.conn.Context(),
+			if err := c.dispatcher.Presence.Heartbeat(
+				context.Background(),
 				c.UserID,
 				c.SessionID,
 				c.ID,
 			); err != nil {
-				unregister(c)
-
-				c.conn.CancelContext()
-
-				return
+				c.logError("websocket presence heartbeat failed", err)
+				continue
 			}
 		}
 	}

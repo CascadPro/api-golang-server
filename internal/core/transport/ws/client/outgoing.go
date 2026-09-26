@@ -11,7 +11,7 @@ import (
 func (c *Client) SendEvent(event domain.RealtimeEvent) bool {
 	data, err := marshal(event)
 	if err != nil {
-		c.logError(event.ID, event.Type, err)
+		c.logMarshalError(event.ID, event.Type, err)
 		return false
 	}
 
@@ -23,7 +23,7 @@ func (c *Client) SendEvent(event domain.RealtimeEvent) bool {
 func (c *Client) RevokeSession(event domain.RealtimeEvent) bool {
 	data, err := marshal(event)
 	if err != nil {
-		c.logError(event.ID, event.Type, err)
+		c.logMarshalError(event.ID, event.Type, err)
 		return false
 	}
 
@@ -33,7 +33,7 @@ func (c *Client) RevokeSession(event domain.RealtimeEvent) bool {
 func (c *Client) RevokeAllSessions(event domain.RealtimeEvent) bool {
 	data, err := marshal(event)
 	if err != nil {
-		c.logError(event.ID, event.Type, err)
+		c.logMarshalError(event.ID, event.Type, err)
 		return false
 	}
 
