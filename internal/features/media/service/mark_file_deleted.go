@@ -49,7 +49,7 @@ func (s *Service) MarkFileDeleted(ctx context.Context, fileID string) error {
 		event.AggregateID = &requestID
 	}
 
-	if _, err := s.outboxPostgresRepo.CreateEvent(ctx, tx, event); err != nil {
+	if _, err := s.outboxPostgresRepo.CreateEventTx(ctx, tx, event); err != nil {
 		_ = tx.Rollback(ctx)
 
 		return fmt.Errorf("create outbox event: %w", err)
