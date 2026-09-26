@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *Repository) CreateEvent(
+func (r *Repository) createEvent(
 	ctx context.Context,
-	tx core_postgres_pool.Tx,
+	db core_postgres_pool.Querier,
 	event domain.OutboxEvent,
 ) (domain.OutboxEvent, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
@@ -33,7 +33,7 @@ func (r *Repository) CreateEvent(
 		event.Payload = json.RawMessage(`{}`)
 	}
 
-	row := tx.QueryRow(ctx, query, id, event.Type, event.AggregateID, event.Payload)
+	row := db.QueryRow(ctx, query, id, event.Type, event.AggregateID, event.Payload)
 
 	var model Event
 	if err := row.Scan(&model.ID, &model.Type, &model.AggregateID, &model.Payload, &model.CreatedAt); err != nil {
@@ -41,4 +41,19 @@ func (r *Repository) CreateEvent(
 	}
 
 	return domainEventFromModel(model), nil
+}
+
+func (r *Repository) CreateEventTx(
+	ctx context.Context,
+	tx core_postgres_pool.Tx,
+	event domain.OutboxEvent,
+) (domain.OutboxEvent, error) {
+	return r.createEvent(ctx, tx, event)
+}
+
+func (r *Repository) CreateEvent(
+	ctx context.Context,
+	event domain.OutboxEvent,
+) (domain.OutboxEvent, error) {
+	return r.createEvent(ctx, r.pool, event)
 }
