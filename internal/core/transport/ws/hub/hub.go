@@ -15,7 +15,8 @@ import (
 )
 
 type Hub struct {
-	mu sync.RWMutex
+	mu      sync.RWMutex
+	closing bool
 
 	clients   map[*core_ws_client.Client]struct{}
 	byUser    map[uuid.UUID]map[*core_ws_client.Client]struct{}
@@ -51,6 +52,13 @@ func NewHub(
 
 func (h *Hub) Register(client *core_ws_client.Client) error {
 	h.mu.Lock()
+
+	if h.closing {
+		h.mu.Unlock()
+		client.Close()
+
+		return fmt.Errorf("websocket hub is shutting down")
+	}
 
 	h.clients[client] = struct{}{}
 
@@ -142,4 +150,36 @@ func (h *Hub) Unregister(client *core_ws_client.Client) {
 			h.logger.Error("publish presence offline", zap.Error(err))
 		}
 	}
+}
+
+func (h *Hub) Shutdown(ctx context.Context) error {
+	h.mu.Lock()
+
+	if h.closing {
+		h.mu.Unlock()
+		return nil
+	}
+
+	h.closing = true
+
+	clients := make([]*core_ws_client.Client, 0, len(h.clients))
+	for client := range h.clients {
+		clients = append(clients, client)
+	}
+
+	h.mu.Unlock()
+
+	for _, client := range clients {
+		client.Shutdown()
+	}
+
+	var firstErr error
+
+	for _, client := range clients {
+		if err := client.Wait(ctx); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+
+	return firstErr
 }

@@ -1,14 +1,13 @@
 package core_ws_client
 
 import (
+	"context"
 	"sync"
 	"time"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_ws_conn "github.com/CascadePro/api-golang-server/internal/core/transport/ws/conn"
-	core_ws_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/ws/middleware"
-	presence_redis_repository "github.com/CascadePro/api-golang-server/internal/features/presence/repository/redis"
 	presence_service "github.com/CascadePro/api-golang-server/internal/features/presence/service"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -35,6 +34,8 @@ type Client struct {
 	presence presence_service.ServiceMethods
 
 	closeOnce sync.Once
+
+	pumps sync.WaitGroup
 }
 
 func NewClient(
@@ -57,8 +58,52 @@ func NewClient(
 }
 
 func (c *Client) Serve(unregister func(*Client)) {
-	go c.readPump(unregister)
-	go c.writePump(unregister)
+	c.pumps.Add(2)
+
+	go func() {
+		defer c.pumps.Done()
+		c.readPump(unregister)
+	}()
+
+	go func() {
+		defer c.pumps.Done()
+		c.writePump(unregister)
+	}()
+}
+
+func (c *Client) Shutdown() {
+	c.closeOnce.Do(func() {
+		closeBody := websocket.FormatCloseMessage(websocket.CloseGoingAway, "server shutting down")
+
+		_ = c.conn.WriteControl(
+			websocket.CloseMessage,
+			closeBody,
+			time.Now().Add(writeWait),
+		)
+
+		close(c.done)
+
+		_ = c.conn.Close()
+
+		c.conn.CancelContext()
+	})
+}
+
+func (c *Client) Wait(ctx context.Context) error {
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		c.pumps.Wait()
+	}()
+
+	select {
+	case <-done:
+		return nil
+
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (c *Client) Close() {
@@ -69,105 +114,6 @@ func (c *Client) Close() {
 
 		c.conn.CancelContext()
 	})
-}
-
-func (c *Client) readPump(unregister func(*Client)) {
-	defer unregister(c)
-
-	c.conn.SetReadLimit(maxMessageSize)
-
-	if err := c.conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
-		return
-	}
-
-	c.conn.SetPongHandler(func(string) error {
-		return c.conn.SetReadDeadline(time.Now().Add(pongWait))
-	})
-
-	handler := core_ws_middleware.ChainMiddleware(
-		incomingHandler,
-		core_ws_middleware.Panic(),
-	)
-
-	for {
-		if err := handler(c.conn); err != nil {
-			return
-		}
-	}
-}
-
-func (c *Client) writePump(unregister func(*Client)) {
-	ticker := time.NewTicker(pingPeriod)
-	defer ticker.Stop()
-
-	presenceTicker := time.NewTicker(presence_redis_repository.HeartbeatInterval)
-	defer presenceTicker.Stop()
-
-	for {
-		select {
-		case <-c.done:
-			return
-
-		case message := <-c.send:
-			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
-				unregister(c)
-
-				c.conn.CancelContext()
-
-				return
-			}
-
-			if err := c.conn.WriteMessage(websocket.TextMessage, message.data); err != nil {
-				unregister(c)
-
-				c.conn.CancelContext()
-
-				return
-			}
-
-			if message.closeAfter {
-				closeBody := websocket.FormatCloseMessage(int(message.closeCode), string(message.closeReason))
-
-				_ = c.conn.WriteControl(websocket.CloseMessage, closeBody, time.Now().Add(writeWait))
-
-				unregister(c)
-
-				c.conn.CancelContext()
-				return
-			}
-
-		case <-ticker.C:
-			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
-				unregister(c)
-
-				c.conn.CancelContext()
-
-				return
-			}
-
-			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				unregister(c)
-
-				c.conn.CancelContext()
-
-				return
-			}
-
-		case <-presenceTicker.C:
-			if err := c.presence.Heartbeat(
-				c.conn.Context(),
-				c.UserID,
-				c.SessionID,
-				c.ID,
-			); err != nil {
-				unregister(c)
-
-				c.conn.CancelContext()
-
-				return
-			}
-		}
-	}
 }
 
 func (c *Client) logError(id string, t domain.RealtimeEventType, err error) {

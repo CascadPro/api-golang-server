@@ -34,7 +34,16 @@ func (a *App) initWorkers(ctx context.Context) error {
 	}
 
 	a.logger.Debug("starting outbox worker", zap.String("worker", "outbox"))
-	go outboxWorker.Run(ctx)
+
+	workerCtx, cancel := context.WithCancel(ctx)
+
+	a.workerCancel = cancel
+	a.workerDone = make(chan struct{})
+
+	go func() {
+		defer close(a.workerDone)
+		outboxWorker.Run(workerCtx)
+	}()
 
 	return nil
 }

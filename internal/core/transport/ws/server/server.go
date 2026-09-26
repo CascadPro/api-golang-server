@@ -1,6 +1,7 @@
 package core_ws_server
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -61,6 +62,10 @@ func NewServer(
 			},
 		},
 	}
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
+	return s.hub.Shutdown(ctx)
 }
 
 var _ http.Handler = (*Server)(nil)
