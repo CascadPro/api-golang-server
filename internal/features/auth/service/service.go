@@ -6,6 +6,7 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/infrastructure/ipinfo/client"
+	core_postgres_outbox "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/outbox"
 	core_postgres_token "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/token"
 	core_jwt_security "github.com/CascadePro/api-golang-server/internal/core/security/jwt"
 	core_http_request "github.com/CascadePro/api-golang-server/internal/core/transport/http/request"
@@ -21,7 +22,8 @@ type Service struct {
 	ipinfoRepo           core_ipinfo_client.RepositoryMethods
 	sessionsRedisRepo    sessions_redis_repository.RepositoryMethods
 
-	tokenIssuer core_jwt_security.IssuerMethods
+	tokenIssuer        core_jwt_security.IssuerMethods
+	outboxPostgresRepo core_postgres_outbox.RepositoryMethods
 }
 
 type ServiceMethods interface {
@@ -39,6 +41,7 @@ func NewService(
 	ipinfoRepo core_ipinfo_client.RepositoryMethods,
 	sessionsRedisRepo sessions_redis_repository.RepositoryMethods,
 	tokenIssuer core_jwt_security.IssuerMethods,
+	outboxPostgresRepo core_postgres_outbox.RepositoryMethods,
 ) *Service {
 	return &Service{
 		userPostgresRepo:     userPostgresRepo,
@@ -47,5 +50,6 @@ func NewService(
 		ipinfoRepo:           ipinfoRepo,
 		sessionsRedisRepo:    sessionsRedisRepo,
 		tokenIssuer:          tokenIssuer,
+		outboxPostgresRepo:   outboxPostgresRepo,
 	}
 }

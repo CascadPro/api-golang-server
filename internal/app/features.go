@@ -156,7 +156,7 @@ func (a *App) initFeatures() error {
 	authRateLimiter := core_http_middleware.NewHTTPRateLimiter(a.infrastructure.Redis, 5, time.Minute)
 
 	authService := auth_service.NewService(usersPostgresRepository, settingsPostgresRepository,
-		tokenPostgresRepository, ipInfoRepository, sessionsRedisRepo, a.infrastructure.TokenIssuer)
+		tokenPostgresRepository, ipInfoRepository, sessionsRedisRepo, a.infrastructure.TokenIssuer, outboxPostgresRepository)
 	authHttpHandler := auth_transport_http.NewHttpHandler(authService, a.infrastructure.TokenIssuer, authRateLimiter)
 
 	authRouter.RegisterRoutes(authHttpHandler.Routes()...)

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
-	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_outbox_utils "github.com/CascadePro/api-golang-server/internal/core/utils/outbox"
 )
 
 func (s *Service) DeleteUserSessions(ctx context.Context) error {
@@ -23,12 +23,10 @@ func (s *Service) DeleteUserSessions(ctx context.Context) error {
 		return fmt.Errorf("delete user sessions from repository: %w", err)
 	}
 
-	payload, err := marshalOutboxEventPayload(domain.RealtimeEventSessionsRevoked, &userID, sessionID)
+	event, err := core_outbox_utils.NewRealtimeEventSessionsRevoked(userID, sessionID)
 	if err != nil {
 		return err
 	}
-
-	event := domain.NewOutboxEvent(domain.EventTypeRealtimePublish, &userID, payload)
 
 	if _, err := s.outboxPostgresRepo.CreateEvent(ctx, event); err != nil {
 		return fmt.Errorf("create outbox event: %w", err)
