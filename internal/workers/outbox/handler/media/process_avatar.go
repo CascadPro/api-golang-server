@@ -10,7 +10,7 @@ import (
 )
 
 func (h *Handler) HandleProcessAvatar(ctx context.Context, event domain.OutboxEvent) error {
-	var payload domain.EventTypeMediaAvatarProcessPayload
+	var payload domain.EventMediaAvatarProcessPayload
 
 	if err := json.Unmarshal(event.Payload, &payload); err != nil {
 		return fmt.Errorf("decode media avatar process payload: %w", err)
