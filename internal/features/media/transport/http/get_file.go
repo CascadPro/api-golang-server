@@ -79,19 +79,19 @@ func getFilePathValues(r *http.Request) (domain.FileTag, string, error) {
 func getFileQueryParams(r *http.Request) (*int, *int, *int, error) {
 	const defaultError = "get query params: "
 
-	var minimumLen, maximumLen, max = 0, 8192, 250
+	var minLen, maxLen, maxValue = 0, 8192, 250
 
-	width, err := core_http_request.GetIntQueryParam(r, "w", &minimumLen, &maximumLen)
+	width, err := core_http_request.GetIntQueryParam(r, "w", &minLen, &maxLen)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf(defaultError+"%w", err)
 	}
 
-	height, err := core_http_request.GetIntQueryParam(r, "h", &minimumLen, &maximumLen)
+	height, err := core_http_request.GetIntQueryParam(r, "h", &minLen, &maxLen)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf(defaultError+"%w", err)
 	}
 
-	quality, err := core_http_request.GetIntQueryParam(r, "quality", &minimumLen, &max)
+	quality, err := core_http_request.GetIntQueryParam(r, "quality", &minLen, &maxValue)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf(defaultError+"%w", err)
 	}

@@ -42,7 +42,7 @@ func (h *Hub) SendToUser(userID uuid.UUID, event domain.RealtimeEvent) {
 
 		switch event.Type {
 		case domain.RealtimeEventSessionRevoked:
-			ok = client.RevokeSession(event)
+			ok = client.SendEvent(event)
 
 		case domain.RealtimeEventSessionsRevoked:
 			ok = client.RevokeAllSessions(event)

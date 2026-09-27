@@ -75,7 +75,8 @@ func mapError(err error) ErrorDescriptor {
 			StatusCode: http.StatusConflict,
 		}
 
-	case errors.Is(err, users_errors.ErrAvatarNotFound):
+	case errors.Is(err, users_errors.ErrAvatarNotFound),
+		errors.Is(err, media_errors.ErrFileNotFound):
 		return ErrorDescriptor{
 			Code:       core_errors.CodeFileNotFound,
 			StatusCode: http.StatusNotFound,
@@ -91,12 +92,6 @@ func mapError(err error) ErrorDescriptor {
 		return ErrorDescriptor{
 			Code:       core_errors.CodeClientAlreadyExists,
 			StatusCode: http.StatusConflict,
-		}
-
-	case errors.Is(err, media_errors.ErrFileNotFound):
-		return ErrorDescriptor{
-			Code:       core_errors.CodeFileNotFound,
-			StatusCode: http.StatusNotFound,
 		}
 
 	case errors.Is(err, media_errors.ErrFileAlreadyExists):

@@ -10,7 +10,7 @@ import (
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 )
 
-func GetIntQueryParam(r *http.Request, key string, min, max *int) (*int, error) {
+func GetIntQueryParam(r *http.Request, key string, minValue, maxValue *int) (*int, error) {
 	param := r.URL.Query().Get(key)
 	if param == "" {
 		return nil, nil
@@ -27,7 +27,7 @@ func GetIntQueryParam(r *http.Request, key string, min, max *int) (*int, error) 
 		)
 	}
 
-	if err := core_validation.ValidateInteger(val, key, min, max); err != nil {
+	if err := core_validation.ValidateInteger(val, key, minValue, maxValue); err != nil {
 		return nil, fmt.Errorf("validate integer: %w", err)
 	}
 

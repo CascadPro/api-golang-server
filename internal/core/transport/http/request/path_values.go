@@ -42,7 +42,7 @@ func GetIDPathValue(r *http.Request, key string, length int) (string, error) {
 	return pathValue, nil
 }
 
-func GetIntPathValue(r *http.Request, key string, min, max *int) (int, error) {
+func GetIntPathValue(r *http.Request, key string, minValue, maxValue *int) (int, error) {
 	pathValue := r.PathValue(key)
 	if pathValue == "" {
 		return -1, fmt.Errorf("no key='%s' in path values: %w", key, core_errors.ErrInvalidArgument)
@@ -58,7 +58,7 @@ func GetIntPathValue(r *http.Request, key string, min, max *int) (int, error) {
 		)
 	}
 
-	if err := core_validation.ValidateInteger(val, key, min, max); err != nil {
+	if err := core_validation.ValidateInteger(val, key, minValue, maxValue); err != nil {
 		return 0, fmt.Errorf("validate integer: %w", err)
 	}
 

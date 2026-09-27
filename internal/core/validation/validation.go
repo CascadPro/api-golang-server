@@ -30,12 +30,12 @@ const (
 	PasswordMaxLen int = 100
 )
 
-func ValidateStringLength(v *string, field string, min int, max int) error {
+func ValidateStringLength(v *string, field string, minLen int, maxLen int) error {
 	if v == nil {
 		return fmt.Errorf("`%s` can't be NULL: %w", field, core_errors.ErrInvalidArgument)
 	}
 
-	if vLen := len([]rune(*v)); vLen < min || vLen > max {
+	if vLen := len([]rune(*v)); vLen < minLen || vLen > maxLen {
 		return fmt.Errorf("invalid `%s` len: %d: %w", field, vLen, core_errors.ErrInvalidArgument)
 	}
 
@@ -129,13 +129,13 @@ func ValidateID(id string, byteLength int) error {
 	return nil
 }
 
-func ValidateInteger(x int, fieldName string, min *int, max *int) error {
-	if min != nil && x < *min {
-		return fmt.Errorf("`%s` must be greater than or equal %d: %w", fieldName, *min, core_errors.ErrInvalidArgument)
+func ValidateInteger(x int, fieldName string, minLen *int, maxLen *int) error {
+	if minLen != nil && x < *minLen {
+		return fmt.Errorf("`%s` must be greater than or equal %d: %w", fieldName, *minLen, core_errors.ErrInvalidArgument)
 	}
 
-	if max != nil && x > *max {
-		return fmt.Errorf("`%s` must be less than or equal %d: %w", fieldName, *min, core_errors.ErrInvalidArgument)
+	if maxLen != nil && x > *maxLen {
+		return fmt.Errorf("`%s` must be less than or equal %d: %w", fieldName, *minLen, core_errors.ErrInvalidArgument)
 	}
 
 	return nil

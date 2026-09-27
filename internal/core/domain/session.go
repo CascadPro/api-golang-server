@@ -132,12 +132,12 @@ func (m *SessionMetadata) Validate() error {
 }
 
 func (l *SessionMetadataLocation) Validate() error {
-	min, max := core_validation.NameMinLen, core_validation.NameMaxLen
+	minLen, maxLen := core_validation.NameMinLen, core_validation.NameMaxLen
 
-	if err := core_validation.ValidateStringLength(&l.Country, "Country", min, max); err != nil {
+	if err := core_validation.ValidateStringLength(&l.Country, "Country", minLen, maxLen); err != nil {
 		return fmt.Errorf("country validation: %w", err)
 	}
-	if err := core_validation.ValidateStringLength(&l.City, "City", min, max); err != nil {
+	if err := core_validation.ValidateStringLength(&l.City, "City", minLen, maxLen); err != nil {
 		return fmt.Errorf("city validation: %w", err)
 	}
 	if l.Lat < -90.0 || l.Lat > 90.0 {
@@ -151,21 +151,21 @@ func (l *SessionMetadataLocation) Validate() error {
 }
 
 func (d *SessionMetadataDevice) Validate() error {
-	min, max := core_validation.NameMinLen, core_validation.NameMaxLen
+	minLen, maxLen := core_validation.NameMinLen, core_validation.NameMaxLen
 
-	if err := core_validation.ValidateStringLength(&d.OS, "OS", min, max); err != nil {
+	if err := core_validation.ValidateStringLength(&d.OS, "OS", minLen, maxLen); err != nil {
 		return fmt.Errorf("os validation: %w", err)
 	}
-	if err := core_validation.ValidateStringLength(&d.Model, "Model", min, max); err != nil {
+	if err := core_validation.ValidateStringLength(&d.Model, "Model", minLen, maxLen); err != nil {
 		return fmt.Errorf("model validation: %w", err)
 	}
-	if err := core_validation.ValidateStringLength(&d.AppName, "AppName", min, max); err != nil {
+	if err := core_validation.ValidateStringLength(&d.AppName, "AppName", minLen, maxLen); err != nil {
 		return fmt.Errorf("app name validation: %w", err)
 	}
-	if err := core_validation.ValidateStringLength(&d.Type, "Type", min, max); err != nil {
+	if err := core_validation.ValidateStringLength(&d.Type, "Type", minLen, maxLen); err != nil {
 		return fmt.Errorf("type validation: %w", err)
 	}
-	if err := core_validation.ValidateStringLength(&d.Version, "Version", min, max); err != nil {
+	if err := core_validation.ValidateStringLength(&d.Version, "Version", minLen, maxLen); err != nil {
 		return fmt.Errorf("version validation: %w", err)
 	}
 

@@ -9,14 +9,14 @@ import (
 )
 
 func GetRequestDocPathValues(r *http.Request) (uuid.UUID, int, error) {
-	var min, max = 0, 3
+	var minValue, maxValue = 0, 3
 
 	requestID, err := core_http_request.GetUUIDPathValue(r, "id")
 	if err != nil {
 		return uuid.Nil, -1, fmt.Errorf("get `id` path value: %w", err)
 	}
 
-	index, err := core_http_request.GetIntPathValue(r, "index", &min, &max)
+	index, err := core_http_request.GetIntPathValue(r, "index", &minValue, &maxValue)
 	if err != nil {
 		return uuid.Nil, -1, fmt.Errorf("get `index` path value: %w", err)
 	}

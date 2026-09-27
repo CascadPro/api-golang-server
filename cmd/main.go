@@ -13,6 +13,7 @@ import (
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	"go.uber.org/zap"
 
+	// Import for swagger docs
 	_ "github.com/CascadePro/api-golang-server/docs"
 )
 

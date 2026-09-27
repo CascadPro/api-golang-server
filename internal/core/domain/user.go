@@ -50,7 +50,7 @@ func NewUser() User {
 	return User{}
 }
 
-func NewRegisterUser(name string, surname string, lastName *string) User {
+func NewRegisterUser(name, surname string, lastName *string) User {
 	return User{
 		ID:        UninitializedUUID,
 		Version:   UninitializedVersion,
@@ -62,7 +62,7 @@ func NewRegisterUser(name string, surname string, lastName *string) User {
 	}
 }
 
-func NewUserLogin(email string, passwordHash string) User {
+func NewUserLogin(email, passwordHash string) User {
 	return User{
 		ID:           UninitializedUUID,
 		Version:      UninitializedVersion,

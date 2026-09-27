@@ -20,16 +20,6 @@ func (c *Client) SendEvent(event domain.RealtimeEvent) bool {
 	})
 }
 
-func (c *Client) RevokeSession(event domain.RealtimeEvent) bool {
-	data, err := marshal(event)
-	if err != nil {
-		c.logMarshalError(event.ID, event.Type, err)
-		return false
-	}
-
-	return c.enqueue(ChannelMessage{data: data})
-}
-
 func (c *Client) RevokeAllSessions(event domain.RealtimeEvent) bool {
 	data, err := marshal(event)
 	if err != nil {

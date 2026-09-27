@@ -84,7 +84,7 @@ func New(
 func (a *App) Run(ctx context.Context) error {
 	err := a.httpServer.Run(ctx)
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), a.cfg.ShutdownTimeout)
+	shutdownCtx, cancel := context.WithTimeout(ctx, a.cfg.ShutdownTimeout)
 	defer cancel()
 
 	a.logger.Warn("Shutting down the server...")
