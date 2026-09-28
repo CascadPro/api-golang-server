@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_jwt_security "github.com/CascadePro/api-golang-server/internal/core/security/jwt"
@@ -57,9 +58,12 @@ func (d *Dispatcher) Handler(conn *core_ws_conn.Conn) error {
 	}
 
 	switch message.Type {
+	case domain.RealtimeEventPing:
+		responseHandler.PongResponse(message.ID)
+
 	default:
 		return fmt.Errorf("unsupported message type: %w", core_errors.ErrInvalidArgument)
 	}
 
-	// return nil
+	return nil
 }

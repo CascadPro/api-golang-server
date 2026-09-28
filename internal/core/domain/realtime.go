@@ -15,6 +15,9 @@ const (
 	RealtimeEventAuthSuccess = RealtimeEventType("auth.success")
 	RealtimeEventAuthError   = RealtimeEventType("auth.error")
 
+	RealtimeEventPing RealtimeEventType = "realtime.ping"
+	RealtimeEventPong RealtimeEventType = "realtime.pong"
+
 	RealtimeEventPresenceOnline  = RealtimeEventType("presence.online")
 	RealtimeEventPresenceOffline = RealtimeEventType("presence.offline")
 

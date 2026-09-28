@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	core_i18n "github.com/CascadePro/api-golang-server/internal/core/i18n"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_ws_conn "github.com/CascadePro/api-golang-server/internal/core/transport/ws/conn"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"
@@ -28,8 +30,16 @@ func NewHandler(conn *core_ws_conn.Conn, logger *core_logger.Logger, locale lang
 	}
 }
 
-func (h *Handler) Response(body any) {
-	h.conn.WriteJSON(body)
+func (h *Handler) JsonResponse(t domain.RealtimeEventType, body json.RawMessage) {
+	response := NewResponse(uuid.NewString(), t, body)
+
+	h.conn.WriteJSON(response)
+}
+
+func (h *Handler) PongResponse(id string) {
+	response := NewResponse(id, domain.RealtimeEventPong, nil)
+
+	h.conn.WriteJSON(response)
 }
 
 func (h *Handler) ErrorResponse(err error, msg string) {
