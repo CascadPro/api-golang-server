@@ -1,0 +1,9 @@
+{
+	"servers": {
+		"Cascade Pro App API Installation": {
+			"type": "http",
+			"url": "https://mcp.scalar.com/@default-team-he86v/cascade-pro-app-api?env=cascade-pro-app-api-installation"
+		}
+	},
+	"inputs": []
+}
