@@ -29,10 +29,11 @@ const (
 	CodeUnsupportedFormat Code = "unsupported_format"
 	CodeInvalidImage      Code = "invalid_image"
 
-	CodeRequestNotFound       Code = "request_not_found"
-	CodeRequestAlreadyExists  Code = "request_already_exists"
-	CodeRequestAccessDenied   Code = "request_access_denied"
-	CodeRequestAlreadyHandled Code = "request_already_handled"
+	CodeRequestNotFound        Code = "request_not_found"
+	CodeRequestAlreadyExists   Code = "request_already_exists"
+	CodeRequestAccessDenied    Code = "request_access_denied"
+	CodeRequestAlreadyHandled  Code = "request_already_handled"
+	CodeRequestNotEnoughFields Code = "request_not_enough_fields"
 
 	CodeSessionNotFound Code = "session_not_found"
 	CodeSessionExpired  Code = "session_expired"

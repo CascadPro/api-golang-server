@@ -148,6 +148,12 @@ func mapError(err error) ErrorDescriptor {
 			StatusCode: http.StatusConflict,
 		}
 
+	case errors.Is(err, requests_errors.ErrRequestNotEnoughFields):
+		return ErrorDescriptor{
+			Code:       core_errors.CodeRequestNotEnoughFields,
+			StatusCode: http.StatusConflict,
+		}
+
 	case errors.Is(err, sessions_errors.ErrSessionNotFound):
 		return ErrorDescriptor{
 			Code:       core_errors.CodeSessionNotFound,

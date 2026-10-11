@@ -45,6 +45,7 @@ func (r *Repository) PatchRequestStatus(
 	err = request.Validate()
 	if err != nil {
 		request.Status = domain.RequestStatusWaiting
+		err = requests_errors.ErrRequestNotEnoughFields
 	}
 
 	now, versionInc := time.Now(), request.Version+1
