@@ -259,3 +259,8 @@ func (f *RequestQueryFilter) Validate() error {
 
 	return nil
 }
+
+type RequestStats struct {
+	Total    int64
+	ByStatus map[RequestStatus]int64
+}

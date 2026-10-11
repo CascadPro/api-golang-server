@@ -163,3 +163,17 @@ func modelsToDomains(models []RequestModel) []domain.Request {
 	}
 	return requests
 }
+
+type RequestStatsAggregation struct {
+	Total    []RequestStatsAggregationCount  `bson:"total"`
+	Statuses []RequestStatsAggregationStatus `bson:"statuses"`
+}
+
+type RequestStatsAggregationCount struct {
+	Count int64 `bson:"count"`
+}
+
+type RequestStatsAggregationStatus struct {
+	Status domain.RequestStatus `bson:"_id"`
+	Count  int64                `bson:"count"`
+}

@@ -52,6 +52,12 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 		},
 		{
 			Method:     core_http.MethodGet,
+			Path:       "/stats",
+			Handler:    h.GetRequestStats,
+			Middleware: defaultMiddlewares,
+		},
+		{
+			Method:     core_http.MethodGet,
 			Path:       "/{id}",
 			Handler:    h.GetRequest,
 			Middleware: defaultMiddlewares,

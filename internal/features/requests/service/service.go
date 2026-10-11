@@ -20,10 +20,14 @@ type Service struct {
 
 type ServiceMethods interface {
 	CreateRequest(context.Context, domain.Request) (domain.Request, error)
+
 	GetRequest(context.Context, uuid.UUID) (domain.Request, domain.User, domain.Client, map[int]domain.File, error)
 	GetRequests(context.Context, int, int, domain.RequestQueryFilter) ([]domain.Request, int64, error)
+	GetRequestsStats(context.Context) (domain.RequestStats, error)
+
 	PatchRequest(context.Context, uuid.UUID, domain.RequestPatch) (domain.Request, error)
 	PatchRequestStatus(context.Context, uuid.UUID, domain.RequestStatus) error
+
 	UploadDoc(context.Context, uuid.UUID, domain.File, []byte, int) error
 	DeleteDoc(context.Context, uuid.UUID, int) error
 }
