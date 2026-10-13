@@ -35,7 +35,7 @@ func (h *HttpHandler) CreateClient(rw http.ResponseWriter, r *http.Request) {
 	responseHandler := core_http_response.NewResponseHandler(log, locale, rw)
 
 	var request CreateClientRequest
-	if err := core_http_request.DecodeAndValidate(r, &request); err != nil {
+	if err := core_http_request.DecodeAndValidate(rw, r, &request); err != nil {
 		responseHandler.ErrorResponse(err, "failed to decode and validate request")
 		return
 	}

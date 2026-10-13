@@ -12,13 +12,20 @@ import (
 	core_validation_init "github.com/CascadePro/api-golang-server/internal/core/validation/init"
 )
 
-func DecodeAndValidate(r *http.Request, dest any) error {
-	if err := json.NewDecoder(r.Body).Decode(dest); err != nil {
-		if errors.Is(err, io.EOF) {
-			return fmt.Errorf("decode json: %v: %w", core_errors.ErrInvalidArgument, core_errors.ErrEmptyRequestBody)
-		}
+func DecodeAndValidate(rw http.ResponseWriter, r *http.Request, dest any) error {
+	const maxJSONBody = 1 << 20 // 1 MiB
 
-		return fmt.Errorf("decode json: %v: %w", err, core_errors.ErrInvalidArgument)
+	r.Body = http.MaxBytesReader(rw, r.Body, maxJSONBody)
+
+	decoder := json.NewDecoder(r.Body)
+
+	if err := decoder.Decode(dest); err != nil {
+		return fmt.Errorf("decode JSON: %w: %w", err, core_errors.ErrInvalidArgument)
+	}
+
+	var extra any
+	if err := decoder.Decode(&extra); !errors.Is(err, io.EOF) {
+		return fmt.Errorf("unexpected data after JSON body: %w", core_errors.ErrInvalidArgument)
 	}
 
 	var err error
