@@ -12,7 +12,7 @@ func (a *App) initHttp() error {
 	httpServer := core_http_server.NewHttpServer(
 		core_http_server.NewConfigMust(),
 		a.logger,
-		core_http_middleware.CORS(),
+		core_http_middleware.CORS(a.cfg.AllowedOrigins),
 		core_http_middleware.RequestID(),
 		core_http_middleware.Logger(a.logger),
 		core_http_middleware.Trace(),

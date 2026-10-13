@@ -44,7 +44,9 @@ func (rl *HTTPRateLimiter) Middleware() Middleware {
 				return
 			}
 
-			result, err := rl.repository.Allow(ctx, r.URL.String(), clientIP)
+			scope := r.Method + ":" + r.URL.EscapedPath()
+
+			result, err := rl.repository.Allow(ctx, scope, clientIP)
 			if err != nil {
 				responseHandler.ErrorResponse(err, "failed to do repository execution")
 				return
