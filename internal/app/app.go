@@ -84,20 +84,27 @@ func New(
 func (a *App) Run(ctx context.Context) error {
 	err := a.httpServer.Run(ctx)
 
-	shutdownCtx, cancel := context.WithTimeout(ctx, a.cfg.ShutdownTimeout)
+	shutdownCtx, cancel := context.WithTimeout(
+		context.Background(),
+		a.cfg.ShutdownTimeout,
+	)
 	defer cancel()
 
-	a.logger.Warn("Shutting down the server...")
+	a.logger.Warn("shutting down application")
 
-	if wsErr := a.wsServer.Shutdown(shutdownCtx); wsErr != nil {
-		a.logger.Error("failed to shutdown websocket server", zap.Error(wsErr))
-
+	if shutdownErr := a.httpServer.Shutdown(shutdownCtx); shutdownErr != nil {
+		a.logger.Error("failed to shutdown HTTP server", zap.Error(shutdownErr))
 		if err == nil {
-			err = fmt.Errorf("shutdown websocket server: %w", wsErr)
+			err = shutdownErr
 		}
 	}
 
-	a.logger.Warn("Shut down websocket server")
+	if wsErr := a.wsServer.Shutdown(shutdownCtx); wsErr != nil {
+		a.logger.Error("failed to shutdown websocket server", zap.Error(wsErr))
+		if err == nil {
+			err = wsErr
+		}
+	}
 
 	if a.workerCancel != nil {
 		a.workerCancel()
@@ -108,16 +115,12 @@ func (a *App) Run(ctx context.Context) error {
 		case <-a.workerDone:
 		case <-shutdownCtx.Done():
 			if err == nil {
-				err = fmt.Errorf("outbox worker shutdown: %w", shutdownCtx.Err())
+				err = shutdownCtx.Err()
 			}
 		}
 	}
 
-	a.logger.Warn("Stopped app workers")
-
 	a.infrastructure.Close(shutdownCtx)
-
-	a.logger.Warn("Closed app infrastructure")
 
 	return err
 }
