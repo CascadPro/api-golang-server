@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/CascadePro/api-golang-server/docs"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
@@ -86,8 +87,11 @@ func (s *HttpServer) Run(ctx context.Context) error {
 	)
 
 	server := &http.Server{
-		Addr:    s.config.Addr,
-		Handler: mux,
+		Addr:              s.config.Addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    1 << 20,
 	}
 
 	s.serverMu.Lock()
