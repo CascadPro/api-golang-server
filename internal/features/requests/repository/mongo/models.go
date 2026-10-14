@@ -1,6 +1,7 @@
 package requests_mongo_repository
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
@@ -113,14 +114,19 @@ func domainOriginsToModel(origin []domain.RequestOrigin) []RequestModelOrigin {
 	return slice
 }
 
-func modelToDomain(model RequestModel) domain.Request {
+func modelToDomain(model RequestModel) (domain.Request, error) {
 	origin := make([]domain.RequestOrigin, 0, len(model.Origin))
 	for _, j := range model.Origin {
 		origin = append(origin, domain.RequestOrigin(j))
 	}
 
+	id, err := uuid.Parse(model.ID)
+	if err != nil {
+		return domain.Request{}, fmt.Errorf("invalid request id: %w", err)
+	}
+
 	requestDomain := domain.Request{
-		ID:                  uuid.MustParse(model.ID),
+		ID:                  id,
 		Version:             model.Version,
 		Status:              model.Status,
 		Title:               model.Title,
@@ -153,15 +159,20 @@ func modelToDomain(model RequestModel) domain.Request {
 		requestDomain.TechTaskDocID = model.Docs.TechTaskDocID
 	}
 
-	return requestDomain
+	return requestDomain, nil
 }
 
-func modelsToDomains(models []RequestModel) []domain.Request {
+func modelsToDomains(models []RequestModel) ([]domain.Request, error) {
 	requests := make([]domain.Request, 0, len(models))
 	for _, model := range models {
-		requests = append(requests, modelToDomain(model))
+		request, err := modelToDomain(model)
+		if err != nil {
+			return nil, err
+		}
+
+		requests = append(requests, request)
 	}
-	return requests
+	return requests, nil
 }
 
 type RequestStatsAggregation struct {

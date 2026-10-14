@@ -6,10 +6,8 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_mongo_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/mongo/pool"
-	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
-	"go.uber.org/zap"
 )
 
 const (
@@ -22,7 +20,6 @@ func (r *Repository) GetRequests(
 	page, limit int,
 	filter domain.RequestQueryFilter,
 ) ([]domain.Request, int64, error) {
-	log := core_logger.FromContext(ctx)
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
@@ -67,18 +64,25 @@ func (r *Repository) GetRequests(
 	defer cursor.Close(ctx)
 
 	var models []RequestModel
+
 	for cursor.Next(ctx) {
 		var model RequestModel
+
 		if err := cursor.Decode(&model); err != nil {
-			log.Error("mongo cursor decode model", zap.Error(core_mongo_pool.MapErrors(err)))
-			continue
+			return nil, 0, fmt.Errorf("decode request model: %w", core_mongo_pool.MapErrors(err))
 		}
 
 		models = append(models, model)
 	}
+
 	if err := cursor.Err(); err != nil {
-		return nil, total, fmt.Errorf("mongo cursor error: %w", core_mongo_pool.MapErrors(err))
+		return nil, 0, fmt.Errorf("iterate request cursor: %w", core_mongo_pool.MapErrors(err))
 	}
 
-	return modelsToDomains(models), total, nil
+	requests, err := modelsToDomains(models)
+	if err != nil {
+		return nil, 0, fmt.Errorf("convert models to domains: %w", err)
+	}
+
+	return requests, total, nil
 }

@@ -32,5 +32,10 @@ func (r *Repository) GetRequest(ctx context.Context, id uuid.UUID) (domain.Reque
 		return domain.Request{}, fmt.Errorf("mongo find one: %w", err)
 	}
 
-	return modelToDomain(model), nil
+	request, err := modelToDomain(model)
+	if err != nil {
+		return domain.Request{}, fmt.Errorf("convert model to domain: %w", err)
+	}
+
+	return request, nil
 }

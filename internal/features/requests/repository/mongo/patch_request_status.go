@@ -2,7 +2,6 @@ package requests_mongo_repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func (r *Repository) PatchRequestStatus(
@@ -66,15 +64,17 @@ func (r *Repository) PatchRequestStatus(
 }
 
 func defaultPatch(ctx context.Context, coll *mongo.Collection, filter bson.D, update []bson.E) error {
-	opts := options.UpdateOne().SetUpsert(false)
-
-	_, err := coll.UpdateOne(ctx, filter, bson.D{{Key: "$set", Value: update}}, opts)
+	result, err := coll.UpdateOne(
+		ctx,
+		filter,
+		bson.D{{Key: "$set", Value: update}},
+	)
 	if err != nil {
-		err = core_mongo_pool.MapErrors(err)
-		if errors.Is(err, core_mongo_pool.ErrNotFound) {
-			return fmt.Errorf("request has concurrently accessed: %w", requests_errors.ErrRequestNotFound)
-		}
-		return fmt.Errorf("mongo update one: %w", err)
+		return fmt.Errorf("mongo update one: %w", core_mongo_pool.MapErrors(err))
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("request version mismatch: %w", core_errors.ErrConflict)
 	}
 
 	return nil
