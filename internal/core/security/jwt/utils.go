@@ -54,35 +54,29 @@ func sign(secret []byte, method jwt.SigningMethod, claims jwt.Claims) (string, e
 	return tokenString, nil
 }
 
-func parse[T jwt.Claims](secret []byte, tokenString string) (*T, error) {
+func parse[T jwt.Claims](secret []byte, tokenString, algorithm string) (*T, error) {
 	var claims T
 
 	token, err := jwt.ParseWithClaims(
 		tokenString,
 		any(&claims).(jwt.Claims),
 		func(token *jwt.Token) (any, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf(
-					"unexpected signing method %v: %w",
-					token.Header["alg"],
-					core_errors.ErrInvalidArgument,
-				)
-			}
-
 			return secret, nil
 		},
+		jwt.WithValidMethods([]string{algorithm}),
 	)
+
 	if err != nil {
 		return nil, fmt.Errorf("parse jwt token: %w: %w", err, core_errors.ErrUnauthorized)
 	}
 
 	if token == nil || !token.Valid {
-		return nil, fmt.Errorf("invalid token: %w", core_errors.ErrUnauthorized)
+		return nil, core_errors.ErrUnauthorized
 	}
 
 	if validatable, ok := token.Claims.(core_validation.Validatable); ok {
 		if err := validatable.Validate(); err != nil {
-			return nil, fmt.Errorf("validate jwt claims: %w", err)
+			return nil, fmt.Errorf("validate claims: %w", err)
 		}
 	}
 

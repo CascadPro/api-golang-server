@@ -104,9 +104,9 @@ func (i *Issuer) SignRefresh(claims *RefreshClaims) (string, error) {
 }
 
 func (i *Issuer) ParseAccess(tokenString string) (*AccessClaims, error) {
-	return parse[AccessClaims](i.secret, tokenString)
+	return parse[AccessClaims](i.secret, tokenString, i.signingMethod.Alg())
 }
 
 func (i *Issuer) ParseRefresh(tokenString string) (*RefreshClaims, error) {
-	return parse[RefreshClaims](i.secret, tokenString)
+	return parse[RefreshClaims](i.secret, tokenString, i.signingMethod.Alg())
 }
