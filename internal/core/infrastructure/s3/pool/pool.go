@@ -3,6 +3,7 @@ package core_s3_pool
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 type Pool interface {
 	PutObject(ctx context.Context, key string, body []byte) error
 	GetObject(ctx context.Context, key string) ([]byte, error)
+	GetObjectStream(ctx context.Context, key, byteRange string) (io.ReadCloser, int64, string, error)
 	DeleteObject(ctx context.Context, key string) error
 
 	OpTimeout() time.Duration
