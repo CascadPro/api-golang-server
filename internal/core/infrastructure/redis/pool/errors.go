@@ -13,6 +13,8 @@ import (
 var (
 	ErrNoValue   = errors.New("redis no value")
 	ErrRedisDown = errors.New("redis is down")
+	ErrTimedOut  = errors.New("redis operation timed out")
+	ErrCanceled  = errors.New("redis operation canceled")
 	ErrUnknown   = errors.New("unknown redis error")
 )
 
@@ -25,12 +27,22 @@ func MapErrors(err error) error {
 		return ErrNoValue
 	}
 
-	var netErr *net.OpError
-	if errors.As(err, &netErr) {
-		return fmt.Errorf("network failure: %w: %w", ErrRedisDown, err)
+	if errors.Is(err, context.DeadlineExceeded) {
+		return fmt.Errorf("%v: %w", err, ErrTimedOut)
 	}
 
-	return fmt.Errorf("redis operation failed: %v: %w", err, ErrUnknown)
+	if errors.Is(err, context.Canceled) {
+		return fmt.Errorf("%v: %w", err, ErrCanceled)
+	}
+
+	var netErr *net.OpError
+	if errors.As(err, &netErr) {
+		return fmt.Errorf("network failure: %v: %w", err, ErrRedisDown)
+	}
+
+	// Preserve both the generic Redis classification and the original error
+	// so callers can still use errors.Is/errors.As.
+	return fmt.Errorf("redis operation failed: %w: %w", ErrUnknown, err)
 }
 
 func (p *ConnectionPool) Get(ctx context.Context, key string) (string, error) {
@@ -42,6 +54,22 @@ func (p *ConnectionPool) Set(ctx context.Context, key string, value any, expirat
 	return MapErrors(p.client.Set(ctx, key, value, expiration).Err())
 }
 
+func (p *ConnectionPool) SetMany(ctx context.Context, values map[string]any, expiration time.Duration) error {
+	pipe := p.TxPipeline()
+
+	for key, value := range values {
+		if err := pipe.Set(ctx, key, value, expiration).Err(); err != nil {
+			return MapErrors(err)
+		}
+	}
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		return MapErrors(fmt.Errorf("SetMany pipe: %w", err))
+	}
+
+	return nil
+}
+
 func (p *ConnectionPool) Del(ctx context.Context, keys ...string) error {
 	return MapErrors(p.client.Del(ctx, keys...).Err())
 }
@@ -49,6 +77,13 @@ func (p *ConnectionPool) Del(ctx context.Context, keys ...string) error {
 func (p *ConnectionPool) Eval(ctx context.Context, script string, keys []string, args ...any) (any, error) {
 	res, err := p.client.Eval(ctx, script, keys, args...).Result()
 	return res, MapErrors(err)
+}
+
+func (p *ConnectionPool) Scan(ctx context.Context, cursor uint64, match string, count int64) ([]string, uint64, error) {
+	cmd := p.client.Scan(ctx, cursor, match, count)
+	keys, cursor := cmd.Val()
+
+	return keys, cursor, MapErrors(cmd.Err())
 }
 
 func (p *ConnectionPool) GetKeys(ctx context.Context, cursor uint64, match string, count int64) ([]string, error) {
@@ -72,6 +107,11 @@ func (p *ConnectionPool) GetKeys(ctx context.Context, cursor uint64, match strin
 	}
 
 	return keys, nil
+}
+
+func (p *ConnectionPool) MGet(ctx context.Context, keys ...string) ([]any, error) {
+	result, err := p.client.MGet(ctx, keys...).Result()
+	return result, MapErrors(err)
 }
 
 func (p *ConnectionPool) HGet(ctx context.Context, key, field string) (string, error) {
