@@ -5,64 +5,113 @@ import (
 	"net"
 	"net/http"
 	"strings"
-
-	core_config "github.com/CascadePro/api-golang-server/internal/core/config"
 )
 
-var PskovIP net.IP = ParseIP("109.207.190.162")
+var PskovIP net.IP = net.ParseIP("109.207.190.162")
 
-// ParseIP проверяет, что строка действительно IP (IPv4 или IPv6)
-func ParseIP(s string) net.IP {
-	s = strings.TrimSpace(s)
-
-	if strings.Contains(s, ":") && strings.Count(s, ":") == 1 {
-		host, _, _ := net.SplitHostPort(s)
-		s = host
+func ParseIP(value string) net.IP {
+	value = strings.TrimSpace(value)
+	if host, _, err := net.SplitHostPort(value); err == nil {
+		value = host
 	}
 
-	ip := net.ParseIP(s)
-
-	return ip
+	return net.ParseIP(value)
 }
 
-// ClientIP возвращает «наиболее вероятный» публичный IP клиента.
-// Порядок приоритета:
-//  1. X-Forwarded-For (первый в списке)
-//  2. X-Real-IP
-//  3. RemoteAddr
-func ClientIP(r *http.Request) (net.IP, error) {
-	cfg, err := core_config.NewConfig()
+// ClientIPFromRequest trusts forwarding headers only when the direct peer is trusted.
+// trustedProxyCIDRs accepts either individual IPs or CIDR ranges.
+func ClientIPFromRequest(r *http.Request, trustedProxyCIDRs []string) (net.IP, error) {
+	remoteIP := ParseIP(r.RemoteAddr)
+	if remoteIP == nil {
+		return nil, fmt.Errorf("parse remote address %q", r.RemoteAddr)
+	}
+
+	trusted, err := parseTrustedProxies(trustedProxyCIDRs)
 	if err != nil {
-		return nil, fmt.Errorf("get core config: %w", err)
+		return nil, err
 	}
 
-	if cfg.Connection == core_config.ConnectionOffline || cfg.EnvMode == core_config.EnvModeDev {
-		return PskovIP, nil
+	if !containsIP(trusted, remoteIP) {
+		return remoteIP, nil
 	}
 
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		parts := strings.Split(xff, ",")
-		if len(parts) > 0 {
-			candidate := ParseIP(parts[0])
-			if candidate != nil {
-				return candidate, nil
+	if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
+		parts := strings.Split(forwarded, ",")
+		chain := make([]net.IP, 0, len(parts)+1)
+		for _, part := range parts {
+			ip := ParseIP(part)
+			if ip == nil {
+				return nil, fmt.Errorf("invalid IP in X-Forwarded-For")
+			}
+			chain = append(chain, ip)
+		}
+
+		for i := len(chain) - 1; i >= 0; i-- {
+			if !containsIP(trusted, chain[i]) {
+				return chain[i], nil
 			}
 		}
+
+		return nil, fmt.Errorf("X-Forwarded-For contains only trusted proxies")
 	}
 
-	if xrip := r.Header.Get("X-Real-IP"); xrip != "" {
-		if ip := ParseIP(xrip); ip != nil {
-			return ip, nil
+	if realIP := r.Header.Get("X-Real-IP"); realIP != "" {
+		ip := ParseIP(realIP)
+		if ip == nil {
+			return nil, fmt.Errorf("invalid X-Real-IP")
 		}
-	}
 
-	host, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		host = r.RemoteAddr
-	}
-	if ip := net.ParseIP(host); ip != nil {
 		return ip, nil
 	}
 
-	return nil, fmt.Errorf("cannot determine client IP")
+	return remoteIP, nil
+}
+
+// ClientIP is retained for callers not yet migrated. Without an explicit trust list,
+// forwarded headers are deliberately ignored.
+func ClientIP(r *http.Request) (net.IP, error) {
+	return ClientIPFromRequest(r, nil)
+}
+
+func parseTrustedProxies(values []string) ([]*net.IPNet, error) {
+	out := make([]*net.IPNet, 0, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			continue
+		}
+
+		if ip := net.ParseIP(value); ip != nil {
+			bits := 128
+			if ip.To4() != nil {
+				ip = ip.To4()
+				bits = 32
+			}
+
+			mask := net.CIDRMask(bits, bits)
+
+			out = append(out, &net.IPNet{IP: ip, Mask: mask})
+
+			continue
+		}
+
+		_, network, err := net.ParseCIDR(value)
+		if err != nil {
+			return nil, fmt.Errorf("invalid trusted proxy %q: %w", value, err)
+		}
+
+		out = append(out, network)
+	}
+
+	return out, nil
+}
+
+func containsIP(networks []*net.IPNet, ip net.IP) bool {
+	for _, network := range networks {
+		if network.Contains(ip) {
+			return true
+		}
+	}
+
+	return false
 }
