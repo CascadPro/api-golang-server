@@ -7,6 +7,7 @@ import (
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	auth_errors "github.com/CascadePro/api-golang-server/internal/features/auth/errors"
 	client_errors "github.com/CascadePro/api-golang-server/internal/features/client/errors"
+	idempotency_error "github.com/CascadePro/api-golang-server/internal/features/idempotency/errors"
 	media_errors "github.com/CascadePro/api-golang-server/internal/features/media/errors"
 	requests_errors "github.com/CascadePro/api-golang-server/internal/features/requests/errors"
 	sessions_errors "github.com/CascadePro/api-golang-server/internal/features/sessions/errors"
@@ -176,6 +177,30 @@ func mapError(err error) ErrorDescriptor {
 		return ErrorDescriptor{
 			Code:       core_errors.CodeSettingsNotFound,
 			StatusCode: http.StatusNotFound,
+		}
+
+	case errors.Is(err, idempotency_error.ErrInvalidIdempotencyKey):
+		return ErrorDescriptor{
+			Code:       core_errors.CodeInvalidIdempotencyKey,
+			StatusCode: http.StatusBadRequest,
+		}
+
+	case errors.Is(err, idempotency_error.ErrRequestBodyTooLarge):
+		return ErrorDescriptor{
+			Code:       core_errors.CodeRequestBodyTooLarge,
+			StatusCode: http.StatusRequestEntityTooLarge,
+		}
+
+	case errors.Is(err, idempotency_error.ErrIdempotencyKeyReused):
+		return ErrorDescriptor{
+			Code:       core_errors.CodeIdempotencyKeyReused,
+			StatusCode: http.StatusUnprocessableEntity,
+		}
+
+	case errors.Is(err, idempotency_error.ErrIdempotencyInProgress):
+		return ErrorDescriptor{
+			Code:       core_errors.CodeIdempotencyInProgress,
+			StatusCode: http.StatusConflict,
 		}
 
 	case errors.Is(err, core_errors.ErrInvalidArgument):
