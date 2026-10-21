@@ -3,6 +3,7 @@ package core_config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
@@ -19,11 +20,13 @@ const (
 )
 
 type Config struct {
-	TimeZone        *time.Location
-	Connection      Connection    `envconfig:"CONNECTION" default:"online"`
-	EnvMode         EnvMode       `envconfig:"ENV_MODE" default:"dev"`
-	AllowedOrigins  string        `envconfig:"ALLOWED_ORIGINS" default:""`
-	ShutdownTimeout time.Duration `envconfig:"SHUTDOWN_TIMEOUT" default:"1min"`
+	TimeZone             *time.Location
+	Connection           Connection    `envconfig:"CONNECTION" default:"online"`
+	EnvMode              EnvMode       `envconfig:"ENV_MODE" default:"dev"`
+	AllowedOrigins       string        `envconfig:"ALLOWED_ORIGINS" default:""`
+	ShutdownTimeout      time.Duration `envconfig:"SHUTDOWN_TIMEOUT" default:"1min"`
+	TrustedProxies       []string      `envconfig:"TRUSTED_PROXIES" default:""`
+	RateLimitFailureMode string        `envconfig:"RATE_LIMIT_FAILURE_MODE" default:"closed"`
 }
 
 func NewConfig() (*Config, error) {
@@ -38,12 +41,22 @@ func NewConfig() (*Config, error) {
 	}
 
 	var config Config
-
 	if err := envconfig.Process("CORE", &config); err != nil {
 		return &Config{}, fmt.Errorf("process envconfig: %w", err)
 	}
 
 	config.TimeZone = zone
+	for i, proxy := range config.TrustedProxies {
+		config.TrustedProxies[i] = strings.TrimSpace(proxy)
+	}
+
+	if config.RateLimitFailureMode == "" {
+		config.RateLimitFailureMode = "closed"
+	}
+
+	if config.RateLimitFailureMode != "open" && config.RateLimitFailureMode != "closed" {
+		return nil, fmt.Errorf("CORE_RATE_LIMIT_FAILURE_MODE must be open or closed")
+	}
 
 	return &config, nil
 }
