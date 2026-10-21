@@ -3,7 +3,7 @@ package core_http_middleware
 import (
 	"fmt"
 	"io"
-	"mime/multipart"
+	"mime"
 	"net/http"
 	"strings"
 
@@ -13,6 +13,14 @@ import (
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
+)
+
+const (
+	// The current upload routes accept avatars up to 10 MiB and request
+	// documents up to 1 MiB. Leave room for multipart boundaries and headers.
+	// This is a request-body limit, not the multipart in-memory threshold.
+	maxMultipartRequestSize int64 = 12 << 20
+	multipartMaxMemory      int64 = 32 << 20
 )
 
 var (
@@ -28,7 +36,12 @@ var (
 		domain.FileMimeTypePptx,
 	}
 
-	allowedTags = []domain.FileTag{domain.FileTagAvatars, domain.FileTagDocs, domain.FileTagImages, domain.FileTagVideos}
+	allowedTags = []domain.FileTag{
+		domain.FileTagAvatars,
+		domain.FileTagDocs,
+		domain.FileTagImages,
+		domain.FileTagVideos,
+	}
 
 	allowedMimesByTag = map[domain.FileTag][]domain.FileMimeType{
 		domain.FileTagAvatars: allowedMimes[:4],
@@ -38,79 +51,91 @@ var (
 	}
 )
 
-// MediaMiddleware validates multipart uploads.
-//   - The request must have a `Content‑Type: multipart/form-data` header.
-//   - A form field named `tag` **must** be present and its value has to be one
-//     of the constants from `domain.FileTag`.
-//   - At least one file part must be present. The MIME type of the *first* file
-//     part is detected (using the part header if it exists, otherwise by
-//     sniffing the first 512 bytes) and must belong to the list defined in
-//     `domain.FileMimeType`.
-//   - When everything is fine the detected mime‑type (and the tag) are stored
-//     into the request context so that downstream handlers can read them
-//     without having to parse the multipart again.
+// Media validates multipart uploads and stores the validated tag and MIME type
+// in the request context. Exactly one uploaded file is accepted, under the
+// field name "file".
 func Media() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			log := core_logger.FromContext(ctx)
 			locale := core_context.Locale(ctx)
-
 			responseHandler := core_http_response.NewResponseHandler(log, locale, rw)
 
 			ct := r.Header.Get("Content-Type")
-			if ct == "" || !strings.HasPrefix(ct, "multipart/form-data") {
+			mediaType, _, parseErr := mime.ParseMediaType(ct)
+			if parseErr != nil || !strings.EqualFold(mediaType, "multipart/form-data") {
 				responseHandler.ErrorResponse(
-					wrapValidationError(fmt.Errorf("get `Content-Type` header")),
+					fmt.Errorf("invalid `Content-Type` header: %w", core_errors.ErrInvalidArgument),
 					"request must be multipart/form-data",
 				)
 				return
 			}
 
-			const maxMemory = 32 << 20 // 32 MB
-			if err := r.ParseMultipartForm(maxMemory); err != nil {
+			// The body limit must be installed before ParseMultipartForm reads
+			// the request. ParseMultipartForm's maxMemory is not a body limit.
+			r.Body = http.MaxBytesReader(rw, r.Body, maxMultipartRequestSize)
+			if err := r.ParseMultipartForm(multipartMaxMemory); err != nil {
 				responseHandler.ErrorResponse(
-					wrapValidationError(fmt.Errorf("parse multipart form: %v", err)),
+					fmt.Errorf("parse multipart form: %w", err),
 					"failed to parse multipart form",
 				)
 				return
+			}
+			if r.MultipartForm != nil {
+				defer r.MultipartForm.RemoveAll()
 			}
 
 			tagStr := r.FormValue("tag")
 			if tagStr == "" {
 				responseHandler.ErrorResponse(
-					wrapValidationError(fmt.Errorf("form value `tag` can't be NULL")),
+					fmt.Errorf("form value `tag` can't be NULL: %w", core_errors.ErrInvalidArgument),
 					"failed to get form value `tag`",
 				)
 				return
 			}
+
 			tag := domain.FileTag(tagStr)
 			if err := core_validation.ValidateArray(allowedTags, tag); err != nil {
 				responseHandler.ErrorResponse(
-					wrapValidationError(fmt.Errorf("form value tag=%s: %w", tag, err)),
+					fmt.Errorf("form value tag=%s: %w", tag, err),
 					"failed to validate form value `tag`",
 				)
 				return
 			}
 
-			var foundFileHeader *multipart.FileHeader
-			for _, fileHeaders := range r.MultipartForm.File {
-				if len(fileHeaders) > 0 {
-					foundFileHeader = fileHeaders[0]
-					break
+			fileHeaders, ok := r.MultipartForm.File["file"]
+			if !ok || len(fileHeaders) != 1 {
+				responseHandler.ErrorResponse(
+					fmt.Errorf("multipart request must contain exactly one file in field `file`: %w", core_errors.ErrInvalidArgument),
+					"failed to get file from multipart request",
+				)
+				return
+			}
+
+			// Reject additional file fields. Otherwise the middleware could
+			// validate one file while the handler consumes another.
+			for field, headers := range r.MultipartForm.File {
+				if field != "file" || len(headers) != 1 {
+					responseHandler.ErrorResponse(
+						fmt.Errorf("unexpected multipart file field %q: %w", field, core_errors.ErrInvalidArgument),
+						"invalid multipart file fields",
+					)
+					return
 				}
 			}
+
+			foundFileHeader := fileHeaders[0]
 			if foundFileHeader == nil {
 				responseHandler.ErrorResponse(
-					wrapValidationError(fmt.Errorf("get multipart request: file part can't be NULL")),
+					fmt.Errorf("file part can't be NULL: %w", core_errors.ErrInvalidArgument),
 					"failed to get file from multipart request",
 				)
 				return
 			}
 
 			mimeStr := strings.TrimSpace(foundFileHeader.Header.Get("Content-Type"))
-
-			if mimeStr == "" || mimeStr == "application/octet-stream" {
+			if mimeStr == "" || strings.EqualFold(mimeStr, "application/octet-stream") {
 				f, err := foundFileHeader.Open()
 				if err != nil {
 					responseHandler.ErrorResponse(fmt.Errorf("open uploaded file: %w", err), "failed to open uploaded file")
@@ -118,10 +143,16 @@ func Media() Middleware {
 				}
 
 				buf := make([]byte, 512)
-				n, err := f.Read(buf)
-				_ = f.Close()
-				if err != nil && err != io.EOF {
-					responseHandler.ErrorResponse(fmt.Errorf("read uploaded file: %w", err), "failed to read uploaded file")
+				n, readErr := f.Read(buf)
+				closeErr := f.Close()
+
+				if readErr != nil && readErr != io.EOF {
+					responseHandler.ErrorResponse(fmt.Errorf("read uploaded file: %w", readErr), "failed to read uploaded file")
+					return
+				}
+
+				if closeErr != nil {
+					responseHandler.ErrorResponse(fmt.Errorf("close uploaded file: %w", closeErr), "failed to close uploaded file")
 					return
 				}
 
@@ -131,17 +162,18 @@ func Media() Middleware {
 			if idx := strings.Index(mimeStr, ";"); idx >= 0 {
 				mimeStr = strings.TrimSpace(mimeStr[:idx])
 			}
+
 			mime := domain.FileMimeType(mimeStr)
 
 			if err := core_validation.ValidateArray(allowedMimes, mime); err != nil {
 				responseHandler.ErrorResponse(
-					fmt.Errorf("file format '%s': %w", tag, err),
+					fmt.Errorf("file format '%s': %w", mime, err),
 					"failed to validate file format",
 				)
 				return
 			}
 
-			if mimes, _ := allowedMimesByTag[tag]; len(mimes) > 0 {
+			if mimes, exists := allowedMimesByTag[tag]; exists {
 				if err := core_validation.ValidateArray(mimes, mime); err != nil {
 					responseHandler.ErrorResponse(
 						fmt.Errorf("file format '%s' doesn't satisfy file tag '%s': %w", mime, tag, err),
@@ -157,8 +189,4 @@ func Media() Middleware {
 			next.ServeHTTP(rw, r.WithContext(ctx))
 		})
 	}
-}
-
-func wrapValidationError(err error) error {
-	return fmt.Errorf("%v: %w", err, core_errors.ErrInvalidArgument)
 }

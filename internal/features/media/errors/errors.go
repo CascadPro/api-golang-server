@@ -11,4 +11,5 @@ var (
 	ErrFileTooLarge            = errors.New("file too large")
 	ErrUnsupportedFormat       = errors.New("unsupported file")
 	ErrInvalidImage            = errors.New("invalid image")
+	ErrInvalidFile             = errors.New("invalid file")
 )

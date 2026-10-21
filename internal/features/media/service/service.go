@@ -2,6 +2,7 @@ package media_service
 
 import (
 	"context"
+	"io"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_postgres_outbox "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/outbox"
@@ -19,10 +20,14 @@ type Service struct {
 type ServiceMethods interface {
 	GetFile(context.Context, string) (domain.File, error)
 	GetFileContent(context.Context, string, *int, *int, *int) (domain.File, []byte, error)
+	GetFileStream(context.Context, string, string) (domain.File, io.ReadCloser, int64, string, error)
 	GetFilePlaceholder(context.Context, string) ([]byte, error)
+
 	UploadFile(context.Context, *domain.File, []byte) (domain.File, error)
+
 	DeleteFile(context.Context, domain.FileTag, string) error
 	DeleteFileTx(context.Context, core_postgres_pool.Tx, domain.FileTag, string) error
+
 	MarkFileDeleted(context.Context, string) error
 }
 
