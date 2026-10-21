@@ -10,12 +10,18 @@ import (
 type HttpHandler struct {
 	usersService users_service.ServiceMethods
 	rateLimiter  core_http_middleware.HTTPRateLimitMiddleware
+	idempotency  core_http_middleware.Middleware
 }
 
-func NewHttpHandler(usersService users_service.ServiceMethods, rateLimiter core_http_middleware.HTTPRateLimitMiddleware) *HttpHandler {
+func NewHttpHandler(
+	usersService users_service.ServiceMethods,
+	rateLimiter core_http_middleware.HTTPRateLimitMiddleware,
+	idempotency core_http_middleware.Middleware,
+) *HttpHandler {
 	return &HttpHandler{
 		usersService: usersService,
 		rateLimiter:  rateLimiter,
+		idempotency:  idempotency,
 	}
 }
 
@@ -27,16 +33,23 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 			Handler: h.GetCurrentUser,
 		},
 		{
-			Method:     core_http.MethodPatch,
-			Path:       "/avatar",
-			Handler:    h.UpdateAvatar,
-			Middleware: []core_http_middleware.Middleware{core_http_middleware.Media(), h.rateLimiter.Middleware()},
+			Method:  core_http.MethodPatch,
+			Path:    "/avatar",
+			Handler: h.UpdateAvatar,
+			Middleware: []core_http_middleware.Middleware{
+				h.rateLimiter.Middleware(),
+				h.idempotency,
+				core_http_middleware.Media(),
+			},
 		},
 		{
-			Method:     core_http.MethodDelete,
-			Path:       "/avatar",
-			Handler:    h.DeleteAvatar,
-			Middleware: []core_http_middleware.Middleware{h.rateLimiter.Middleware()},
+			Method:  core_http.MethodDelete,
+			Path:    "/avatar",
+			Handler: h.DeleteAvatar,
+			Middleware: []core_http_middleware.Middleware{
+				h.rateLimiter.Middleware(),
+				h.idempotency,
+			},
 		},
 	}
 }
