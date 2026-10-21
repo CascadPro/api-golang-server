@@ -21,14 +21,14 @@ func (r *Repository) deleteFile(ctx context.Context, db core_postgres_pool.Queri
 	query := `
 		DELETE FROM media.files
 		WHERE id = $1;
-		`
+	`
 
 	cmd, err := db.Exec(ctx, query, fileID)
 	if err != nil {
 		return fmt.Errorf("exec query: %w", err)
 	}
 	if cmd.RowsAffected() == 0 {
-		return fmt.Errorf("file with id=%s: %w", fileID, media_errors.ErrFileAlreadyExists)
+		return fmt.Errorf("file with id=%s: %w", fileID, media_errors.ErrFileNotFound)
 	}
 
 	return nil
