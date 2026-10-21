@@ -30,9 +30,6 @@ func ClientIPFromRequest(r *http.Request, trustedProxyCIDRs []string) (net.IP, e
 		return nil, err
 	}
 
-	fmt.Println(trusted)
-	fmt.Println(remoteIP.String())
-
 	if !containsIP(trusted, remoteIP) {
 		return remoteIP, nil
 	}
