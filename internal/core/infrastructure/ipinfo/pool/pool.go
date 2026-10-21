@@ -1,13 +1,14 @@
 package core_ipinfo_pool
 
 import (
-	"context"
+	"fmt"
 	"net"
 	"net/http"
+	"net/url"
+	"sync"
 	"time"
 
 	core_redis_cache "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/cache"
-	core_redis_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/pool"
 	"github.com/ipinfo/go/v2/ipinfo"
 )
 
@@ -17,33 +18,48 @@ type Pool interface {
 	OpTimeout() time.Duration
 }
 
-type ConnectionPool struct {
-	client    *ipinfo.Client
-	redisPool *core_redis_pool.Pool
-	timeout   time.Duration
+type ipInfoClient interface {
+	GetIPInfo(net.IP) (*ipinfo.Core, error)
 }
 
-func New(ctx context.Context, cfg Config, pool core_redis_pool.Pool) (*ConnectionPool, error) {
+type ConnectionPool struct {
+	client  ipInfoClient
+	timeout time.Duration
+
+	flightsMu sync.Mutex
+	flights   map[string]*ipInfoCall
+}
+
+func New(cfg Config, cacheRepo core_redis_cache.Cache) (*ConnectionPool, error) {
+	if cacheRepo == nil {
+		return nil, fmt.Errorf("initialize IPInfo: cache dependency is nil")
+	}
+
 	httpClient := http.Client{
 		Transport: &http.Transport{
 			MaxIdleConns:        100,
 			MaxIdleConnsPerHost: 20,
 			IdleConnTimeout:     30 * time.Second,
 		},
-		Timeout: 10 * time.Second,
+		Timeout: cfg.Timeout,
 	}
 
-	repo := core_redis_cache.NewRepository(pool, "ipinfo", cfg.CacheTTL)
+	baseURL, err := url.Parse(cfg.BaseURL)
+	if err != nil || (baseURL.Scheme != "http" && baseURL.Scheme != "https") || baseURL.Host == "" {
+		return nil, fmt.Errorf("initialize IPInfo: BASEURL must be an absolute HTTP(S) URL")
+	}
 
-	cache := ipinfo.NewCache(NewCacheEngine(ctx, repo))
-
-	ipc := ipinfo.NewClient(&httpClient, cache, cfg.Token)
-
-	ipc.BaseURL = &cfg.BaseURL
+	ipInfoCache := ipinfo.NewCache(NewCacheEngine(cacheRepo))
+	client := ipinfo.NewClient(&httpClient, ipInfoCache, cfg.Token)
+	client.BaseURL = baseURL
 
 	return &ConnectionPool{
-		client:    ipc,
-		redisPool: &pool,
-		timeout:   cfg.Timeout,
+		client:  client,
+		timeout: cfg.Timeout,
+		flights: make(map[string]*ipInfoCall),
 	}, nil
+}
+
+func (p *ConnectionPool) OpTimeout() time.Duration {
+	return p.timeout
 }
