@@ -91,9 +91,13 @@ func (a *App) initFeatures() error {
 	mediaRouter.RegisterRoutes(mediaHttpHandler.Routes()...)
 
 	logFeatureInit("users", "/api/v1/users")
+	usersCache, err := core_redis_cache.NewRedisCache(a.infrastructure.Redis, "users", 2*time.Minute)
+	if err != nil {
+		return fmt.Errorf("users cache: %w", err)
+	}
 	usersRouter := core_http_server.NewRouter("/users", rootRateLimit.Middleware(), core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
 	usersPostgresRepository := users_postgres_repository.NewRepository(a.infrastructure.Postgres)
-	usersService := users_service.NewService(mediaService, usersPostgresRepository, outboxPostgresRepository)
+	usersService := users_service.NewService(mediaService, usersCache, usersPostgresRepository, outboxPostgresRepository)
 	usersHttpHandler := users_transport_http.NewHttpHandler(usersService, avatarRateLimiter)
 	usersRouter.RegisterRoutes(usersHttpHandler.Routes()...)
 
@@ -148,5 +152,6 @@ func (a *App) initFeatures() error {
 		Clients: clientRouter, Requests: requestsRouter, Sessions: sessionsRouter, Auth: authRouter,
 		Presence: presenceService,
 	}
+
 	return nil
 }

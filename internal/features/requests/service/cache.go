@@ -10,6 +10,7 @@ import (
 
 const (
 	cacheKeyStats = "stats"
+	cacheKeyUUID  = "uuid"
 )
 
 var (
@@ -25,5 +26,5 @@ type cacheRequest struct {
 }
 
 func cacheKeyRequest(id uuid.UUID) string {
-	return fmt.Sprintf("uuid:%s", id.String())
+	return fmt.Sprintf("%s:%s", cacheKeyUUID, id.String())
 }

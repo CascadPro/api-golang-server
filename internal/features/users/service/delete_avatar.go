@@ -27,5 +27,7 @@ func (s *Service) DeleteAvatar(ctx context.Context, userID uuid.UUID) error {
 		return fmt.Errorf("delete avatar file: %w", err)
 	}
 
+	_ = s.cache.Delete(ctx, cacheKeyUser(userID))
+
 	return nil
 }
