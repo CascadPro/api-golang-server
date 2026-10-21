@@ -10,8 +10,8 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Service) PatchRequestStatus(ctx context.Context, id uuid.UUID, status domain.RequestStatus) error {
-	if id == uuid.Nil {
+func (s *Service) PatchRequestStatus(ctx context.Context, requestID uuid.UUID, status domain.RequestStatus) error {
+	if requestID == uuid.Nil {
 		return fmt.Errorf("`ID` can't be NULL: %w", core_errors.ErrInvalidArgument)
 	}
 
@@ -20,9 +20,12 @@ func (s *Service) PatchRequestStatus(ctx context.Context, id uuid.UUID, status d
 		return fmt.Errorf("get user id from context: %w", err)
 	}
 
-	if err := s.requestsMongoRepo.PatchRequestStatus(ctx, id, userID, status); err != nil {
+	if err := s.requestsMongoRepo.PatchRequestStatus(ctx, requestID, userID, status); err != nil {
 		return fmt.Errorf("patch request status: %w", err)
 	}
+
+	_ = s.cache.Delete(ctx, cacheKeyStats)
+	_ = s.cache.Delete(ctx, cacheKeyRequest(requestID))
 
 	return nil
 }

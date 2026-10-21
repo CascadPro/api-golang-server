@@ -2,6 +2,7 @@ package requests_service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
@@ -15,6 +16,15 @@ func (s *Service) GetRequest(
 ) (domain.Request, domain.User, domain.Client, map[int]domain.File, error) {
 	if requestID == uuid.Nil {
 		return domain.Request{}, domain.User{}, domain.Client{}, nil, fmt.Errorf("`id` can't be NULL: %w", core_errors.ErrInvalidArgument)
+	}
+
+	var cache cacheRequest
+	err := s.cache.Get(ctx, cacheKeyRequest(requestID), &cache)
+	if err == nil {
+		return cache.Request, cache.User, cache.Client, cache.Files, nil
+	}
+	if !errors.Is(err, core_errors.ErrNotFound) {
+		return domain.Request{}, domain.User{}, domain.Client{}, nil, fmt.Errorf("get redis cache: %w", err)
 	}
 
 	request, err := s.requestsMongoRepo.GetRequest(ctx, requestID)
@@ -71,6 +81,17 @@ func (s *Service) GetRequest(
 		if err != nil {
 			return domain.Request{}, domain.User{}, domain.Client{}, nil, fmt.Errorf("get `ClientID` client: %w", err)
 		}
+	}
+
+	cache = cacheRequest{
+		Request: request,
+		User:    statusBy,
+		Client:  client,
+		Files:   filesMap,
+	}
+
+	if err := s.cache.Set(ctx, cacheKeyRequest(requestID), cache, cacheTTLRequest); err != nil {
+		return domain.Request{}, domain.User{}, domain.Client{}, nil, fmt.Errorf("set redis cache: %w", err)
 	}
 
 	return request, statusBy, client, filesMap, nil

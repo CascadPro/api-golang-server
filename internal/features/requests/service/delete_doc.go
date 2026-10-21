@@ -58,5 +58,7 @@ func (s *Service) DeleteDoc(ctx context.Context, requestID uuid.UUID, index int)
 		return fmt.Errorf("delete file from repository: %w", err)
 	}
 
+	_ = s.cache.Delete(ctx, cacheKeyRequest(requestID))
+
 	return nil
 }

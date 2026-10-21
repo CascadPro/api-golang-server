@@ -2,10 +2,12 @@ package app
 
 import (
 	"fmt"
+	"time"
 
 	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/infrastructure/ipinfo/client"
 	core_postgres_outbox "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/outbox"
 	core_postgres_token "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/token"
+	core_redis_cache "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/cache"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
 	core_ws_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/ws/middleware"
@@ -110,9 +112,13 @@ func (a *App) initFeatures() error {
 	clientRouter.RegisterRoutes(clientHttpHandler.Routes()...)
 
 	logFeatureInit("requests", "/api/v1/requests")
+	requestsCache, err := core_redis_cache.NewRedisCache(a.infrastructure.Redis, "requests", 2*time.Minute)
+	if err != nil {
+		return fmt.Errorf("requests cache: %w", err)
+	}
 	requestsRouter := core_http_server.NewRouter("/requests", rootRateLimit.Middleware())
 	requestsMongoRepository := requests_mongo_repository.NewRepository(a.infrastructure.Mongo)
-	requestsService := requests_service.NewService(mediaService, clientService, usersPostgresRepository, requestsMongoRepository)
+	requestsService := requests_service.NewService(mediaService, requestsCache, clientService, usersPostgresRepository, requestsMongoRepository)
 	requestsHttpHandler := requests_transport_http.NewHttpHandler(requestsService, a.infrastructure.TokenIssuer, avatarRateLimiter)
 	requestsRouter.RegisterRoutes(requestsHttpHandler.Routes()...)
 

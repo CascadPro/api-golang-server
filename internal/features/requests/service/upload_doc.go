@@ -72,5 +72,7 @@ func (s *Service) UploadDoc(
 		_ = s.mediaService.DeleteFile(ctx, file.Tag, *oldFileID)
 	}
 
+	_ = s.cache.Delete(ctx, cacheKeyRequest(requestID))
+
 	return nil
 }

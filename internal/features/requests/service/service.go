@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_redis_cache "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/cache"
 	client_service "github.com/CascadePro/api-golang-server/internal/features/client/service"
 	media_service "github.com/CascadePro/api-golang-server/internal/features/media/service"
 	requests_mongo_repository "github.com/CascadePro/api-golang-server/internal/features/requests/repository/mongo"
@@ -13,6 +14,7 @@ import (
 
 type Service struct {
 	mediaService      media_service.ServiceMethods
+	cache             core_redis_cache.Cache
 	clientService     client_service.ServiceMethods
 	usersPostgresRepo users_postgres_repository.RepositoryMethods
 	requestsMongoRepo requests_mongo_repository.RepositoryMethods
@@ -34,12 +36,14 @@ type ServiceMethods interface {
 
 func NewService(
 	mediaService media_service.ServiceMethods,
+	cache core_redis_cache.Cache,
 	clientService client_service.ServiceMethods,
 	usersPostgresRepo users_postgres_repository.RepositoryMethods,
 	requestsMongoRepo requests_mongo_repository.RepositoryMethods,
 ) *Service {
 	return &Service{
 		mediaService:      mediaService,
+		cache:             cache,
 		clientService:     clientService,
 		usersPostgresRepo: usersPostgresRepo,
 		requestsMongoRepo: requestsMongoRepo,

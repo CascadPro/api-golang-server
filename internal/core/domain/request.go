@@ -264,3 +264,21 @@ type RequestStats struct {
 	Total    int64
 	ByStatus map[RequestStatus]int64
 }
+
+func (r *RequestStats) Validate() error {
+	if r.Total < 0 {
+		return fmt.Errorf("`Total` can't be negative: %w", core_errors.ErrInvalidArgument)
+	}
+
+	for key, value := range r.ByStatus {
+		if key == RequestStatusNil {
+			return fmt.Errorf("key of `ByStatus` can't be NULL: %w", core_errors.ErrInvalidArgument)
+		}
+
+		if value < 0 {
+			return fmt.Errorf("value of `ByStatus` can't be negative: %w", core_errors.ErrInvalidArgument)
+		}
+	}
+
+	return nil
+}
