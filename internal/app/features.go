@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"time"
 
 	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/infrastructure/ipinfo/client"
 	core_postgres_outbox "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/outbox"
@@ -45,16 +44,8 @@ type Features struct {
 	Requests *core_http_server.Router
 	Sessions *core_http_server.Router
 	Auth     *core_http_server.Router
-
 	Presence *presence_service.Service
 }
-
-const (
-	createRateLimit  = int64(15)
-	createRateWindow = time.Minute * 15
-	avatarRateLimit  = int64(10)
-	avatarRateWindow = time.Minute * 5
-)
 
 func (a *App) initFeatures() error {
 	tokenPostgresRepository := core_postgres_token.NewRepository(a.infrastructure.Postgres)
@@ -62,121 +53,94 @@ func (a *App) initFeatures() error {
 	ipInfoRepository := core_ipinfo_client.NewRepository(a.infrastructure.IPInfo)
 
 	logFeatureInit := func(name, path string) {
-		a.logger.Debug(
-			"initializing feature",
-			zap.String("feature", name),
-			zap.String("path", fmt.Sprintf("%s/*", path)),
-		)
+		a.logger.Debug("initializing feature", zap.String("feature", name), zap.String("path", fmt.Sprintf("%s/*", path)))
 	}
 
-	// Common Middlewares
-	createRateLimiter := core_http_middleware.NewHTTPRateLimiter(a.infrastructure.Redis, createRateLimit, createRateWindow)
-	avatarRateLimiter := core_http_middleware.NewHTTPRateLimiter(a.infrastructure.Redis, avatarRateLimit, avatarRateWindow)
+	createRateLimiter, err := a.newHTTPRateLimiter(a.rateLimits.Create)
+	if err != nil {
+		return fmt.Errorf("create rate limiter: %w", err)
+	}
+	avatarRateLimiter, err := a.newHTTPRateLimiter(a.rateLimits.Avatar)
+	if err != nil {
+		return fmt.Errorf("avatar rate limiter: %w", err)
+	}
 
-	// Presence service
 	a.logger.Debug("initializing feature", zap.String("feature", "presence"))
 	presenceRedisRepo := presence_redis_repository.NewRepository(a.infrastructure.Redis)
 
-	// Root routes
 	logFeatureInit("root", "")
-
-	rootRateLimit := core_http_middleware.NewHTTPRateLimiter(a.infrastructure.Redis, 100, time.Minute*5)
+	rootRateLimit, err := a.newHTTPRateLimiter(a.rateLimits.Root)
+	if err != nil {
+		return fmt.Errorf("root rate limiter: %w", err)
+	}
 	rootRouter := core_http_server.NewRouter("", rootRateLimit.Middleware())
-
 	rootHttpHandler := root_transport_http.NewHttpHandler()
 	rootRouter.RegisterRoutes(rootHttpHandler.Routes()...)
 
-	// Media routes
 	logFeatureInit("media", "/media")
-	mediaRateLimit := core_http_middleware.NewHTTPRateLimiter(a.infrastructure.Redis, 25, time.Minute*10)
+	mediaRateLimit, err := a.newHTTPRateLimiter(a.rateLimits.Media)
+	if err != nil {
+		return fmt.Errorf("media rate limiter: %w", err)
+	}
 	mediaRouter := core_http_server.NewRouter("/media", mediaRateLimit.Middleware())
-
 	mediaPostgresRepo := media_postgres_repository.NewRepository(a.infrastructure.Postgres)
 	mediaService := media_service.NewService(mediaPostgresRepo, outboxPostgresRepository, a.infrastructure.S3)
 	mediaHttpHandler := media_transport_http.NewHttpHandler(mediaService)
-
 	mediaRouter.RegisterRoutes(mediaHttpHandler.Routes()...)
 
-	// Users route
 	logFeatureInit("users", "/api/v1/users")
-	usersRouter := core_http_server.NewRouter("/users",
-		rootRateLimit.Middleware(), core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
-
+	usersRouter := core_http_server.NewRouter("/users", rootRateLimit.Middleware(), core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
 	usersPostgresRepository := users_postgres_repository.NewRepository(a.infrastructure.Postgres)
 	usersService := users_service.NewService(mediaService, usersPostgresRepository, outboxPostgresRepository)
 	usersHttpHandler := users_transport_http.NewHttpHandler(usersService, avatarRateLimiter)
-
 	usersRouter.RegisterRoutes(usersHttpHandler.Routes()...)
 
-	// Settings route
 	logFeatureInit("settings", "/api/v1/settings")
-	settingsRouter := core_http_server.NewRouter("/settings",
-		rootRateLimit.Middleware(), core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
-
+	settingsRouter := core_http_server.NewRouter("/settings", rootRateLimit.Middleware(), core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
 	settingsPostgresRepository := settings_postgres_repository.NewRepository(a.infrastructure.Postgres)
 	settingsService := settings_service.NewService(settingsPostgresRepository)
 	settingsHttpHandler := settings_transport_http.NewHttpHandler(settingsService)
-
 	settingsRouter.RegisterRoutes(settingsHttpHandler.Routes()...)
 
-	// Client route
 	logFeatureInit("client", "/api/v1/client")
 	clientRouter := core_http_server.NewRouter("/clients", rootRateLimit.Middleware())
-
 	clientPostgresRepository := client_postgres_repository.NewRepository(a.infrastructure.Postgres)
 	clientService := client_service.NewService(clientPostgresRepository)
-
 	clientHttpHandler := client_transport_http.NewHttpHandler(clientService, a.infrastructure.TokenIssuer, createRateLimiter)
 	clientRouter.RegisterRoutes(clientHttpHandler.Routes()...)
 
-	// Requests route
 	logFeatureInit("requests", "/api/v1/requests")
 	requestsRouter := core_http_server.NewRouter("/requests", rootRateLimit.Middleware())
-
 	requestsMongoRepository := requests_mongo_repository.NewRepository(a.infrastructure.Mongo)
 	requestsService := requests_service.NewService(mediaService, clientService, usersPostgresRepository, requestsMongoRepository)
 	requestsHttpHandler := requests_transport_http.NewHttpHandler(requestsService, a.infrastructure.TokenIssuer, avatarRateLimiter)
-
 	requestsRouter.RegisterRoutes(requestsHttpHandler.Routes()...)
 
-	// Sessions route
 	logFeatureInit("sessions", "/api/v1/sessions")
 	sessionsRouter := core_http_server.NewRouter("/sessions", core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
-
 	sessionsRedisRepo := sessions_redis_repository.NewRepository(a.infrastructure.Redis)
 	presenceService := presence_service.NewService(presenceRedisRepo, sessionsRedisRepo)
 	sessionsService := session_service.NewService(sessionsRedisRepo, presenceService, outboxPostgresRepository)
 	sessionsHttpHandler := sessions_transport_http.NewHttpHandler(sessionsService)
-
 	sessionsRouter.RegisterRoutes(sessionsHttpHandler.Routes()...)
 
-	// Auth routes
 	logFeatureInit("authentication", "/api/v1/auth")
 	authRouter := core_http_server.NewRouter("/auth")
-	authRateLimiter := core_http_middleware.NewHTTPRateLimiter(a.infrastructure.Redis, 5, time.Minute)
-
-	authService := auth_service.NewService(usersPostgresRepository, settingsPostgresRepository,
-		tokenPostgresRepository, ipInfoRepository, sessionsRedisRepo, a.infrastructure.TokenIssuer, outboxPostgresRepository)
+	authRateLimiter, err := a.newHTTPRateLimiter(a.rateLimits.Auth)
+	if err != nil {
+		return fmt.Errorf("auth rate limiter: %w", err)
+	}
+	authService := auth_service.NewService(usersPostgresRepository, settingsPostgresRepository, tokenPostgresRepository, ipInfoRepository, sessionsRedisRepo, a.infrastructure.TokenIssuer, outboxPostgresRepository)
 	authHttpHandler := auth_transport_http.NewHttpHandler(authService, a.infrastructure.TokenIssuer, authRateLimiter)
-
 	authRouter.RegisterRoutes(authHttpHandler.Routes()...)
 
 	wsAuthenticator := core_ws_middleware.NewAuthenticator(sessionsRedisRepo, a.infrastructure.TokenIssuer)
-
 	a.infrastructure.WsAuthenticator = wsAuthenticator
 
 	a.features = &Features{
-		Root:     rootRouter,
-		Media:    mediaRouter,
-		Users:    usersRouter,
-		Settings: settingsRouter,
-		Clients:  clientRouter,
-		Requests: requestsRouter,
-		Sessions: sessionsRouter,
-		Auth:     authRouter,
-
+		Root: rootRouter, Media: mediaRouter, Users: usersRouter, Settings: settingsRouter,
+		Clients: clientRouter, Requests: requestsRouter, Sessions: sessionsRouter, Auth: authRouter,
 		Presence: presenceService,
 	}
-
 	return nil
 }

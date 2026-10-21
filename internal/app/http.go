@@ -8,7 +8,6 @@ import (
 
 func (a *App) initHttp() error {
 	a.logger.Debug("initializing http server")
-
 	httpServer := core_http_server.NewHttpServer(
 		core_http_server.NewConfigMust(),
 		a.logger,
@@ -17,36 +16,15 @@ func (a *App) initHttp() error {
 		core_http_middleware.Logger(a.logger),
 		core_http_middleware.Trace(),
 		core_http_middleware.Panic(),
-		core_http_middleware.IP(),
+		core_http_middleware.IP(a.cfg.TrustedProxies...),
 		core_http_middleware.Locale(),
 	)
-
 	apiVersionRouter := core_http_server.NewApiVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegisterRouters(
-		a.features.Auth,
-		a.features.Clients,
-		a.features.Requests,
-		a.features.Sessions,
-		a.features.Settings,
-		a.features.Users,
-	)
-
-	a.features.Root.RegisterRoutes(core_http_server.Route{
-		Method:  core_http.MethodGet,
-		Path:    "/ws",
-		Handler: a.wsServer.ServeHTTP,
-	})
-
-	httpServer.RegisterRouters(
-		a.features.Root,
-		a.features.Media,
-	)
-
+	apiVersionRouter.RegisterRouters(a.features.Auth, a.features.Clients, a.features.Requests, a.features.Sessions, a.features.Settings, a.features.Users)
+	a.features.Root.RegisterRoutes(core_http_server.Route{Method: core_http.MethodGet, Path: "/ws", Handler: a.wsServer.ServeHTTP})
+	httpServer.RegisterRouters(a.features.Root, a.features.Media)
 	httpServer.RegisterApiRouters(apiVersionRouter)
-
 	httpServer.RegisterSwagger()
-
 	a.httpServer = httpServer
-
 	return nil
 }
