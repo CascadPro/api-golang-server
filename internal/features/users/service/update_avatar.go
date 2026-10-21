@@ -114,6 +114,8 @@ func (s *Service) UpdateAvatar(ctx context.Context, userID uuid.UUID, uploadedFi
 		return fmt.Errorf("commit transaction: %w", err)
 	}
 
+	_ = s.cache.Delete(ctx, cacheKeyUser(userID))
+
 	return nil
 }
 

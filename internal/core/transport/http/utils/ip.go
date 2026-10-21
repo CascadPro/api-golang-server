@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"slices"
 	"strings"
 )
-
-var PskovIP net.IP = net.ParseIP("109.207.190.162")
 
 func ParseIP(value string) net.IP {
 	value = strings.TrimSpace(value)
@@ -31,6 +30,9 @@ func ClientIPFromRequest(r *http.Request, trustedProxyCIDRs []string) (net.IP, e
 		return nil, err
 	}
 
+	fmt.Println(trusted)
+	fmt.Println(remoteIP.String())
+
 	if !containsIP(trusted, remoteIP) {
 		return remoteIP, nil
 	}
@@ -38,17 +40,19 @@ func ClientIPFromRequest(r *http.Request, trustedProxyCIDRs []string) (net.IP, e
 	if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
 		parts := strings.Split(forwarded, ",")
 		chain := make([]net.IP, 0, len(parts)+1)
+
 		for _, part := range parts {
 			ip := ParseIP(part)
 			if ip == nil {
 				return nil, fmt.Errorf("invalid IP in X-Forwarded-For")
 			}
+
 			chain = append(chain, ip)
 		}
 
-		for i := len(chain) - 1; i >= 0; i-- {
-			if !containsIP(trusted, chain[i]) {
-				return chain[i], nil
+		for _, c := range slices.Backward(chain) {
+			if !containsIP(trusted, c) {
+				return c, nil
 			}
 		}
 

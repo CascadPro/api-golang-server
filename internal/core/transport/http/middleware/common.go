@@ -79,13 +79,16 @@ func IP(trustedProxyCIDRs ...string) Middleware {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			log := core_logger.FromContext(ctx)
+
 			ip, err := core_http_utils.ClientIPFromRequest(r, trustedProxyCIDRs)
 			if err != nil {
 				log.Warn("failed to determine client IP", zap.Error(err))
 				http.Error(w, "unable to determine client IP", http.StatusBadRequest)
 				return
 			}
+
 			log.Debug("resolved client IP", zap.String("ip", ip.String()))
+
 			ctx = core_context.WithClientIP(ctx, ip)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

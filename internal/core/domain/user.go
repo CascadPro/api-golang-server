@@ -29,10 +29,10 @@ var (
 type User struct {
 	ID        uuid.UUID
 	Version   int64
-	Activated bool
+	Activated bool `json:"-"`
 
 	Email        *string
-	PasswordHash *string
+	PasswordHash *string `json:"-"`
 	Role         UserRole
 
 	Name     string
@@ -42,8 +42,8 @@ type User struct {
 	AvatarFileID *string
 
 	LastActiveAt time.Time
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	CreatedAt    time.Time `json:"-"`
+	UpdatedAt    time.Time `json:"-"`
 }
 
 func NewUser() User {

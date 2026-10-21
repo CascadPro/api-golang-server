@@ -21,11 +21,15 @@ type Pool interface {
 	Get(ctx context.Context, key string) (string, error)
 	GetKeys(ctx context.Context, cursor uint64, match string, count int64) ([]string, error)
 	Set(ctx context.Context, key string, value any, expiration time.Duration) error
+	SetMany(ctx context.Context, values map[string]any, expiration time.Duration) error
 	Del(ctx context.Context, keys ...string) error
 	Eval(ctx context.Context, script string, keys []string, args ...any) (any, error)
+	Scan(ctx context.Context, cursor uint64, match string, count int64) ([]string, uint64, error)
 
 	Publish(ctx context.Context, channel string, message any) error
 	Subscribe(ctx context.Context, channels ...string) *redis.PubSub
+
+	MGet(ctx context.Context, keys ...string) ([]any, error)
 
 	HGet(ctx context.Context, key, field string) (string, error)
 	HGetAll(ctx context.Context, key string) *redis.MapStringStringCmd
