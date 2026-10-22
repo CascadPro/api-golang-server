@@ -3,11 +3,15 @@ package users_service
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
+	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
+	idempotency_service "github.com/CascadePro/api-golang-server/internal/features/idempotency/service"
 	users_errors "github.com/CascadePro/api-golang-server/internal/features/users/errors"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 func (s *Service) DeleteAvatar(ctx context.Context, userID uuid.UUID) error {
@@ -23,11 +27,39 @@ func (s *Service) DeleteAvatar(ctx context.Context, userID uuid.UUID) error {
 		return fmt.Errorf("user has no avatar: %w", users_errors.ErrAvatarNotFound)
 	}
 
-	if err := s.mediaService.DeleteFile(ctx, domain.FileTagAvatars, *user.AvatarFileID); err != nil {
-		return fmt.Errorf("delete avatar file: %w", err)
+	tx, err := s.usersPostgresRepo.BeginTx(ctx)
+	if err != nil {
+		return fmt.Errorf("begin avatar deletion transaction: %w", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	patch := domain.NewAvatarUserPatch(domain.Nullable[string]{Set: true})
+	patched, err := user.ApplyPatch(patch)
+	if err != nil {
+		return fmt.Errorf("prepare avatar removal: %w", err)
 	}
 
-	_ = s.cache.Delete(ctx, cacheKeyUser(userID))
+	if _, err := s.usersPostgresRepo.PatchUserTx(ctx, tx, userID, patched); err != nil {
+		return fmt.Errorf("clear user avatar: %w", err)
+	}
+
+	if err := s.mediaService.DeleteFileTx(ctx, tx, domain.FileTagAvatars, *user.AvatarFileID); err != nil {
+		return fmt.Errorf("schedule avatar file deletion: %w", err)
+	}
+
+	if err := idempotency_service.CompleteInTransaction(ctx, tx, http.StatusNoContent, nil, http.Header{}); err != nil {
+		return fmt.Errorf("save idempotency response in transaction: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit avatar deletion transaction: %w", err)
+	}
+
+	idempotency_service.MarkTransactionCommitted(ctx)
+
+	if err := s.cache.Delete(ctx, cacheKeyUser(userID)); err != nil {
+		core_logger.FromContext(ctx).Error("failed to invalidate user cache after avatar deletion", zap.String("user_id", userID.String()), zap.Error(err))
+	}
 
 	return nil
 }
