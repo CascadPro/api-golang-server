@@ -39,7 +39,7 @@ func CORS(allowedOrigins string) Middleware {
 				)
 				w.Header().Set(
 					"Access-Control-Allow-Headers",
-					"Content-Type, Authorization",
+					"Content-Type, Authorization, Idempotency-Key",
 				)
 				w.Header().Set(
 					"Access-Control-Allow-Credentials",
