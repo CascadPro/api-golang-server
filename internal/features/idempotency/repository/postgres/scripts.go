@@ -35,3 +35,15 @@ SELECT request_hash, status, response_status, response_body, response_headers
 FROM infrastructure.idempotency_records
 WHERE scope = $1 AND operation = $2 AND key_hash = $3
 `
+
+const cleanupExpiredQuery = `
+DELETE FROM infrastructure.idempotency_records
+WHERE expires_at <= CURRENT_TIMESTAMP
+  AND (
+    status = 'completed'
+    OR (
+      status = 'processing'
+      AND updated_at <= CURRENT_TIMESTAMP - INTERVAL '1 hour'
+    )
+  )
+`

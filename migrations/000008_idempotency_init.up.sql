@@ -1,22 +1,20 @@
-CREATE TYPE idempotency_status AS ENUM ('in_progress', 'completed');
+CREATE TYPE idempotency_status AS ENUM ('processing', 'completed');
 
 CREATE TABLE infrastructure.idempotency_records (
-    id UUID PRIMARY KEY,
+    scope            TEXT        NOT NULL,
+    operation        TEXT        NOT NULL,
+    key_hash         BYTEA       NOT NULL,
+    request_hash     BYTEA       NOT NULL,
 
-    scope        TEXT  NOT NULL,
-    operation    TEXT  NOT NULL,
-    key_hash     BYTEA NOT NULL,
-    request_hash BYTEA NOT NULL,
-
-    status idempotency_status NOT NULL DEFAULT 'in_progress',
+    status           idempotency_status NOT NULL DEFAULT 'processing',
 
     response_status  SMALLINT,
     response_body    BYTEA,
     response_headers JSONB,
 
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMPTZ NOT NULL,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at       TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT pk_idempotency_records PRIMARY KEY (scope, operation, key_hash),
 
@@ -25,13 +23,9 @@ CREATE TABLE infrastructure.idempotency_records (
             status = 'processing'
             AND response_status IS NULL
             AND response_body IS NULL
+            AND response_headers IS NULL
         )
-        OR
-        (
-            status = 'completed'
-            AND response_status IS NOT NULL
-            AND response_body IS NOT NULL
-        )
+        OR (status = 'completed' AND response_status IS NOT NULL)
     )
 );
 
