@@ -6,34 +6,35 @@ import (
 )
 
 type recorder struct {
-	header http.Header
-	status int
-	body   bytes.Buffer
+	header      http.Header
+	status      int
+	wroteHeader bool
+	body        bytes.Buffer
 }
 
 func newRecorder() *recorder {
-	return &recorder{
-		header: make(http.Header),
-		status: http.StatusOK,
-	}
+	return &recorder{header: make(http.Header), status: http.StatusOK}
 }
 
-func (r *recorder) Header() http.Header {
-	return r.header
-}
+func (r *recorder) Header() http.Header { return r.header }
 
 func (r *recorder) WriteHeader(status int) {
-	if r.status != http.StatusOK {
+	if r.wroteHeader {
 		return
 	}
-
+	if status < 100 || status > 999 {
+		panic("invalid WriteHeader code")
+	}
 	r.status = status
+	r.wroteHeader = true
 }
 
 func (r *recorder) Write(body []byte) (int, error) {
-	if r.body.Len() == 0 && r.status == http.StatusOK {
-		r.status = http.StatusOK
+	if !r.wroteHeader {
+		r.WriteHeader(http.StatusOK)
 	}
-
+	if r.status == http.StatusNoContent || r.status == http.StatusNotModified {
+		return len(body), nil
+	}
 	return r.body.Write(body)
 }

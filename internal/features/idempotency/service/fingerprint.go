@@ -95,6 +95,7 @@ func fingerprintMultipart(body []byte, boundary string) ([]byte, error) {
 		if closeErr != nil {
 			return nil, fmt.Errorf("close multipart part: %w", closeErr)
 		}
+
 		if int64(len(content)) > maxRequestBodySize {
 			return nil, idempotency_error.ErrRequestBodyTooLarge
 		}

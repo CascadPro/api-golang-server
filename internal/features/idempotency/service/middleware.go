@@ -9,6 +9,7 @@ import (
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
@@ -22,7 +23,6 @@ func (s *Service) Middleware() core_http_middleware.Middleware {
 			ctx := r.Context()
 			log := core_logger.FromContext(ctx)
 			locale := core_context.Locale(ctx)
-
 			responseHandler := core_http_response.NewResponseHandler(log, locale, rw)
 
 			userID, err := core_context.UserID(ctx)
@@ -33,14 +33,14 @@ func (s *Service) Middleware() core_http_middleware.Middleware {
 
 			key, err := uuid.Parse(r.Header.Get(HeaderKey))
 			if err != nil {
-				err = fmt.Errorf("%v: %w", err, idempotency_error.ErrInvalidIdempotencyKey)
+				err = fmt.Errorf("%w: %v", idempotency_error.ErrInvalidIdempotencyKey, err)
 				responseHandler.ErrorResponse(err, "failed to get idempotency key")
 				return
 			}
 
 			fingerprint, err := requestFingerprint(r)
 			if err != nil {
-				responseHandler.ErrorResponse(err, "failed to decode request body")
+				responseHandler.ErrorResponse(err, "failed to fingerprint request")
 				return
 			}
 
@@ -48,60 +48,67 @@ func (s *Service) Middleware() core_http_middleware.Middleware {
 			operation := r.Method + ":" + r.URL.EscapedPath()
 			scope := userID.String()
 
-			ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-			defer cancel()
+			reserveCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+			record, acquired, err := s.repository.Reserve(reserveCtx, scope, operation, keyHash[:], fingerprint, time.Now().Add(s.ttl))
 
-			record, acquired, err := s.repository.Reserve(
-				ctx,
-				scope,
-				operation,
-				keyHash[:],
-				fingerprint,
-				time.Now().Add(s.ttl),
-			)
+			cancel()
+
 			if err != nil {
-				responseHandler.ErrorResponse(err, "failed to check idempotency key")
+				responseHandler.ErrorResponse(err, "failed to reserve idempotency key")
 				return
 			}
 
 			if !acquired {
 				if !equalBytes(record.RequestHash, fingerprint) {
-					err = fmt.Errorf("%v: %w", err, idempotency_error.ErrIdempotencyKeyReused)
-					responseHandler.ErrorResponse(err, "failed to use idempotency key")
+					responseHandler.ErrorResponse(idempotency_error.ErrIdempotencyKeyReused, "idempotency key reused with a different request")
 					return
 				}
 
-				if record.Status == domain.IdempotencyRecordStatusProcessing {
+				switch record.Status {
+				case domain.IdempotencyRecordStatusProcessing:
 					rw.Header().Set("Retry-After", "1")
-					responseHandler.ErrorResponse(idempotency_error.ErrIdempotencyInProgress, "idempotency now in progress")
+					responseHandler.ErrorResponse(idempotency_error.ErrIdempotencyInProgress, "idempotency operation is still processing")
+					return
+
+				case domain.IdempotencyRecordStatusCompleted:
+					replayResponse(rw, record)
+					return
+
+				default:
+					err = fmt.Errorf("unknown idempotency status %q", record.Status)
+					responseHandler.ErrorResponse(err, "invalid idempotency record status")
 					return
 				}
-
-				replayResponse(rw, record)
-				return
 			}
 
+			completeFn := func(completeCtx context.Context, tx core_postgres_pool.Tx, status int, body []byte, headers http.Header) error {
+				return s.repository.CompleteTx(completeCtx, tx, record, status, body, headers)
+			}
+
+			ctx = withTransactionState(ctx, record, completeFn)
+			r = r.WithContext(ctx)
+
 			recorder := newRecorder()
+
 			next.ServeHTTP(recorder, r)
 
-			completeCtx, completeCancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer completeCancel()
+			if !transactionCommitted(ctx) {
+				completeCtx, completeCancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer completeCancel()
 
-			if err := s.repository.Complete(
-				completeCtx,
-				record,
-				recorder.status,
-				recorder.body.Bytes(),
-				safeHeaders(recorder.header),
-			); err != nil {
-				responseHandler.ErrorResponse(err, "failed to save request body")
-				return
+				if err := s.repository.Complete(completeCtx, record, recorder.status, recorder.body.Bytes(), safeHeaders(recorder.header)); err != nil {
+					responseHandler.ErrorResponse(err, "failed to save idempotency response")
+					return
+				}
 			}
 
 			copyHeaders(rw.Header(), recorder.header)
 
 			rw.WriteHeader(recorder.status)
-			_, _ = rw.Write(recorder.body.Bytes())
+
+			if recorder.status != http.StatusNoContent && recorder.status != http.StatusNotModified {
+				_, _ = rw.Write(recorder.body.Bytes())
+			}
 		})
 	}
 }

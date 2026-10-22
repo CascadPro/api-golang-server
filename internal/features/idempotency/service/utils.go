@@ -47,9 +47,18 @@ func copyHeaders(dst, src http.Header) {
 
 func replayResponse(w http.ResponseWriter, record domain.IdempotencyRecord) {
 	copyHeaders(w.Header(), record.ResponseHeaders)
-
 	w.Header().Set(HeaderReplayed, "true")
-	w.WriteHeader(record.ResponseStatus)
+
+	status := record.ResponseStatus
+	if status == 0 {
+		status = http.StatusOK
+	}
+
+	w.WriteHeader(status)
+
+	if status == http.StatusNoContent || status == http.StatusNotModified {
+		return
+	}
 
 	_, _ = w.Write(record.ResponseBody)
 }
