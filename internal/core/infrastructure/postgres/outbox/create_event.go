@@ -18,12 +18,6 @@ func (r *Repository) createEvent(
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
-	query := `
-		INSERT INTO infrastructure.outbox_events (id, type, aggregate_id, payload)
-		VALUES ($1, $2, $3, $4)
-		RETURNING id, type, aggregate_id, payload, created_at;
-	`
-
 	id, err := uuid.NewV7()
 	if err != nil {
 		return domain.OutboxEvent{}, fmt.Errorf("generate ID: %w", err)
@@ -33,7 +27,7 @@ func (r *Repository) createEvent(
 		event.Payload = json.RawMessage(`{}`)
 	}
 
-	row := db.QueryRow(ctx, query, id, event.Type, event.AggregateID, event.Payload)
+	row := db.QueryRow(ctx, createQuery, id, event.Type, event.AggregateID, event.Payload)
 
 	var model Event
 	if err := row.Scan(&model.ID, &model.Type, &model.AggregateID, &model.Payload, &model.CreatedAt); err != nil {
