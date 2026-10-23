@@ -16,12 +16,7 @@ func (r *Repository) DeleteToken(ctx context.Context, id uuid.UUID) error {
 		return fmt.Errorf("`id` can't be NULL: %w", core_errors.ErrInvalidArgument)
 	}
 
-	query := `
-		DELETE FROM base.tokens
-		WHERE id = $1;
-	`
-
-	cmd, err := r.pool.Exec(ctx, query, id)
+	cmd, err := r.pool.Exec(ctx, deleteQuery, id)
 	if err != nil {
 		return fmt.Errorf("exec query: %w", err)
 	}

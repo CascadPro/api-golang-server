@@ -16,18 +16,12 @@ func (r *Repository) CreateToken(ctx context.Context, token domain.Token) (domai
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
-	query := `
-		INSERT INTO base.tokens (id, token, type, expires_at, user_id)
-		VALUES($1, $2, $3, $4, $5)
-		RETURNING id, version, token, type, expires_at;
-	`
-
 	id, err := uuid.NewV7()
 	if err != nil {
 		return domain.Token{}, fmt.Errorf("generate ID: %w", err)
 	}
 
-	row := r.pool.QueryRow(ctx, query, id, token.Token, token.Type, token.ExpiresAt, token.UserID)
+	row := r.pool.QueryRow(ctx, createQuery, id, token.Token, token.Type, token.ExpiresAt, token.UserID)
 
 	var model TokenModel
 	if err := row.Scan(&model.ID, &model.Version, &model.Token, &model.Type, &model.ExpiresAt); err != nil {
