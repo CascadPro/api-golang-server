@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
 
 	core_ipinfo_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/ipinfo/pool"
 	core_mongo_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/mongo/pool"
@@ -14,6 +15,8 @@ import (
 	core_jwt_security "github.com/CascadePro/api-golang-server/internal/core/security/jwt"
 	core_ws_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/ws/middleware"
 	core_validation_init "github.com/CascadePro/api-golang-server/internal/core/validation/init"
+	idempotency_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/idempotency/repository/postgres"
+	idempotency_service "github.com/CascadePro/api-golang-server/internal/features/idempotency/service"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -26,6 +29,7 @@ type Infrastructure struct {
 	IPInfo          *core_ipinfo_pool.ConnectionPool
 	TokenIssuer     *core_jwt_security.Issuer
 	Publisher       *core_redis_realtime.Publisher
+	Idempotency     *idempotency_service.Service
 	WsAuthenticator *core_ws_middleware.Authenticator
 }
 
@@ -97,6 +101,10 @@ func (a *App) initInfrastructure(ctx context.Context) error {
 	}
 
 	publisher := core_redis_realtime.NewPublisher(redisPool)
+
+	idempotencyRepository := idempotency_postgres_repository.NewRepository(pgPool)
+	idempotency := idempotency_service.New(idempotencyRepository, 24*time.Hour)
+
 	a.infrastructure = &Infrastructure{
 		Postgres:    pgPool,
 		Redis:       redisPool,
@@ -105,6 +113,7 @@ func (a *App) initInfrastructure(ctx context.Context) error {
 		IPInfo:      ipInfoPool,
 		TokenIssuer: tokenIssuer,
 		Publisher:   publisher,
+		Idempotency: idempotency,
 	}
 	return nil
 }

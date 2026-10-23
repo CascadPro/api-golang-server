@@ -39,6 +39,11 @@ const (
 	CodeSessionExpired  Code = "session_expired"
 	CodeSessionRevoked  Code = "session_revoked"
 
+	CodeInvalidIdempotencyKey Code = "invalid_idempotency_key"
+	CodeRequestBodyTooLarge   Code = "request_body_too_large"
+	CodeIdempotencyKeyReused  Code = "idempotency_key_reused"
+	CodeIdempotencyInProgress Code = "idempotency_in_progress"
+
 	CodeSettingsNotFound Code = "settings_not_found"
 
 	CodeInvalidToken Code = "invalid_token"
