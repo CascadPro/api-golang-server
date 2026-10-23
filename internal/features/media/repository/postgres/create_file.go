@@ -16,18 +16,12 @@ func (r *Repository) CreateFile(ctx context.Context, file *domain.File) (domain.
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
-	query := `
-		INSERT INTO media.files (id, tag, filename, mime_type, size, placeholder)
-		VALUES($1, $2, $3, $4, $5, $6)
-		RETURNING id, version, tag, filename, mime_type, size, created_at;
-	`
-
 	id, err := core_utils.GenerateID(domain.FileIDByteLength)
 	if err != nil {
 		return domain.File{}, fmt.Errorf("generate id: %w", err)
 	}
 
-	row := r.pool.QueryRow(ctx, query, id, file.Tag, file.Filename, file.MimeType, file.Size, file.GetPlaceholder())
+	row := r.pool.QueryRow(ctx, createQuery, id, file.Tag, file.Filename, file.MimeType, file.Size, file.GetPlaceholder())
 
 	var model FileModel
 	if err := row.Scan(

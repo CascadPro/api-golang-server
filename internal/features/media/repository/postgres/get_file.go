@@ -19,14 +19,7 @@ func (r *Repository) GetFile(ctx context.Context, fileID string) (domain.File, [
 		return domain.File{}, nil, fmt.Errorf("validate file id: %w", err)
 	}
 
-	query := `
-		SELECT id, version, tag, filename, mime_type, size, deleted, deleted_at, created_at, placeholder
-		FROM media.files
-		WHERE (id = $1)
-		LIMIT 1;
-	`
-
-	row := r.pool.QueryRow(ctx, query, fileID)
+	row := r.pool.QueryRow(ctx, getQuery, fileID)
 
 	var model FileModel
 	var placeholder []byte

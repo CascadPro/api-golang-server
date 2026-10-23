@@ -28,13 +28,7 @@ func (r *Repository) PatchPlaceholder(
 		return fmt.Errorf("placeholder is nil: %w", core_errors.ErrInvalidArgument)
 	}
 
-	query := `
-	  UPDATE media.files
-		SET version = version + 1, placeholder = $1
-		WHERE (id = $2 AND version = $3);
-	`
-
-	if _, err := r.pool.Exec(ctx, query, placeholder, fileID, version); err != nil {
+	if _, err := r.pool.Exec(ctx, patchPlaceholderQuery, placeholder, fileID, version); err != nil {
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
 			return fmt.Errorf(
 				"file with id=%s concurrently accessed: %w",

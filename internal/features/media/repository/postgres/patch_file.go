@@ -25,14 +25,7 @@ func (r *Repository) patchFile(
 		return domain.File{}, fmt.Errorf("validate file id: %w", err)
 	}
 
-	query := `
-		UPDATE media.files
-		SET version = version + 1, filename = $1, size = $2, deleted = $3, deleted_at = $4
-		WHERE (id = $5 AND version = $6)
-		RETURNING id, version, tag, filename, mime_type, size, deleted, deleted_at, created_at;
-	`
-
-	row := db.QueryRow(ctx, query, file.Filename, file.Size, file.Deleted, file.DeletedAt, fileID, file.Version)
+	row := db.QueryRow(ctx, patchQuery, file.Filename, file.Size, file.Deleted, file.DeletedAt, fileID, file.Version)
 
 	var model FileModel
 	if err := row.Scan(
