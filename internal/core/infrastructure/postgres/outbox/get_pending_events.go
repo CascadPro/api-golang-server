@@ -27,9 +27,13 @@ func (r *Repository) GetPendingEvents(
 		WITH events AS (
 			SELECT id
 			FROM infrastructure.outbox_events
-			WHERE processed_at IS NULL AND (
-				locked_at IS NULL
-				OR locked_at < NOW() - ($3 * INTERVAL '1 second')
+			WHERE (
+				processed_at IS NULL
+				AND attempts < 4
+				AND (
+					locked_at IS NULL
+					OR locked_at < NOW() - ($3 * INTERVAL '1 second')
+				)
 			)
 			ORDER BY created_at, id
 			FOR UPDATE SKIP LOCKED

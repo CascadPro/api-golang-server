@@ -1,3 +1,5 @@
+DROP INDEX IF EXISTS idx_outbox_events_can_delete;
+
 DROP INDEX IF EXISTS idx_outbox_events_locked;
 
 DROP INDEX IF EXISTS idx_outbox_events_pending;

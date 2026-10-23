@@ -9,7 +9,7 @@ CREATE TABLE infrastructure.outbox_events (
   aggregate_id UUID                         DEFAULT NULL,
   payload      JSONB              NOT NULL,
 
-  attempts   INTEGER NOT NULL DEFAULT 1,
+  attempts   INTEGER NOT NULL DEFAULT 0,
   last_error TEXT             DEFAULT NULL,
 
   locked_at TIMESTAMPTZ DEFAULT NULL,
@@ -21,8 +21,12 @@ CREATE TABLE infrastructure.outbox_events (
 
 CREATE INDEX idx_outbox_events_pending
 ON infrastructure.outbox_events (created_at, id)
-WHERE processed_at IS NULL;
+WHERE processed_at IS NULL AND attempts < 4;
 
 CREATE INDEX idx_outbox_events_locked
 ON infrastructure.outbox_events (locked_at)
 WHERE processed_at IS NULL AND locked_at IS NOT NULL;
+
+CREATE INDEX idx_outbox_events_can_delete
+ON infrastructure.outbox_events (last_error)
+WHERE processed_at IS NOT NULL AND last_error IS NULL;
