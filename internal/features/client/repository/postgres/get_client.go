@@ -20,14 +20,7 @@ func (r *Repository) GetClient(ctx context.Context, id uuid.UUID) (domain.Client
 		return domain.Client{}, fmt.Errorf("`ID` can't be NULL: %w", core_errors.ErrInvalidArgument)
 	}
 
-	query := `
-		SELECT id, version, company, contacts, created_at
-		FROM base.clients
-		WHERE (id = $1)
-		LIMIT 1;
-	`
-
-	row := r.pool.QueryRow(ctx, query, id)
+	row := r.pool.QueryRow(ctx, getQuery, id)
 
 	var model ClientModel
 	if err := row.Scan(&model.ID, &model.Version, &model.Company, &model.Contacts, &model.CreatedAt); err != nil {

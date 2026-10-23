@@ -19,13 +19,7 @@ func (r *Repository) CreateClient(ctx context.Context, client domain.Client) (do
 		return domain.Client{}, fmt.Errorf("generate ID: %w", err)
 	}
 
-	query := `
-		INSERT INTO base.clients (id, company, contacts)
-		VALUES($1, $2, $3)
-		RETURNING id, version, company, contacts, created_at;
-	`
-
-	row := r.pool.QueryRow(ctx, query, id, client.Company, client.Contacts)
+	row := r.pool.QueryRow(ctx, createQuery, id, client.Company, client.Contacts)
 
 	var model ClientModel
 	if err := row.Scan(&model.ID, &model.Version, &model.Company, &model.Contacts, &model.CreatedAt); err != nil {
