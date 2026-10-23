@@ -64,6 +64,8 @@ func New(ctx context.Context, cfg *core_config.Config, logger *core_logger.Logge
 	if err := app.initInfrastructure(ctx); err != nil {
 		return nil, fmt.Errorf("init infrastructure: %w", err)
 	}
+
+	logger.Debug("initializing app rate limiter")
 	app.rateLimiter = core_redis_rate_limit.New(app.infrastructure.Redis)
 
 	logger.Debug("initializing app workers")
