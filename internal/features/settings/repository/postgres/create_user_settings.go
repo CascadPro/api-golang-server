@@ -19,18 +19,12 @@ func (r *Repository) CreateUserSettings(
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
-	query := `
-		INSERT INTO base.user_settings (id, user_id, session_expire_term)
-		VALUES ($1, $2, $3)
-		RETURNING id, user_id, version, session_expire_term;
-	`
-
 	id, err := uuid.NewV7()
 	if err != nil {
 		return domain.UserSettings{}, fmt.Errorf("generate ID: %w", err)
 	}
 
-	row := r.pool.QueryRow(ctx, query, id, settings.UserID, settings.SessionExpireTerm)
+	row := r.pool.QueryRow(ctx, createQuery, id, settings.UserID, settings.SessionExpireTerm)
 
 	var model UserSettingsModel
 	if err := row.Scan(&model.ID, &model.UserID, &model.Version, &model.SessionExpireTerm); err != nil {

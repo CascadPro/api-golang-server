@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
@@ -22,23 +21,7 @@ func (r *Repository) PatchUserSettings(
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
-	var query strings.Builder
-	var args []any
-
-	query.WriteString(`
-		UPDATE base.user_settings
-		SET version = version + 1
-	`)
-
-	if settings.SessionExpireTerm != domain.SessionExpireNil {
-		fmt.Fprintf(&query, ", session_expire_term = $%d", len(args)+1)
-		args = append(args, settings.SessionExpireTerm)
-	}
-
-	fmt.Fprintf(&query, " WHERE (id = $%d AND version = $%d)", len(args)+1, len(args)+2)
-	args = append(args, id, settings.Version)
-
-	query.WriteString("RETURNING id, user_id, version, session_expire_term;")
+	query, args := patchQuery(id, &settings)
 
 	row := r.pool.QueryRow(ctx, query.String(), args...)
 
