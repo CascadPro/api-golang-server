@@ -6,13 +6,24 @@ CREATE TABLE base.user_settings (
   version BIGINT NOT NULL DEFAULT 1,
 
   session_expire_term session_expire_term_enum NOT NULL DEFAULT '30d',
+  session_2fa_enabled BOOLEAN                  NOT NULL DEFAULT false,
+
+  preferences   JSONB NOT NULL DEFAULT '{}'::jsonb,
+  notifications JSONB NOT NULL DEFAULT '{}'::jsonb,
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_user_settings_user_id FOREIGN KEY (user_id) REFERENCES base.users(id) ON DELETE CASCADE,
 
-  CONSTRAINT chk_user_settings_timestamps CHECK (updated_at >= created_at)
+  CONSTRAINT chk_user_settings_object CHECK (
+    jsonb_typeof(preferences) = 'object'
+    AND jsonb_typeof(notifications) = 'object'
+  ),
+
+  CONSTRAINT chk_user_settings_timestamps CHECK (
+    updated_at >= created_at
+  )
 );
 
 CREATE UNIQUE INDEX idx_user_settings_user_id ON base.user_settings (user_id);

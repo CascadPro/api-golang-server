@@ -7,27 +7,22 @@ import (
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
-	"github.com/google/uuid"
+	settings_http_dto "github.com/CascadePro/api-golang-server/internal/features/settings/transport/http/dto"
 )
 
-type GetUserSettingsResponse struct {
-	ID                uuid.UUID                `json:"id"                  example:"00000000-000000-000000-000000000000"`
-	Version           int64                    `json:"version"             example:"1"`
-	SessionExpireTerm domain.SessionExpireTime `json:"session_expire_term" example:"30d"`
-}
+type GetUserSettingsResponse settings_http_dto.UserSettingsResponse
 
 // GetUserSettings godoc
 // @Summary      Get user settings
-// @Description  Get user settings for the authenticated user
-// @Tags         users
+// @Description  Get all settings for the authenticated user
+// @Tags         settings
 // @Produce      json
-// @Success      200 {object} GetUserSettingsResponse "User sessions"
+// @Success      200 {object} GetUserSettingsResponse "User settings"
 // @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"
 // @Failure      404 {object} core_http_response.ErrorResponse "Not found"
-// @Failure      409 {object} core_http_response.ErrorResponse "Conflict error"
 // @Failure      429 {object} core_http_response.ErrorResponse "Too many requests"
 // @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
-// @Router       /settings/user/my [get]
+// @Router       /settings/user [get]
 func (h *HttpHandler) GetUserSettings(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
@@ -47,15 +42,29 @@ func (h *HttpHandler) GetUserSettings(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := getUserSettingsDtoFromDomain(settings)
+	response := getUserSettingsDTOFromDomain(settings)
 
 	responseHandler.JsonResponse(response, http.StatusOK)
 }
 
-func getUserSettingsDtoFromDomain(settings domain.UserSettings) GetUserSettingsResponse {
+func getUserSettingsDTOFromDomain(settings domain.UserSettings) GetUserSettingsResponse {
 	return GetUserSettingsResponse{
-		ID:                settings.ID,
-		Version:           settings.Version,
+		ID: settings.ID, Version: settings.Version,
 		SessionExpireTerm: settings.SessionExpireTerm,
+		Session2FAEnabled: settings.Session2FAEnabled,
+		Preferences: settings_http_dto.UserSettingsResponsePreferences{
+			Theme:                   settings.Preferences.Theme,
+			Accent:                  settings.Preferences.Accent,
+			Animations:              settings.Preferences.Animations,
+			Density:                 settings.Preferences.Density,
+			TextSize:                settings.Preferences.TextSize,
+			ConfirmImportantActions: settings.Preferences.ConfirmImportantActions,
+		},
+		Notifications: settings_http_dto.UserSettingsResponseNotifications{
+			Requests: settings.Notifications.Requests,
+			Sessions: settings.Notifications.Sessions,
+			System:   settings.Notifications.System,
+			Push:     settings.Notifications.Push,
+		},
 	}
 }
