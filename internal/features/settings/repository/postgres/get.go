@@ -10,7 +10,7 @@ import (
 	settings_errors "github.com/CascadePro/api-golang-server/internal/features/settings/errors"
 )
 
-// Get user settings, fields to search: "ID" / "UserID"
+// GetUserSettings reads the complete settings aggregate by ID or user ID.
 func (r *Repository) GetUserSettings(ctx context.Context, settings domain.UserSettings) (domain.UserSettings, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
@@ -21,17 +21,22 @@ func (r *Repository) GetUserSettings(ctx context.Context, settings domain.UserSe
 	}
 
 	row := r.pool.QueryRow(ctx, query.String(), arg)
-
 	var model UserSettingsModel
-	if err := row.Scan(&model.ID, &model.UserID, &model.Version, &model.SessionExpireTerm); err != nil {
+	if err := row.Scan(
+		&model.ID, &model.UserID, &model.Version, &model.SessionExpireTerm,
+		&model.Session2FAEnabled, &model.Preferences, &model.Notifications,
+		&model.CreatedAt, &model.UpdatedAt,
+	); err != nil {
 		err = core_postgres_pool.MapErrors(err)
-
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
 			return domain.UserSettings{}, fmt.Errorf("%v: %s: %w", err, errStr, settings_errors.ErrSettingsNotFound)
 		}
-
-		return domain.UserSettings{}, fmt.Errorf("scan error: %w", err)
+		return domain.UserSettings{}, fmt.Errorf("scan user settings: %w", err)
 	}
 
-	return modelToDomain(model), nil
+	result, err := modelToDomain(model)
+	if err != nil {
+		return domain.UserSettings{}, fmt.Errorf("map user settings: %w", err)
+	}
+	return result, nil
 }
