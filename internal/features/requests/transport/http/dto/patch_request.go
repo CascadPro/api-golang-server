@@ -20,6 +20,15 @@ type PatchRequestRequest struct {
 	Deadline  core_http_types.Nullable[time.Time]                   `json:"deadline"`
 }
 
+type PatchRequestRequestSwagger struct {
+	Title     string                      `json:"title"`
+	Origin    []PatchRequestRequestOrigin `json:"origin"`
+	ClientID  uuid.UUID                   `json:"client_id"`
+	WorkTypes []string                    `json:"work_types"`
+	Geography []string                    `json:"geography"`
+	Deadline  time.Time                   `json:"deadline"`
+}
+
 type PatchRequestRequestOrigin struct {
 	Type  domain.RequestOriginType `json:"type"`
 	Value string                   `json:"value"`

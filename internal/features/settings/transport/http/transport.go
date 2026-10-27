@@ -11,21 +11,19 @@ type HttpHandler struct {
 }
 
 func NewHttpHandler(settingsService settings_service.ServiceMethods) *HttpHandler {
-	return &HttpHandler{
-		settingsService: settingsService,
-	}
+	return &HttpHandler{settingsService: settingsService}
 }
 
 func (h *HttpHandler) Routes() []core_http_server.Route {
 	return []core_http_server.Route{
 		{
 			Method:  core_http.MethodGet,
-			Path:    "/user/my",
+			Path:    "/user",
 			Handler: h.GetUserSettings,
 		},
 		{
 			Method:  core_http.MethodPatch,
-			Path:    "/user/update",
+			Path:    "/user",
 			Handler: h.PatchUserSettings,
 		},
 	}

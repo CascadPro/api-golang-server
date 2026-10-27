@@ -11,9 +11,7 @@ import (
 	request_http_dto "github.com/CascadePro/api-golang-server/internal/features/requests/transport/http/dto"
 )
 
-type PatchRequestRequest struct {
-	request_http_dto.PatchRequestRequest
-}
+type PatchRequestRequest request_http_dto.PatchRequestRequestSwagger
 
 // PatchRequest godoc
 // @Summary      Patch request
@@ -43,7 +41,7 @@ func (h *HttpHandler) PatchRequest(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request PatchRequestRequest
+	var request request_http_dto.PatchRequestRequest
 	if err := core_http_request.DecodeAndValidate(rw, r, &request); err != nil {
 		responseHandler.ErrorResponse(err, "failed to decode and validate http request")
 		return
@@ -59,7 +57,7 @@ func (h *HttpHandler) PatchRequest(rw http.ResponseWriter, r *http.Request) {
 	responseHandler.NoContentResponse()
 }
 
-func patchRequestToPatch(request PatchRequestRequest) domain.RequestPatch {
+func patchRequestToPatch(request request_http_dto.PatchRequestRequest) domain.RequestPatch {
 	patch := domain.RequestPatch{
 		Title:     request.Title.ToDomain(),
 		ClientID:  request.ClientID.ToDomain(),

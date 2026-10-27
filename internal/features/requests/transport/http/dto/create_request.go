@@ -9,7 +9,7 @@ import (
 
 type CreateRequestRequest struct {
 	Title     string                        `json:"title"      validate:"required,min=1,max=255"        example:"Some title"`
-	Origin    *[]CreateRequestRequestOrigin `json:"origin"     validate:"omitempty"                     example:""`
+	Origin    *[]CreateRequestRequestOrigin `json:"origin"     validate:"omitempty"`
 	ClientID  *uuid.UUID                    `json:"client_id"  validate:"omitempty,uuid"                example:"00000000-000000-000000-000000000000"`
 	WorkTypes *[]string                     `json:"work_types" validate:"omitempty,dive,min=1,max=255"  example:""`
 	Geography *[]string                     `json:"geography"  validate:"omitempty,dive,min=1,max=255"  example:""`
