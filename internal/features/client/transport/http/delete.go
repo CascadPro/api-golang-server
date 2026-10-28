@@ -33,7 +33,7 @@ func (h *HttpHandler) DeleteClient(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.clientService.DeleteClient(ctx, requestID); err != nil {
+	if err := h.clientService.Delete(ctx, requestID); err != nil {
 		responseHandler.ErrorResponse(err, "failed to delete client")
 		return
 	}

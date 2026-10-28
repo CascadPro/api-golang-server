@@ -5,17 +5,27 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_redis_cache "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/cache"
-	client_service "github.com/CascadePro/api-golang-server/internal/features/client/service"
-	media_service "github.com/CascadePro/api-golang-server/internal/features/media/service"
 	"github.com/google/uuid"
 )
 
 type Service struct {
-	mediaService      media_service.ServiceMethods
+	mediaService      MediaService
 	cache             core_redis_cache.Cache
-	clientService     client_service.ServiceMethods
+	clientService     ClientService
 	usersPostgresRepo UsersRepository
 	requestsMongoRepo RequestsRepository
+}
+
+type MediaService interface {
+	GetFile(ctx context.Context, fileID string) (file domain.File, err error)
+
+	UploadFile(ctx context.Context, file *domain.File, content []byte) (created domain.File, err error)
+
+	DeleteFile(ctx context.Context, tag domain.FileTag, fileID string) error
+}
+
+type ClientService interface {
+	Get(context.Context, uuid.UUID) (domain.Client, error)
 }
 
 type UsersRepository interface {
@@ -33,24 +43,10 @@ type RequestsRepository interface {
 	PatchStatus(ctx context.Context, id uuid.UUID, userID uuid.UUID, status domain.RequestStatus) error
 }
 
-type ServiceMethods interface {
-	CreateRequest(context.Context, domain.Request) (domain.Request, error)
-
-	GetRequest(context.Context, uuid.UUID) (domain.Request, domain.User, domain.Client, map[int]domain.File, error)
-	GetRequests(context.Context, int, int, domain.RequestQueryFilter) ([]domain.Request, int64, error)
-	GetRequestsStats(context.Context) (domain.RequestStats, error)
-
-	PatchRequest(context.Context, uuid.UUID, domain.RequestPatch) (domain.Request, error)
-	PatchRequestStatus(context.Context, uuid.UUID, domain.RequestStatus) error
-
-	UploadDoc(context.Context, uuid.UUID, domain.File, []byte, int) error
-	DeleteDoc(context.Context, uuid.UUID, int) error
-}
-
 func NewService(
-	mediaService media_service.ServiceMethods,
+	mediaService MediaService,
 	cache core_redis_cache.Cache,
-	clientService client_service.ServiceMethods,
+	clientService ClientService,
 	usersPostgresRepo UsersRepository,
 	requestsMongoRepo RequestsRepository,
 ) *Service {

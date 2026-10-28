@@ -24,7 +24,7 @@ func (s *Service) PatchRequest(ctx context.Context, requestID uuid.UUID, patch d
 	}
 
 	if request.ClientID != nil {
-		if _, err := s.clientService.GetClient(ctx, *request.ClientID); err != nil {
+		if _, err := s.clientService.Get(ctx, *request.ClientID); err != nil {
 			return domain.Request{}, fmt.Errorf("get client from repository: %w", err)
 		}
 	}

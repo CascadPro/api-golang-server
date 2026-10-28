@@ -42,7 +42,7 @@ func (h *HttpHandler) CreateClient(rw http.ResponseWriter, r *http.Request) {
 
 	client := domain.NewCreateClient(request.Company, request.Contacts)
 
-	if _, err := h.clientService.CreateClient(ctx, client); err != nil {
+	if _, err := h.clientService.Create(ctx, client); err != nil {
 		responseHandler.ErrorResponse(err, "failed to create client")
 		return
 	}

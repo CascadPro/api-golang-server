@@ -16,11 +16,6 @@ type SettingsRepository interface {
 	PatchUserSettings(ctx context.Context, id uuid.UUID, patch domain.UserSettingsPatch) (domain.UserSettings, error)
 }
 
-type ServiceMethods interface {
-	GetUserSettings(context.Context, uuid.UUID) (domain.UserSettings, error)
-	PatchUserSettings(context.Context, uuid.UUID, domain.UserSettingsPatch) (domain.UserSettings, error)
-}
-
 func NewService(settingsPostgresRepo SettingsRepository) *Service {
 	return &Service{
 		settingsPostgresRepo: settingsPostgresRepo,

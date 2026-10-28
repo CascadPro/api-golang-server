@@ -26,15 +26,6 @@ type SessionsRepository interface {
 	PatchLastActive(ctx context.Context, userID uuid.UUID, sessionID string) error
 }
 
-type ServiceMethods interface {
-	Register(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (RegisterResult, error)
-	Unregister(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (UnregisterResult, error)
-
-	GetOnlineSessions(ctx context.Context, userID uuid.UUID, sessionIDs []string) (map[string]bool, error)
-
-	Heartbeat(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) error
-}
-
 func NewService(presenceRedisRepo PresenceRepository, sessionsRedisRepo SessionsRepository) *Service {
 	return &Service{
 		presenceRedisRepo: presenceRedisRepo,

@@ -6,15 +6,24 @@ import (
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
 	core_redis_cache "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/cache"
-	media_service "github.com/CascadePro/api-golang-server/internal/features/media/service"
 	"github.com/google/uuid"
 )
 
 type Service struct {
-	mediaService       media_service.ServiceMethods
+	mediaService       MediaService
 	cache              core_redis_cache.Cache
 	usersPostgresRepo  UsersRepository
 	outboxPostgresRepo OutboxRepository
+}
+
+type MediaService interface {
+	GetFilePlaceholder(ctx context.Context, fileID string) (placeholder []byte, err error)
+
+	UploadFile(ctx context.Context, file *domain.File, content []byte) (created domain.File, err error)
+
+	DeleteFile(ctx context.Context, tag domain.FileTag, fileID string) error
+
+	DeleteFileTx(ctx context.Context, tx core_postgres_pool.Tx, tag domain.FileTag, fileID string) error
 }
 
 type UsersRepository interface {
@@ -29,14 +38,8 @@ type OutboxRepository interface {
 	CreateEventTx(ctx context.Context, tx core_postgres_pool.Tx, event domain.OutboxEvent) (domain.OutboxEvent, error)
 }
 
-type ServiceMethods interface {
-	GetCurrentUser(context.Context, uuid.UUID) (domain.User, []byte, error)
-	UpdateAvatar(context.Context, uuid.UUID, *domain.File, []byte) error
-	DeleteAvatar(context.Context, uuid.UUID) error
-}
-
 func NewService(
-	mediaService media_service.ServiceMethods,
+	mediaService MediaService,
 	cache core_redis_cache.Cache,
 	usersPostgresRepo UsersRepository,
 	outboxPostgresRepo OutboxRepository,

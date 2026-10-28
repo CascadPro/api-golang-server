@@ -7,7 +7,6 @@ import (
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_ipinfo_client "github.com/CascadePro/api-golang-server/internal/core/infrastructure/ipinfo/client"
 	core_jwt_security "github.com/CascadePro/api-golang-server/internal/core/security/jwt"
-	core_http_request "github.com/CascadePro/api-golang-server/internal/core/transport/http/request"
 	"github.com/google/uuid"
 )
 
@@ -58,14 +57,6 @@ type SessionsRepository interface {
 
 type OutboxRepository interface {
 	CreateEvent(ctx context.Context, event domain.OutboxEvent) (domain.OutboxEvent, error)
-}
-
-type ServiceMethods interface {
-	CreateRegisterToken(context.Context, domain.User) (domain.Token, error)
-	Register(context.Context, domain.UserPatch, string) error
-	Login(context.Context, domain.User, net.IP, *core_http_request.UserAgent) (string, string, error)
-	GetNewTokens(context.Context, string) (string, error)
-	Logout(context.Context, string) error
 }
 
 func NewService(

@@ -12,7 +12,7 @@ func (s *Service) CreateRequest(ctx context.Context, request domain.Request) (do
 		return domain.Request{}, fmt.Errorf("validate request: %w", err)
 	}
 	if request.ClientID != nil {
-		if _, err := s.clientService.GetClient(ctx, *request.ClientID); err != nil {
+		if _, err := s.clientService.Get(ctx, *request.ClientID); err != nil {
 			return domain.Request{}, fmt.Errorf("get client from repository: %w", err)
 		}
 	}

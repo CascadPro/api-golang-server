@@ -1,6 +1,7 @@
 package core_ws_dispatcher
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -11,17 +12,21 @@ import (
 	core_jwt_security "github.com/CascadePro/api-golang-server/internal/core/security/jwt"
 	core_ws_conn "github.com/CascadePro/api-golang-server/internal/core/transport/ws/conn"
 	core_ws_response "github.com/CascadePro/api-golang-server/internal/core/transport/ws/response"
-	presence_service "github.com/CascadePro/api-golang-server/internal/features/presence/service"
+	"github.com/google/uuid"
 )
 
 type Dispatcher struct {
-	Presence presence_service.ServiceMethods
+	Presence PresenceService
 
 	tokenIssuer core_jwt_security.AccessTokenVerifier
 }
 
+type PresenceService interface {
+	Heartbeat(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) error
+}
+
 func NewDispatcher(
-	presence presence_service.ServiceMethods,
+	presence PresenceService,
 	tokenIssuer core_jwt_security.AccessTokenVerifier,
 ) *Dispatcher {
 	return &Dispatcher{

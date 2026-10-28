@@ -27,13 +27,19 @@ type Hub struct {
 	logger *core_logger.Logger
 
 	publisher core_redis_realtime.PublisherMethods
-	presence  presence_service.ServiceMethods
+	presence  PresenceService
+}
+
+type PresenceService interface {
+	Register(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (presence_service.RegisterResult, error)
+
+	Unregister(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (presence_service.UnregisterResult, error)
 }
 
 func NewHub(
 	ctx context.Context,
 	publisher core_redis_realtime.PublisherMethods,
-	presence presence_service.ServiceMethods,
+	presence PresenceService,
 	logger *core_logger.Logger,
 ) *Hub {
 	return &Hub{

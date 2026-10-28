@@ -77,7 +77,7 @@ func (s *Service) GetRequest(
 
 	var client domain.Client
 	if request.ClientID != nil && *request.ClientID != uuid.Nil {
-		client, err = s.clientService.GetClient(ctx, *request.ClientID)
+		client, err = s.clientService.Get(ctx, *request.ClientID)
 		if err != nil {
 			return domain.Request{}, domain.User{}, domain.Client{}, nil, fmt.Errorf("get `ClientID` client: %w", err)
 		}

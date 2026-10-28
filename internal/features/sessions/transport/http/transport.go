@@ -1,16 +1,26 @@
 package sessions_transport_http
 
 import (
+	"context"
+
 	core_http "github.com/CascadePro/api-golang-server/internal/core/transport/http"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
 	session_service "github.com/CascadePro/api-golang-server/internal/features/sessions/service"
 )
 
 type HttpHandler struct {
-	sessionsService session_service.ServiceMethods
+	sessionsService SessionsService
 }
 
-func NewHttpHandler(sessionsService session_service.ServiceMethods) *HttpHandler {
+type SessionsService interface {
+	GetByUser(ctx context.Context) ([]session_service.Session, error)
+
+	Delete(ctx context.Context, sessionID string) error
+
+	DeleteByUser(ctx context.Context) error
+}
+
+func NewHttpHandler(sessionsService SessionsService) *HttpHandler {
 	return &HttpHandler{
 		sessionsService: sessionsService,
 	}

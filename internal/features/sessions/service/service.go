@@ -4,13 +4,12 @@ import (
 	"context"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	presence_service "github.com/CascadePro/api-golang-server/internal/features/presence/service"
 	"github.com/google/uuid"
 )
 
 type Service struct {
 	sessionsRedisRepo  SessionsRepository
-	presenceService    presence_service.ServiceMethods
+	presenceService    PresenceService
 	outboxPostgresRepo OutboxRepository
 }
 
@@ -22,19 +21,17 @@ type SessionsRepository interface {
 	DeleteByUser(ctx context.Context, userID uuid.UUID, sessionID string) error
 }
 
+type PresenceService interface {
+	GetOnlineSessions(ctx context.Context, userID uuid.UUID, sessionIDs []string) (map[string]bool, error)
+}
+
 type OutboxRepository interface {
 	CreateEvent(ctx context.Context, event domain.OutboxEvent) (domain.OutboxEvent, error)
 }
 
-type ServiceMethods interface {
-	GetUserSessions(context.Context) ([]Session, error)
-	DeleteSession(context.Context, string) error
-	DeleteUserSessions(context.Context) error
-}
-
 func NewService(
 	sessionsRedisRepo SessionsRepository,
-	presenceService presence_service.ServiceMethods,
+	presenceService PresenceService,
 	outboxPostgresRepo OutboxRepository,
 ) *Service {
 	return &Service{

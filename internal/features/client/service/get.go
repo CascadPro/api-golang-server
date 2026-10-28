@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Service) GetClient(ctx context.Context, id uuid.UUID) (domain.Client, error) {
+func (s *Service) Get(ctx context.Context, id uuid.UUID) (domain.Client, error) {
 	if id == uuid.Nil {
 		return domain.Client{}, fmt.Errorf("`id` can't be NULL: %w", core_errors.ErrInvalidArgument)
 	}

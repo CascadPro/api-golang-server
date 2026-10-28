@@ -8,7 +8,7 @@ import (
 	core_outbox_utils "github.com/CascadePro/api-golang-server/internal/core/utils/outbox"
 )
 
-func (s *Service) DeleteUserSessions(ctx context.Context) error {
+func (s *Service) DeleteByUser(ctx context.Context) error {
 	sessionID, err := core_context.SessionID(ctx)
 	if err != nil {
 		return fmt.Errorf("get sessionID from context: %w", err)

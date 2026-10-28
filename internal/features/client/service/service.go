@@ -17,12 +17,6 @@ type ClientPostgresRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-type ServiceMethods interface {
-	GetClient(context.Context, uuid.UUID) (domain.Client, error)
-	CreateClient(context.Context, domain.Client) (domain.Client, error)
-	DeleteClient(context.Context, uuid.UUID) error
-}
-
 func NewService(clientPostgresRepo ClientPostgresRepository) *Service {
 	return &Service{
 		clientPostgresRepo: clientPostgresRepo,

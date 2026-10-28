@@ -2,7 +2,6 @@ package media_service
 
 import (
 	"context"
-	"io"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
@@ -33,18 +32,22 @@ type OutboxRepository interface {
 	CreateEventTx(ctx context.Context, tx core_postgres_pool.Tx, event domain.OutboxEvent) (domain.OutboxEvent, error)
 }
 
-type ServiceMethods interface {
-	GetFile(context.Context, string) (domain.File, error)
-	GetFileContent(context.Context, string, *int, *int, *int) (domain.File, []byte, error)
-	GetFileStream(context.Context, string, string) (domain.File, io.ReadCloser, int64, string, error)
-	GetFilePlaceholder(context.Context, string) ([]byte, error)
+type MediaService interface {
+	// GetFile(ctx context.Context, fileID string) (file domain.File, err error)
+	// GetFileContent(ctx context.Context, fileID string, w, h, quality *int) (
+	// 	file domain.File, content []byte, err error,
+	// )
+	// GetFileStream(ctx context.Context, fileID, byteRange string) (
+	// 	file domain.File, body io.ReadCloser, size int64, contentRange string, err error,
+	// )
+	// GetFilePlaceholder(ctx context.Context, fileID string) (placeholder []byte, err error)
 
-	UploadFile(context.Context, *domain.File, []byte) (domain.File, error)
+	// UploadFile(ctx context.Context, file *domain.File, content []byte) (created domain.File, err error)
 
-	DeleteFile(context.Context, domain.FileTag, string) error
-	DeleteFileTx(context.Context, core_postgres_pool.Tx, domain.FileTag, string) error
+	// DeleteFile(ctx context.Context, tag domain.FileTag, fileID string) error
+	// DeleteFileTx(ctx context.Context, tx core_postgres_pool.Tx, tag domain.FileTag, fileID string) error
 
-	MarkFileDeleted(context.Context, string) error
+	// MarkFileDeleted(ctx context.Context, fileID string) error
 }
 
 func NewService(

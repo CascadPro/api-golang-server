@@ -1,22 +1,37 @@
 package auth_transport_http
 
 import (
+	"context"
+	"net"
+
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_jwt_security "github.com/CascadePro/api-golang-server/internal/core/security/jwt"
 	core_http "github.com/CascadePro/api-golang-server/internal/core/transport/http"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
+	core_http_request "github.com/CascadePro/api-golang-server/internal/core/transport/http/request"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
-	auth_service "github.com/CascadePro/api-golang-server/internal/features/auth/service"
 )
 
 type HttpHandler struct {
-	authService auth_service.ServiceMethods
+	authService AuthService
 	tokenIssuer core_jwt_security.IssuerMethods
 	rateLimiter core_http_middleware.HTTPRateLimitMiddleware
 }
 
+type AuthService interface {
+	CreateRegisterToken(context.Context, domain.User) (domain.Token, error)
+
+	Register(context.Context, domain.UserPatch, string) error
+
+	Login(context.Context, domain.User, net.IP, *core_http_request.UserAgent) (string, string, error)
+
+	GetNewTokens(context.Context, string) (string, error)
+
+	Logout(context.Context, string) error
+}
+
 func NewHttpHandler(
-	authService auth_service.ServiceMethods,
+	authService AuthService,
 	tokenIssuer core_jwt_security.IssuerMethods,
 	rateLimiter core_http_middleware.HTTPRateLimitMiddleware,
 ) *HttpHandler {

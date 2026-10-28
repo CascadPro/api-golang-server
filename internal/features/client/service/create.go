@@ -7,7 +7,7 @@ import (
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 )
 
-func (s *Service) CreateClient(ctx context.Context, client domain.Client) (domain.Client, error) {
+func (s *Service) Create(ctx context.Context, client domain.Client) (domain.Client, error) {
 	if err := client.Validate(); err != nil {
 		return domain.Client{}, fmt.Errorf("validate client: %w", err)
 	}

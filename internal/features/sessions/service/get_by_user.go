@@ -7,7 +7,7 @@ import (
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 )
 
-func (s *Service) GetUserSessions(ctx context.Context) ([]Session, error) {
+func (s *Service) GetByUser(ctx context.Context) ([]Session, error) {
 	userID, err := core_context.UserID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get userID from context: %w", err)

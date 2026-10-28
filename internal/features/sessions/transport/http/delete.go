@@ -35,7 +35,7 @@ func (h *HttpHandler) DeleteSession(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.sessionsService.DeleteSession(ctx, sessionID); err != nil {
+	if err := h.sessionsService.Delete(ctx, sessionID); err != nil {
 		responseHandler.ErrorResponse(err, "failed to delete session")
 		return
 	}

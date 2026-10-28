@@ -33,7 +33,7 @@ func (h *HttpHandler) GetUserSessions(rw http.ResponseWriter, r *http.Request) {
 
 	responseHandler := core_http_response.NewResponseHandler(log, locale, rw)
 
-	sessions, err := h.sessionsService.GetUserSessions(ctx)
+	sessions, err := h.sessionsService.GetByUser(ctx)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get user sessions")
 

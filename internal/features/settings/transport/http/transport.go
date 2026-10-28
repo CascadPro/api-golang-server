@@ -1,16 +1,25 @@
 package settings_transport_http
 
 import (
+	"context"
+
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_http "github.com/CascadePro/api-golang-server/internal/core/transport/http"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
-	settings_service "github.com/CascadePro/api-golang-server/internal/features/settings/service"
+	"github.com/google/uuid"
 )
 
 type HttpHandler struct {
-	settingsService settings_service.ServiceMethods
+	settingsService SettingsService
 }
 
-func NewHttpHandler(settingsService settings_service.ServiceMethods) *HttpHandler {
+type SettingsService interface {
+	GetUserSettings(ctx context.Context, userID uuid.UUID) (domain.UserSettings, error)
+
+	PatchUserSettings(ctx context.Context, userID uuid.UUID, patch domain.UserSettingsPatch) (domain.UserSettings, error)
+}
+
+func NewHttpHandler(settingsService SettingsService) *HttpHandler {
 	return &HttpHandler{settingsService: settingsService}
 }
 

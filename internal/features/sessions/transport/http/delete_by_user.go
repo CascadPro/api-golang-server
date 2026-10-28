@@ -25,7 +25,7 @@ func (h *HttpHandler) DeleteUserSessions(rw http.ResponseWriter, r *http.Request
 
 	responseHandler := core_http_response.NewResponseHandler(log, locale, rw)
 
-	if err := h.sessionsService.DeleteUserSessions(ctx); err != nil {
+	if err := h.sessionsService.DeleteByUser(ctx); err != nil {
 		responseHandler.ErrorResponse(err, "failed to delete user session")
 		return
 	}

@@ -45,7 +45,7 @@ func (h *HttpHandler) GetClient(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client, err := h.clientService.GetClient(ctx, clientID)
+	client, err := h.clientService.Get(ctx, clientID)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get client")
 		return

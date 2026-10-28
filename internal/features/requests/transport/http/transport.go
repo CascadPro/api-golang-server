@@ -1,22 +1,38 @@
 package requests_transport_http
 
 import (
+	"context"
+
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_jwt_security "github.com/CascadePro/api-golang-server/internal/core/security/jwt"
 	core_http "github.com/CascadePro/api-golang-server/internal/core/transport/http"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
-	requests_service "github.com/CascadePro/api-golang-server/internal/features/requests/service"
+	"github.com/google/uuid"
 )
 
 type HttpHandler struct {
-	requestsService requests_service.ServiceMethods
+	requestsService RequestsService
 	tokenIssuer     core_jwt_security.IssuerMethods
 	rateLimiter     core_http_middleware.HTTPRateLimitMiddleware
 }
 
+type RequestsService interface {
+	CreateRequest(context.Context, domain.Request) (domain.Request, error)
+
+	GetRequest(context.Context, uuid.UUID) (domain.Request, domain.User, domain.Client, map[int]domain.File, error)
+	GetRequests(context.Context, int, int, domain.RequestQueryFilter) ([]domain.Request, int64, error)
+	GetRequestsStats(context.Context) (domain.RequestStats, error)
+
+	PatchRequest(context.Context, uuid.UUID, domain.RequestPatch) (domain.Request, error)
+	PatchRequestStatus(context.Context, uuid.UUID, domain.RequestStatus) error
+
+	UploadDoc(context.Context, uuid.UUID, domain.File, []byte, int) error
+	DeleteDoc(context.Context, uuid.UUID, int) error
+}
+
 func NewHttpHandler(
-	requestsService requests_service.ServiceMethods,
+	requestsService RequestsService,
 	tokenIssuer core_jwt_security.IssuerMethods,
 	rateLimiter core_http_middleware.HTTPRateLimitMiddleware,
 ) *HttpHandler {
