@@ -19,7 +19,7 @@ func (s *Service) DeleteUserSessions(ctx context.Context) error {
 		return fmt.Errorf("get userID from context: %w", err)
 	}
 
-	if err := s.sessionsRedisRepo.DeleteUserSessions(ctx, userID, sessionID); err != nil {
+	if err := s.sessionsRedisRepo.DeleteByUser(ctx, userID, sessionID); err != nil {
 		return fmt.Errorf("delete user sessions from repository: %w", err)
 	}
 

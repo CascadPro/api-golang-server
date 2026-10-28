@@ -53,7 +53,7 @@ func (s *Service) Login(
 	duration := domain.SessionLifetime(rawDuration)
 	session := domain.NewAuthSession(ip, metadata, duration)
 
-	sessionID, err := s.sessionsRedisRepo.CreateSession(ctx, userDomain.ID, session)
+	sessionID, err := s.sessionsRedisRepo.Create(ctx, userDomain.ID, session)
 	if err != nil {
 		return "", "", fmt.Errorf("create session: %w", err)
 	}

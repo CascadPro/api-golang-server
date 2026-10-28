@@ -4,13 +4,26 @@ import (
 	"context"
 
 	presence_redis_repository "github.com/CascadePro/api-golang-server/internal/features/presence/repository/redis"
-	sessions_redis_repository "github.com/CascadePro/api-golang-server/internal/features/sessions/repository/redis"
 	"github.com/google/uuid"
 )
 
 type Service struct {
-	presenceRedisRepo presence_redis_repository.RepositoryMethods
-	sessionsRedisRepo sessions_redis_repository.RepositoryMethods
+	presenceRedisRepo PresenceRepository
+	sessionsRedisRepo SessionsRepository
+}
+
+type PresenceRepository interface {
+	Register(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (presence_redis_repository.RegisterResult, error)
+
+	Unregister(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (presence_redis_repository.UnregisterResult, error)
+
+	GetOnlineSessions(ctx context.Context, userID uuid.UUID, sessionIDs []string) (map[string]bool, error)
+
+	Heartbeat(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) error
+}
+
+type SessionsRepository interface {
+	PatchLastActive(ctx context.Context, userID uuid.UUID, sessionID string) error
 }
 
 type ServiceMethods interface {
@@ -22,10 +35,7 @@ type ServiceMethods interface {
 	Heartbeat(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) error
 }
 
-func NewService(
-	presenceRedisRepo presence_redis_repository.RepositoryMethods,
-	sessionsRedisRepo sessions_redis_repository.RepositoryMethods,
-) *Service {
+func NewService(presenceRedisRepo PresenceRepository, sessionsRedisRepo SessionsRepository) *Service {
 	return &Service{
 		presenceRedisRepo: presenceRedisRepo,
 		sessionsRedisRepo: sessionsRedisRepo,

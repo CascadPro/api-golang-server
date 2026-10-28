@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *Repository) GetClient(ctx context.Context, id uuid.UUID) (domain.Client, error) {
+func (r *Repository) Get(ctx context.Context, id uuid.UUID) (domain.Client, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 

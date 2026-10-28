@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *Repository) CreateRequest(ctx context.Context, request domain.Request) (uuid.UUID, error) {
+func (r *Repository) Create(ctx context.Context, request domain.Request) (uuid.UUID, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 

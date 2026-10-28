@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func (r *Repository) GetRequestsStats(ctx context.Context) (domain.RequestStats, error) {
+func (r *Repository) GetStats(ctx context.Context) (domain.RequestStats, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 

@@ -26,7 +26,7 @@ func (s *Service) UploadDoc(
 		return fmt.Errorf("validate file: %w", core_errors.ErrInvalidArgument)
 	}
 
-	request, err := s.requestsMongoRepo.GetRequest(ctx, requestID)
+	request, err := s.requestsMongoRepo.Get(ctx, requestID)
 	if err != nil {
 		return fmt.Errorf("get request from repository: %w", err)
 	}
@@ -62,7 +62,7 @@ func (s *Service) UploadDoc(
 		return fmt.Errorf("apply patch: %w", err)
 	}
 
-	if err := s.requestsMongoRepo.PatchRequest(ctx, requestID, request); err != nil {
+	if err := s.requestsMongoRepo.Patch(ctx, requestID, request); err != nil {
 		_ = s.mediaService.DeleteFile(ctx, file.Tag, file.ID)
 
 		return fmt.Errorf("patch request: %w", err)

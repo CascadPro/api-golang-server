@@ -23,7 +23,7 @@ func (s *Service) GetRequestsStats(ctx context.Context) (domain.RequestStats, er
 		}
 	}
 
-	stats, err = s.requestsMongoRepo.GetRequestsStats(ctx)
+	stats, err = s.requestsMongoRepo.GetStats(ctx)
 	if err != nil {
 		return domain.RequestStats{}, fmt.Errorf("get request stats from repository: %w", err)
 	}

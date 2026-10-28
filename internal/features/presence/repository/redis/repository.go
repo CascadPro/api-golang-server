@@ -1,7 +1,6 @@
 package presence_redis_repository
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -18,15 +17,6 @@ const (
 
 type Repository struct {
 	pool core_redis_pool.Pool
-}
-
-type RepositoryMethods interface {
-	Register(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (RegisterResult, error)
-	Unregister(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) (UnregisterResult, error)
-
-	GetOnlineSessions(ctx context.Context, userID uuid.UUID, sessionIDs []string) (map[string]bool, error)
-
-	Heartbeat(ctx context.Context, userID uuid.UUID, sessionID, connectionID string) error
 }
 
 func NewRepository(pool core_redis_pool.Pool) *Repository {

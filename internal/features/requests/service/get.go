@@ -27,7 +27,7 @@ func (s *Service) GetRequest(
 		return domain.Request{}, domain.User{}, domain.Client{}, nil, fmt.Errorf("get redis cache: %w", err)
 	}
 
-	request, err := s.requestsMongoRepo.GetRequest(ctx, requestID)
+	request, err := s.requestsMongoRepo.Get(ctx, requestID)
 	if err != nil {
 		return domain.Request{}, domain.User{}, domain.Client{}, nil, fmt.Errorf("get request from repository: %w", err)
 	}

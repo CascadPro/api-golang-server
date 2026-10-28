@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *Repository) DeleteSession(ctx context.Context, userID uuid.UUID, sessionID string) error {
+func (r *Repository) Delete(ctx context.Context, userID uuid.UUID, sessionID string) error {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 

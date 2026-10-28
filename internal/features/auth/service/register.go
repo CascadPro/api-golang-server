@@ -16,7 +16,7 @@ func (s *Service) Register(ctx context.Context, patch domain.UserPatch, tokenStr
 
 	tokenDto := domain.NewGetToken(tokenString, domain.TokenTypeRegister, uuid.Nil)
 
-	tokenDomain, err := s.tokenPostgresRepo.GetToken(ctx, tokenDto)
+	tokenDomain, err := s.tokenPostgresRepo.Get(ctx, tokenDto)
 	if err != nil {
 		return fmt.Errorf("get token: %v: %w", err, auth_errors.ErrInvalidCredentials)
 	}
@@ -40,7 +40,7 @@ func (s *Service) Register(ctx context.Context, patch domain.UserPatch, tokenStr
 		return fmt.Errorf("create user settings: %w", err)
 	}
 
-	if err := s.tokenPostgresRepo.DeleteToken(ctx, tokenDomain.ID); err != nil {
+	if err := s.tokenPostgresRepo.Delete(ctx, tokenDomain.ID); err != nil {
 		return fmt.Errorf("delete token: %w", err)
 	}
 

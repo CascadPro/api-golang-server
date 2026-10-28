@@ -15,7 +15,7 @@ const (
 	defaultPage  = 1
 )
 
-func (r *Repository) GetRequests(
+func (r *Repository) GetMany(
 	ctx context.Context,
 	page, limit int,
 	filter domain.RequestQueryFilter,

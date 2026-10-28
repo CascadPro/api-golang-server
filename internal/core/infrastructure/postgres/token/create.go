@@ -12,7 +12,7 @@ import (
 )
 
 // Create token, fields to create: "Token", "Type", "ExpiresAt", "UserID"
-func (r *Repository) CreateToken(ctx context.Context, token domain.Token) (domain.Token, error) {
+func (r *Repository) Create(ctx context.Context, token domain.Token) (domain.Token, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 

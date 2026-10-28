@@ -13,7 +13,7 @@ func (s *Service) DeleteClient(ctx context.Context, id uuid.UUID) error {
 		return fmt.Errorf("`ID` can't be NULL: %w", core_errors.ErrInvalidArgument)
 	}
 
-	if err := s.clientPostgresRepo.DeleteClient(ctx, id); err != nil {
+	if err := s.clientPostgresRepo.Delete(ctx, id); err != nil {
 		return fmt.Errorf("delete client: %w", err)
 	}
 

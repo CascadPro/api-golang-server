@@ -4,12 +4,17 @@ import (
 	"context"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	client_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/client/repository/postgres"
 	"github.com/google/uuid"
 )
 
 type Service struct {
-	clientPostgresRepo client_postgres_repository.RepositoryMethods
+	clientPostgresRepo ClientPostgresRepository
+}
+
+type ClientPostgresRepository interface {
+	Create(ctx context.Context, client domain.Client) (domain.Client, error)
+	Get(ctx context.Context, id uuid.UUID) (domain.Client, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type ServiceMethods interface {
@@ -18,7 +23,7 @@ type ServiceMethods interface {
 	DeleteClient(context.Context, uuid.UUID) error
 }
 
-func NewService(clientPostgresRepo client_postgres_repository.RepositoryMethods) *Service {
+func NewService(clientPostgresRepo ClientPostgresRepository) *Service {
 	return &Service{
 		clientPostgresRepo: clientPostgresRepo,
 	}

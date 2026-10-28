@@ -13,9 +13,13 @@ import (
 
 const unknown = "Unknown"
 
+type IPClient interface {
+	Lookup(ctx context.Context, ip net.IP) (core_ipinfo_client.InfoModel, error)
+}
+
 func GetSessionMetadata(
 	ctx context.Context,
-	ipClient core_ipinfo_client.RepositoryMethods,
+	ipClient IPClient,
 	ip net.IP,
 	userAgent *core_http_request.UserAgent,
 ) (domain.SessionMetadata, error) {

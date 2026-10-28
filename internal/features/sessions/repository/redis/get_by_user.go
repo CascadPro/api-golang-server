@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (r *Repository) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]domain.Session, error) {
+func (r *Repository) GetByUser(ctx context.Context, userID uuid.UUID) ([]domain.Session, error) {
 	log := core_logger.FromContext(ctx)
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()

@@ -10,7 +10,7 @@ import (
 )
 
 // Create client, fields to create. "Company", "Contacts"
-func (r *Repository) CreateClient(ctx context.Context, client domain.Client) (domain.Client, error) {
+func (r *Repository) Create(ctx context.Context, client domain.Client) (domain.Client, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 

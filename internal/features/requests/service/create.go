@@ -17,14 +17,14 @@ func (s *Service) CreateRequest(ctx context.Context, request domain.Request) (do
 		}
 	}
 
-	requestID, err := s.requestsMongoRepo.CreateRequest(ctx, request)
+	requestID, err := s.requestsMongoRepo.Create(ctx, request)
 	if err != nil {
 		return domain.Request{}, fmt.Errorf("create request in repository: %w", err)
 	}
 
 	_ = s.cache.Delete(ctx, cacheKeyStats)
 
-	request, err = s.requestsMongoRepo.GetRequest(ctx, requestID)
+	request, err = s.requestsMongoRepo.Get(ctx, requestID)
 	if err != nil {
 		return domain.Request{}, fmt.Errorf("get request from repository: %w", err)
 	}

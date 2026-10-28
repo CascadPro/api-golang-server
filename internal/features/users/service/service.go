@@ -4,18 +4,29 @@ import (
 	"context"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_postgres_outbox "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/outbox"
+	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
 	core_redis_cache "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/cache"
 	media_service "github.com/CascadePro/api-golang-server/internal/features/media/service"
-	users_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/users/repository/postgres"
 	"github.com/google/uuid"
 )
 
 type Service struct {
 	mediaService       media_service.ServiceMethods
 	cache              core_redis_cache.Cache
-	usersPostgresRepo  users_postgres_repository.RepositoryMethods
-	outboxPostgresRepo core_postgres_outbox.RepositoryMethods
+	usersPostgresRepo  UsersRepository
+	outboxPostgresRepo OutboxRepository
+}
+
+type UsersRepository interface {
+	GetUser(ctx context.Context, user domain.User) (domain.User, error)
+
+	PatchUserTx(ctx context.Context, tx core_postgres_pool.Tx, id uuid.UUID, user domain.User) (domain.User, error)
+
+	BeginTx(ctx context.Context) (core_postgres_pool.Tx, error)
+}
+
+type OutboxRepository interface {
+	CreateEventTx(ctx context.Context, tx core_postgres_pool.Tx, event domain.OutboxEvent) (domain.OutboxEvent, error)
 }
 
 type ServiceMethods interface {
@@ -27,8 +38,8 @@ type ServiceMethods interface {
 func NewService(
 	mediaService media_service.ServiceMethods,
 	cache core_redis_cache.Cache,
-	usersPostgresRepo users_postgres_repository.RepositoryMethods,
-	outboxPostgresRepo core_postgres_outbox.RepositoryMethods,
+	usersPostgresRepo UsersRepository,
+	outboxPostgresRepo OutboxRepository,
 ) *Service {
 	return &Service{
 		mediaService:       mediaService,

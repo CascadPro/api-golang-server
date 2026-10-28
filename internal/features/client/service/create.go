@@ -12,7 +12,7 @@ func (s *Service) CreateClient(ctx context.Context, client domain.Client) (domai
 		return domain.Client{}, fmt.Errorf("validate client: %w", err)
 	}
 
-	client, err := s.clientPostgresRepo.CreateClient(ctx, client)
+	client, err := s.clientPostgresRepo.Create(ctx, client)
 	if err != nil {
 		return domain.Client{}, fmt.Errorf("create client: %w", err)
 	}

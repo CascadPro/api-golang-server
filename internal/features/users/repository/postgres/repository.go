@@ -3,23 +3,11 @@ package users_postgres_repository
 import (
 	"context"
 
-	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_postgres_pool "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/pool"
-	"github.com/google/uuid"
 )
 
 type Repository struct {
 	pool core_postgres_pool.Pool
-}
-
-type RepositoryMethods interface {
-	CreateUser(ctx context.Context, user domain.User) (domain.User, error)
-	GetUser(ctx context.Context, user domain.User) (domain.User, error)
-
-	PatchUser(ctx context.Context, id uuid.UUID, user domain.User) (domain.User, error)
-	PatchUserTx(ctx context.Context, tx core_postgres_pool.Tx, id uuid.UUID, user domain.User) (domain.User, error)
-
-	BeginTx(ctx context.Context) (core_postgres_pool.Tx, error)
 }
 
 func NewRepository(pool core_postgres_pool.Pool) *Repository {

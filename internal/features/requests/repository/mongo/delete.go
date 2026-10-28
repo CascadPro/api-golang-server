@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func (r *Repository) DeleteRequest(ctx context.Context, id uuid.UUID) error {
+func (r *Repository) Delete(ctx context.Context, id uuid.UUID) error {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 

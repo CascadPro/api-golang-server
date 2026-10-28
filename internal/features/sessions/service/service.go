@@ -3,15 +3,27 @@ package session_service
 import (
 	"context"
 
-	core_postgres_outbox "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/outbox"
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	presence_service "github.com/CascadePro/api-golang-server/internal/features/presence/service"
-	sessions_redis_repository "github.com/CascadePro/api-golang-server/internal/features/sessions/repository/redis"
+	"github.com/google/uuid"
 )
 
 type Service struct {
-	sessionsRedisRepo  sessions_redis_repository.RepositoryMethods
+	sessionsRedisRepo  SessionsRepository
 	presenceService    presence_service.ServiceMethods
-	outboxPostgresRepo core_postgres_outbox.RepositoryMethods
+	outboxPostgresRepo OutboxRepository
+}
+
+type SessionsRepository interface {
+	GetByUser(ctx context.Context, userID uuid.UUID) ([]domain.Session, error)
+
+	Delete(ctx context.Context, userID uuid.UUID, sessionID string) error
+
+	DeleteByUser(ctx context.Context, userID uuid.UUID, sessionID string) error
+}
+
+type OutboxRepository interface {
+	CreateEvent(ctx context.Context, event domain.OutboxEvent) (domain.OutboxEvent, error)
 }
 
 type ServiceMethods interface {
@@ -21,9 +33,9 @@ type ServiceMethods interface {
 }
 
 func NewService(
-	sessionsRedisRepo sessions_redis_repository.RepositoryMethods,
+	sessionsRedisRepo SessionsRepository,
 	presenceService presence_service.ServiceMethods,
-	outboxPostgresRepo core_postgres_outbox.RepositoryMethods,
+	outboxPostgresRepo OutboxRepository,
 ) *Service {
 	return &Service{
 		sessionsRedisRepo:  sessionsRedisRepo,

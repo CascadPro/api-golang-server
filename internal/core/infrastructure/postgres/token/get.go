@@ -13,7 +13,7 @@ import (
 )
 
 // Get token, fields: "ID" / "UserID" + "Type" / "UserID" + "Token" / "Token" + "Type"
-func (r *Repository) GetToken(ctx context.Context, token domain.Token) (domain.Token, error) {
+func (r *Repository) Get(ctx context.Context, token domain.Token) (domain.Token, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 

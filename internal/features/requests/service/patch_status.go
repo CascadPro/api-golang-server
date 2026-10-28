@@ -20,7 +20,7 @@ func (s *Service) PatchRequestStatus(ctx context.Context, requestID uuid.UUID, s
 		return fmt.Errorf("get user id from context: %w", err)
 	}
 
-	if err := s.requestsMongoRepo.PatchRequestStatus(ctx, requestID, userID, status); err != nil {
+	if err := s.requestsMongoRepo.PatchStatus(ctx, requestID, userID, status); err != nil {
 		return fmt.Errorf("patch request status: %w", err)
 	}
 

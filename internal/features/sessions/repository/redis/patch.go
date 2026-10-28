@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *Repository) PatchSession(ctx context.Context, userID uuid.UUID, session domain.Session) error {
+func (r *Repository) Patch(ctx context.Context, userID uuid.UUID, session domain.Session) error {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 

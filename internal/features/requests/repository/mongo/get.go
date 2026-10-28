@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func (r *Repository) GetRequest(ctx context.Context, id uuid.UUID) (domain.Request, error) {
+func (r *Repository) Get(ctx context.Context, id uuid.UUID) (domain.Request, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 

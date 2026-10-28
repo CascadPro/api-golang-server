@@ -14,7 +14,7 @@ func (s *Service) GetClient(ctx context.Context, id uuid.UUID) (domain.Client, e
 		return domain.Client{}, fmt.Errorf("`id` can't be NULL: %w", core_errors.ErrInvalidArgument)
 	}
 
-	client, err := s.clientPostgresRepo.GetClient(ctx, id)
+	client, err := s.clientPostgresRepo.Get(ctx, id)
 	if err != nil {
 		return domain.Client{}, fmt.Errorf("get client from repository: %w", err)
 	}

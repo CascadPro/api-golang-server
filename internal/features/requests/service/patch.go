@@ -14,7 +14,7 @@ func (s *Service) PatchRequest(ctx context.Context, requestID uuid.UUID, patch d
 		return domain.Request{}, fmt.Errorf("`id` can't be NULL: %w", core_errors.ErrInvalidArgument)
 	}
 
-	request, err := s.requestsMongoRepo.GetRequest(ctx, requestID)
+	request, err := s.requestsMongoRepo.Get(ctx, requestID)
 	if err != nil {
 		return domain.Request{}, fmt.Errorf("get request from repository: %w", err)
 	}
@@ -29,7 +29,7 @@ func (s *Service) PatchRequest(ctx context.Context, requestID uuid.UUID, patch d
 		}
 	}
 
-	if err := s.requestsMongoRepo.PatchRequest(ctx, requestID, request); err != nil {
+	if err := s.requestsMongoRepo.Patch(ctx, requestID, request); err != nil {
 		return domain.Request{}, fmt.Errorf("patch request: %w", err)
 	}
 

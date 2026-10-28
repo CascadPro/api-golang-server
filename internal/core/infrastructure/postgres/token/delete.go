@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *Repository) DeleteToken(ctx context.Context, id uuid.UUID) error {
+func (r *Repository) Delete(ctx context.Context, id uuid.UUID) error {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 

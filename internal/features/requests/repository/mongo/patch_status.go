@@ -14,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func (r *Repository) PatchRequestStatus(
+func (r *Repository) PatchStatus(
 	ctx context.Context,
 	id uuid.UUID,
 	userID uuid.UUID,
@@ -33,7 +33,7 @@ func (r *Repository) PatchRequestStatus(
 		return fmt.Errorf("`Status` can't be NULL: %w", core_errors.ErrInvalidArgument)
 	}
 
-	request, err := r.GetRequest(ctx, id)
+	request, err := r.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("get request: %w", err)
 	}

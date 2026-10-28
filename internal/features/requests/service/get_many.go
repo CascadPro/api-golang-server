@@ -23,7 +23,7 @@ func (s *Service) GetRequests(
 		return nil, 0, fmt.Errorf("validate `filter`: %w", err)
 	}
 
-	requests, total, err := s.requestsMongoRepo.GetRequests(ctx, page, limit, filter)
+	requests, total, err := s.requestsMongoRepo.GetMany(ctx, page, limit, filter)
 	if err != nil {
 		return nil, 0, fmt.Errorf("get requests from repository: %w", err)
 	}

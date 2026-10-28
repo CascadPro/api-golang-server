@@ -7,8 +7,6 @@ import (
 	core_redis_cache "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/cache"
 	client_service "github.com/CascadePro/api-golang-server/internal/features/client/service"
 	media_service "github.com/CascadePro/api-golang-server/internal/features/media/service"
-	requests_mongo_repository "github.com/CascadePro/api-golang-server/internal/features/requests/repository/mongo"
-	users_postgres_repository "github.com/CascadePro/api-golang-server/internal/features/users/repository/postgres"
 	"github.com/google/uuid"
 )
 
@@ -16,8 +14,23 @@ type Service struct {
 	mediaService      media_service.ServiceMethods
 	cache             core_redis_cache.Cache
 	clientService     client_service.ServiceMethods
-	usersPostgresRepo users_postgres_repository.RepositoryMethods
-	requestsMongoRepo requests_mongo_repository.RepositoryMethods
+	usersPostgresRepo UsersRepository
+	requestsMongoRepo RequestsRepository
+}
+
+type UsersRepository interface {
+	GetUser(ctx context.Context, user domain.User) (domain.User, error)
+}
+
+type RequestsRepository interface {
+	Create(ctx context.Context, request domain.Request) (uuid.UUID, error)
+
+	Get(ctx context.Context, id uuid.UUID) (domain.Request, error)
+	GetMany(ctx context.Context, page, limit int, filter domain.RequestQueryFilter) ([]domain.Request, int64, error)
+	GetStats(ctx context.Context) (domain.RequestStats, error)
+
+	Patch(ctx context.Context, id uuid.UUID, request domain.Request) error
+	PatchStatus(ctx context.Context, id uuid.UUID, userID uuid.UUID, status domain.RequestStatus) error
 }
 
 type ServiceMethods interface {
@@ -38,8 +51,8 @@ func NewService(
 	mediaService media_service.ServiceMethods,
 	cache core_redis_cache.Cache,
 	clientService client_service.ServiceMethods,
-	usersPostgresRepo users_postgres_repository.RepositoryMethods,
-	requestsMongoRepo requests_mongo_repository.RepositoryMethods,
+	usersPostgresRepo UsersRepository,
+	requestsMongoRepo RequestsRepository,
 ) *Service {
 	return &Service{
 		mediaService:      mediaService,

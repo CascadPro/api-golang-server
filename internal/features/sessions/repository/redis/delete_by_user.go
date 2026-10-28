@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *Repository) DeleteUserSessions(ctx context.Context, userID uuid.UUID, sessionID string) error {
+func (r *Repository) DeleteByUser(ctx context.Context, userID uuid.UUID, sessionID string) error {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 

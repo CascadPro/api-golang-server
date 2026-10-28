@@ -17,7 +17,7 @@ func (s *Service) DeleteDoc(ctx context.Context, requestID uuid.UUID, index int)
 		return fmt.Errorf("`index` can only have values between [0,3]: %w", core_errors.ErrInvalidArgument)
 	}
 
-	request, err := s.requestsMongoRepo.GetRequest(ctx, requestID)
+	request, err := s.requestsMongoRepo.Get(ctx, requestID)
 	if err != nil {
 		return fmt.Errorf("get request from repository: %w", err)
 	}
@@ -50,7 +50,7 @@ func (s *Service) DeleteDoc(ctx context.Context, requestID uuid.UUID, index int)
 		return fmt.Errorf("apply patch: %w", err)
 	}
 
-	if err := s.requestsMongoRepo.PatchRequest(ctx, requestID, request); err != nil {
+	if err := s.requestsMongoRepo.Patch(ctx, requestID, request); err != nil {
 		return fmt.Errorf("patch request: %w", err)
 	}
 

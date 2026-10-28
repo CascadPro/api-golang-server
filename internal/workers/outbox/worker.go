@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	core_postgres_outbox "github.com/CascadePro/api-golang-server/internal/core/infrastructure/postgres/outbox"
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
 type Worker struct {
-	repository core_postgres_outbox.RepositoryMethods
+	repository Repository
 	handler    HandlerMethods
 	logger     *core_logger.Logger
 
@@ -22,8 +22,16 @@ type Worker struct {
 	lockTTL   time.Duration
 }
 
+type Repository interface {
+	GetPendingEvents(ctx context.Context, workerID uuid.UUID, limit int, ttl time.Duration) ([]domain.OutboxEvent, error)
+
+	MarkEventProcessed(ctx context.Context, id uuid.UUID, workerID uuid.UUID) error
+
+	MarkEventFailed(ctx context.Context, id uuid.UUID, workerID uuid.UUID, err error) error
+}
+
 func New(
-	repository core_postgres_outbox.RepositoryMethods,
+	repository Repository,
 	handler HandlerMethods,
 	logger *core_logger.Logger,
 	cfg Config,

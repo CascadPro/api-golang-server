@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *Repository) GetSession(ctx context.Context, userID uuid.UUID, sessionID string) (domain.Session, error) {
+func (r *Repository) Get(ctx context.Context, userID uuid.UUID, sessionID string) (domain.Session, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 

@@ -18,7 +18,7 @@ func (s *Service) GetUserSessions(ctx context.Context) ([]Session, error) {
 		return nil, fmt.Errorf("get sessionID from context: %w", err)
 	}
 
-	sessions, err := s.sessionsRedisRepo.GetUserSessions(ctx, userID)
+	sessions, err := s.sessionsRedisRepo.GetByUser(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("get user sessions: %w", err)
 	}

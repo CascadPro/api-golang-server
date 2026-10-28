@@ -26,7 +26,7 @@ func (s *Service) CreateRegisterToken(ctx context.Context, user domain.User) (to
 		userDomain.ID,
 	)
 
-	tokenDomain, err := s.tokenPostgresRepo.CreateToken(ctx, tokenDto)
+	tokenDomain, err := s.tokenPostgresRepo.Create(ctx, tokenDto)
 	if err != nil {
 		return domain.Token{}, fmt.Errorf("create token: %w", err)
 	}
