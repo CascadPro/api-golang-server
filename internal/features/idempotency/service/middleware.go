@@ -13,6 +13,7 @@ import (
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
+	core_http_utils "github.com/CascadePro/api-golang-server/internal/core/transport/http/utils"
 	idempotency_error "github.com/CascadePro/api-golang-server/internal/features/idempotency/errors"
 	"github.com/google/uuid"
 )
@@ -88,26 +89,28 @@ func (s *Service) Middleware() core_http_middleware.Middleware {
 			ctx = withTransactionState(ctx, record, completeFn)
 			r = r.WithContext(ctx)
 
-			recorder := newRecorder()
+			recorder := core_http_utils.NewRecorder()
 
 			next.ServeHTTP(recorder, r)
+
+			recStatus, recBody, recHeaders := recorder.GetStatus(), recorder.GetBody(), recorder.Header()
 
 			if !transactionCommitted(ctx) {
 				completeCtx, completeCancel := context.WithTimeout(context.Background(), 5*time.Second)
 				defer completeCancel()
 
-				if err := s.repository.Complete(completeCtx, record, recorder.status, recorder.body.Bytes(), safeHeaders(recorder.header)); err != nil {
+				if err := s.repository.Complete(completeCtx, record, recStatus, recBody.Bytes(), safeHeaders(recHeaders)); err != nil {
 					responseHandler.ErrorResponse(err, "failed to save idempotency response")
 					return
 				}
 			}
 
-			copyHeaders(rw.Header(), recorder.header)
+			copyHeaders(rw.Header(), recHeaders)
 
-			rw.WriteHeader(recorder.status)
+			rw.WriteHeader(recStatus)
 
-			if recorder.status != http.StatusNoContent && recorder.status != http.StatusNotModified {
-				_, _ = rw.Write(recorder.body.Bytes())
+			if recStatus != http.StatusNoContent && recStatus != http.StatusNotModified {
+				_, _ = rw.Write(recBody.Bytes())
 			}
 		})
 	}
