@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
-	core_redis_realtime "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/realtime"
+	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_ws_client "github.com/CascadePro/api-golang-server/internal/core/transport/ws/client"
 	presence_service "github.com/CascadePro/api-golang-server/internal/features/presence/service"
@@ -26,8 +26,12 @@ type Hub struct {
 
 	logger *core_logger.Logger
 
-	publisher core_redis_realtime.PublisherMethods
+	publisher RealtimePublisher
 	presence  PresenceService
+}
+
+type RealtimePublisher interface {
+	Publish(ctx context.Context, event domain.RealtimeEvent) error
 }
 
 type PresenceService interface {
@@ -38,7 +42,7 @@ type PresenceService interface {
 
 func NewHub(
 	ctx context.Context,
-	publisher core_redis_realtime.PublisherMethods,
+	publisher RealtimePublisher,
 	presence PresenceService,
 	logger *core_logger.Logger,
 ) *Hub {

@@ -4,18 +4,21 @@ import (
 	"context"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_redis_realtime "github.com/CascadePro/api-golang-server/internal/core/infrastructure/redis/realtime"
 )
 
 type Handler struct {
-	publisher core_redis_realtime.PublisherMethods
+	publisher RealtimePublisher
+}
+
+type RealtimePublisher interface {
+	Publish(ctx context.Context, event domain.RealtimeEvent) error
 }
 
 type HandlerMethods interface {
 	HandlePublishEvent(ctx context.Context, event domain.OutboxEvent) error
 }
 
-func New(publisher core_redis_realtime.PublisherMethods) *Handler {
+func New(publisher RealtimePublisher) *Handler {
 	return &Handler{
 		publisher: publisher,
 	}
