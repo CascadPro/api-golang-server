@@ -104,7 +104,7 @@ func (a *App) initFeatures() error {
 	logFeatureInit("settings", "/api/v1/settings")
 	settingsRouter := core_http_server.NewRouter("/settings", rootRateLimit.Middleware(), core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
 	settingsPostgresRepository := settings_postgres_repository.NewRepository(a.infrastructure.Postgres)
-	settingsService := settings_service.NewService(settingsPostgresRepository)
+	settingsService := settings_service.NewService(settingsPostgresRepository, a.infrastructure.Publisher, a.logger)
 	settingsHttpHandler := settings_transport_http.NewHttpHandler(settingsService)
 	settingsRouter.RegisterRoutes(settingsHttpHandler.Routes()...)
 

@@ -26,6 +26,8 @@ const (
 	RealtimeEventSessionCreated  = RealtimeEventType("session.created")
 	RealtimeEventSessionUpdated  = RealtimeEventType("session.updated")
 
+	RealtimeEventSettingsUpdated = RealtimeEventType("settings.updated")
+
 	RealtimeEventNil = RealtimeEventType("")
 )
 
