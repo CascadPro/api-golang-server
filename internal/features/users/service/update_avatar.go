@@ -8,7 +8,6 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
-	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	idempotency_service "github.com/CascadePro/api-golang-server/internal/features/idempotency/service"
 	users_errors "github.com/CascadePro/api-golang-server/internal/features/users/errors"
 	"github.com/google/uuid"
@@ -93,8 +92,22 @@ func (s *Service) UpdateAvatar(ctx context.Context, userID uuid.UUID, uploadedFi
 
 	idempotency_service.MarkTransactionCommitted(ctx)
 
+	realtimeEvent := getRealtimeEvent(&file.ID, &userID)
+
+	if err := s.realtimePublisher.Publish(ctx, realtimeEvent); err != nil {
+		s.logger.Error(
+			"failed to publish user avatar updated event",
+			zap.String("user_id", userID.String()),
+			zap.Error(err),
+		)
+	}
+
 	if err := s.cache.Delete(ctx, cacheKeyUser(userID)); err != nil {
-		core_logger.FromContext(ctx).Error("failed to invalidate user cache after avatar update", zap.String("user_id", userID.String()), zap.Error(err))
+		s.logger.Error(
+			"failed to invalidate user cache after avatar update",
+			zap.String("user_id", userID.String()),
+			zap.Error(err),
+		)
 	}
 
 	return nil
@@ -107,4 +120,15 @@ func updateAvatarEventPayload(fileID string) ([]byte, error) {
 	}
 
 	return payload, nil
+}
+
+func getRealtimeEvent(fileID *string, userID *uuid.UUID) domain.RealtimeEvent {
+	data := make(map[string]any, 1)
+	if fileID != nil {
+		data["avatar"] = *fileID
+	} else {
+		data["avatar"] = nil
+	}
+
+	return domain.NewRealtimeEvent(domain.RealtimeEventUserAvatarUpdated, userID, nil, data)
 }

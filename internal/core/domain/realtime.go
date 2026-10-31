@@ -28,6 +28,9 @@ const (
 
 	RealtimeEventSettingsUpdated = RealtimeEventType("settings.updated")
 
+	RealtimeEventUserUpdated       = RealtimeEventType("user.updated")
+	RealtimeEventUserAvatarUpdated = RealtimeEventType("user.avatar.updated")
+
 	RealtimeEventNil = RealtimeEventType("")
 )
 

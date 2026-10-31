@@ -97,7 +97,8 @@ func (a *App) initFeatures() error {
 	}
 	usersRouter := core_http_server.NewRouter("/users", rootRateLimit.Middleware(), core_http_middleware.Authorization(a.infrastructure.TokenIssuer))
 	usersPostgresRepository := users_postgres_repository.NewRepository(a.infrastructure.Postgres)
-	usersService := users_service.NewService(mediaService, usersCache, usersPostgresRepository, outboxPostgresRepository)
+	usersService := users_service.NewService(mediaService, usersPostgresRepository,
+		outboxPostgresRepository, a.infrastructure.Publisher, a.logger, usersCache)
 	usersHttpHandler := users_transport_http.NewHttpHandler(usersService, avatarRateLimiter, a.infrastructure.Idempotency.Middleware())
 	usersRouter.RegisterRoutes(usersHttpHandler.Routes()...)
 
