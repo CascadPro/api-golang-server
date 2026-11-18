@@ -1,6 +1,7 @@
 package requests_transport_http
 
 import (
+	"io"
 	"net/http"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
@@ -42,18 +43,19 @@ func (h *HttpHandler) UploadDoc(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const maxFileSize = 1 << 20
-	uploadedFile, content, err := core_http_request.GetDocument(rw, r, maxFileSize)
+	const maxFileSize = 50 << 20 // 50 MiB for documents
+	uploadedFile, contentReader, size, err := core_http_request.GetDocumentStream(r, maxFileSize)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get file from request")
 		return
 	}
 	if uploadedFile.Tag != domain.FileTagDocs {
+		_, _ = io.Copy(io.Discard, contentReader)
 		responseHandler.ErrorResponse(core_errors.ErrInvalidArgument, "invalid tag, expected 'docs'")
 		return
 	}
 
-	if err := h.requestsService.UploadDoc(ctx, requestID, *uploadedFile, content, index); err != nil {
+	if err := h.requestsService.UploadDocStream(ctx, requestID, *uploadedFile, contentReader, size, index); err != nil {
 		responseHandler.ErrorResponse(err, "failed to upload doc")
 		return
 	}

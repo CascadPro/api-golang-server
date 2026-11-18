@@ -52,6 +52,20 @@ func (p *ConnectionPool) PutObject(ctx context.Context, key string, body []byte)
 	return MapErrors(err)
 }
 
+func (p *ConnectionPool) PutObjectStream(ctx context.Context, key string, body io.Reader, size int64) error {
+	ctx, cancel := context.WithTimeout(ctx, p.timeout)
+	defer cancel()
+
+	_, err := s3.NewFromConfig(*p.client).PutObject(ctx, &s3.PutObjectInput{
+		Bucket:        &p.bucket,
+		Key:           &key,
+		Body:          body,
+		ContentLength: &size,
+	})
+
+	return MapErrors(err)
+}
+
 func (p *ConnectionPool) GetObject(ctx context.Context, key string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, p.timeout)
 	defer cancel()

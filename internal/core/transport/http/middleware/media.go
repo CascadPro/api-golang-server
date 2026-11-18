@@ -29,11 +29,35 @@ var (
 		domain.FileMimeTypePng,
 		domain.FileMimeTypeWebp,
 		domain.FileMimeTypeGif,
+		domain.FileMimeTypeBmp,
+		domain.FileMimeTypeTiff,
+		domain.FileMimeTypeSvg,
+		domain.FileMimeTypeHeic,
+		domain.FileMimeTypeHeif,
 		domain.FileMimeTypeMMp4,
+		domain.FileMimeTypeMWebM,
+		domain.FileMimeTypeMOgg,
+		domain.FileMimeTypeMQuickTime,
+		domain.FileMimeTypeMXMsVideo,
+		domain.FileMimeTypeMXMatroska,
 		domain.FileMimeTypePdf,
 		domain.FileMimeTypeDocx,
+		domain.FileMimeTypeDoc,
 		domain.FileMimeTypeXlsx,
+		domain.FileMimeTypeXls,
 		domain.FileMimeTypePptx,
+		domain.FileMimeTypePpt,
+		domain.FileMimeTypeOdt,
+		domain.FileMimeTypeOds,
+		domain.FileMimeTypeOdp,
+		domain.FileMimeTypeTxt,
+		domain.FileMimeTypeCsv,
+		domain.FileMimeTypeXml,
+		domain.FileMimeTypeZip,
+		domain.FileMimeTypeGzip,
+		domain.FileMimeTypeRar,
+		domain.FileMimeType7z,
+		domain.FileMimeTypeTar,
 	}
 
 	allowedTags = []domain.FileTag{
@@ -44,10 +68,10 @@ var (
 	}
 
 	allowedMimesByTag = map[domain.FileTag][]domain.FileMimeType{
-		domain.FileTagAvatars: allowedMimes[:4],
-		domain.FileTagImages:  allowedMimes[:3],
-		domain.FileTagVideos:  allowedMimes[4:5],
-		domain.FileTagDocs:    allowedMimes[5:],
+		domain.FileTagAvatars: domain.FileMimeTypesPictures[:4], // JPEG, PNG, WebP, GIF only for avatars
+		domain.FileTagImages:  domain.FileMimeTypesPictures,
+		domain.FileTagVideos:  domain.FileMimeTypesVideos,
+		domain.FileTagDocs:    domain.FileMimeTypesDocs,
 	}
 )
 

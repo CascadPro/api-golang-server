@@ -21,17 +21,41 @@ const (
 )
 
 const (
-	FileMimeTypeJpeg = FileMimeType("image/jpeg")
-	FileMimeTypePng  = FileMimeType("image/png")
-	FileMimeTypeGif  = FileMimeType("image/gif")
-	FileMimeTypeWebp = FileMimeType("image/webp")
-	FileMimeTypeMMp4 = FileMimeType("video/mp4")
-	FileMimeTypeJson = FileMimeType("application/json")
-	FileMimeTypePdf  = FileMimeType("application/pdf")
-	FileMimeTypeDocx = FileMimeType("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-	FileMimeTypeXlsx = FileMimeType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	FileMimeTypePptx = FileMimeType("application/vnd.openxmlformats-officedocument.presentationml.presentation")
-	FileMimeTypeNil  = FileMimeType("")
+	FileMimeTypeJpeg          = FileMimeType("image/jpeg")
+	FileMimeTypePng           = FileMimeType("image/png")
+	FileMimeTypeGif           = FileMimeType("image/gif")
+	FileMimeTypeWebp          = FileMimeType("image/webp")
+	FileMimeTypeBmp           = FileMimeType("image/bmp")
+	FileMimeTypeTiff          = FileMimeType("image/tiff")
+	FileMimeTypeSvg           = FileMimeType("image/svg+xml")
+	FileMimeTypeHeic          = FileMimeType("image/heic")
+	FileMimeTypeHeif          = FileMimeType("image/heif")
+	FileMimeTypeMMp4          = FileMimeType("video/mp4")
+	FileMimeTypeMWebM         = FileMimeType("video/webm")
+	FileMimeTypeMOgg          = FileMimeType("video/ogg")
+	FileMimeTypeMQuickTime    = FileMimeType("video/quicktime")
+	FileMimeTypeMXMsVideo     = FileMimeType("video/x-msvideo")
+	FileMimeTypeMXMatroska    = FileMimeType("video/x-matroska")
+	FileMimeTypeJson          = FileMimeType("application/json")
+	FileMimeTypePdf           = FileMimeType("application/pdf")
+	FileMimeTypeDocx          = FileMimeType("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+	FileMimeTypeDoc           = FileMimeType("application/msword")
+	FileMimeTypeXlsx          = FileMimeType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	FileMimeTypeXls           = FileMimeType("application/vnd.ms-excel")
+	FileMimeTypePptx          = FileMimeType("application/vnd.openxmlformats-officedocument.presentationml.presentation")
+	FileMimeTypePpt           = FileMimeType("application/vnd.ms-powerpoint")
+	FileMimeTypeOdt           = FileMimeType("application/vnd.oasis.opendocument.text")
+	FileMimeTypeOds           = FileMimeType("application/vnd.oasis.opendocument.spreadsheet")
+	FileMimeTypeOdp           = FileMimeType("application/vnd.oasis.opendocument.presentation")
+	FileMimeTypeTxt           = FileMimeType("text/plain")
+	FileMimeTypeCsv           = FileMimeType("text/csv")
+	FileMimeTypeXml           = FileMimeType("application/xml")
+	FileMimeTypeZip           = FileMimeType("application/zip")
+	FileMimeTypeGzip          = FileMimeType("application/gzip")
+	FileMimeTypeRar           = FileMimeType("application/vnd.rar")
+	FileMimeType7z            = FileMimeType("application/x-7z-compressed")
+	FileMimeTypeTar           = FileMimeType("application/x-tar")
+	FileMimeTypeNil           = FileMimeType("")
 )
 
 var (
@@ -42,9 +66,21 @@ var (
 
 var (
 	FileTags              = []FileTag{FileTagAvatars, FileTagDocs, FileTagImages, FileTagVideos}
-	FileMimeTypesPictures = []FileMimeType{FileMimeTypeJpeg, FileMimeTypePng, FileMimeTypeGif, FileMimeTypeWebp}
-	FileMimeTypesVideos   = []FileMimeType{FileMimeTypeMMp4}
-	FileMimeTypesDocs     = []FileMimeType{FileMimeTypeJson, FileMimeTypePdf, FileMimeTypeDocx, FileMimeTypeXlsx, FileMimeTypePptx}
+	FileMimeTypesPictures = []FileMimeType{
+		FileMimeTypeJpeg, FileMimeTypePng, FileMimeTypeGif, FileMimeTypeWebp,
+		FileMimeTypeBmp, FileMimeTypeTiff, FileMimeTypeSvg, FileMimeTypeHeic, FileMimeTypeHeif,
+	}
+	FileMimeTypesVideos = []FileMimeType{
+		FileMimeTypeMMp4, FileMimeTypeMWebM, FileMimeTypeMOgg,
+		FileMimeTypeMQuickTime, FileMimeTypeMXMsVideo, FileMimeTypeMXMatroska,
+	}
+	FileMimeTypesDocs = []FileMimeType{
+		FileMimeTypeJson, FileMimeTypePdf, FileMimeTypeDocx, FileMimeTypeDoc,
+		FileMimeTypeXlsx, FileMimeTypeXls, FileMimeTypePptx, FileMimeTypePpt,
+		FileMimeTypeOdt, FileMimeTypeOds, FileMimeTypeOdp,
+		FileMimeTypeTxt, FileMimeTypeCsv, FileMimeTypeXml,
+		FileMimeTypeZip, FileMimeTypeGzip, FileMimeTypeRar, FileMimeType7z, FileMimeTypeTar,
+	}
 )
 
 type File struct {

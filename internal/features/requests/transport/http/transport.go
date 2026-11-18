@@ -2,6 +2,7 @@ package requests_transport_http
 
 import (
 	"context"
+	"io"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_jwt_security "github.com/CascadePro/api-golang-server/internal/core/security/jwt"
@@ -28,6 +29,7 @@ type RequestsService interface {
 	PatchRequestStatus(context.Context, uuid.UUID, domain.RequestStatus) error
 
 	UploadDoc(context.Context, uuid.UUID, domain.File, []byte, int) error
+	UploadDocStream(context.Context, uuid.UUID, domain.File, io.Reader, int64, int) error
 	DeleteDoc(context.Context, uuid.UUID, int) error
 }
 

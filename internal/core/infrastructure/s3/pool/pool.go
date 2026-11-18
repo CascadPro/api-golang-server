@@ -14,8 +14,11 @@ import (
 
 type Pool interface {
 	PutObject(ctx context.Context, key string, body []byte) error
+	PutObjectStream(ctx context.Context, key string, body io.Reader, size int64) error
+
 	GetObject(ctx context.Context, key string) ([]byte, error)
 	GetObjectStream(ctx context.Context, key, byteRange string) (io.ReadCloser, int64, string, error)
+
 	DeleteObject(ctx context.Context, key string) error
 
 	OpTimeout() time.Duration

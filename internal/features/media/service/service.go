@@ -32,24 +32,6 @@ type OutboxRepository interface {
 	CreateEventTx(ctx context.Context, tx core_postgres_pool.Tx, event domain.OutboxEvent) (domain.OutboxEvent, error)
 }
 
-type MediaService interface {
-	// GetFile(ctx context.Context, fileID string) (file domain.File, err error)
-	// GetFileContent(ctx context.Context, fileID string, w, h, quality *int) (
-	// 	file domain.File, content []byte, err error,
-	// )
-	// GetFileStream(ctx context.Context, fileID, byteRange string) (
-	// 	file domain.File, body io.ReadCloser, size int64, contentRange string, err error,
-	// )
-	// GetFilePlaceholder(ctx context.Context, fileID string) (placeholder []byte, err error)
-
-	// UploadFile(ctx context.Context, file *domain.File, content []byte) (created domain.File, err error)
-
-	// DeleteFile(ctx context.Context, tag domain.FileTag, fileID string) error
-	// DeleteFileTx(ctx context.Context, tx core_postgres_pool.Tx, tag domain.FileTag, fileID string) error
-
-	// MarkFileDeleted(ctx context.Context, fileID string) error
-}
-
 func NewService(
 	mediaPostgresRepo MediaPostgresRepository,
 	outboxPostgresRepo OutboxRepository,

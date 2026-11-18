@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
@@ -57,25 +59,100 @@ func (s *Service) UploadFile(ctx context.Context, uploadedFile *domain.File, con
 	return file, nil
 }
 
+func (s *Service) UploadFileStream(ctx context.Context, uploadedFile *domain.File, content io.Reader, size int64) (domain.File, error) {
+	if uploadedFile == nil {
+		return domain.File{}, fmt.Errorf("uploaded file is nil: %w", media_errors.ErrInvalidFile)
+	}
+	if size <= 0 {
+		return domain.File{}, fmt.Errorf("uploaded content is empty: %w", media_errors.ErrInvalidFile)
+	}
+
+	// For avatars, we still need to read into memory for processing
+	if uploadedFile.Tag == domain.FileTagAvatars {
+		buf := new(bytes.Buffer)
+		written, err := io.Copy(buf, io.LimitReader(content, size+1))
+		if err != nil {
+			return domain.File{}, fmt.Errorf("read avatar upload: %w", err)
+		}
+		if written > size {
+			return domain.File{}, fmt.Errorf("uploaded file exceeds limit %d: %w", size, media_errors.ErrInvalidFile)
+		}
+		if written == 0 {
+			return domain.File{}, fmt.Errorf("uploaded file is empty: %w", media_errors.ErrInvalidFile)
+		}
+
+		avatar, err := core_avatar_utils.ProcessAvatar(bytes.NewReader(buf.Bytes()))
+		if err != nil {
+			return domain.File{}, fmt.Errorf("process avatar: %w", err)
+		}
+
+		uploadedFile.Filename = replaceFileExtension(uploadedFile.Filename, avatar.Extension)
+		uploadedFile.MimeType = avatar.MimeType
+		uploadedFile.Size = int64(len(avatar.Data))
+
+		if err := validateUploadTagAndMime(uploadedFile.Tag, uploadedFile.MimeType); err != nil {
+			return domain.File{}, err
+		}
+		if err := uploadedFile.Validate(); err != nil {
+			return domain.File{}, fmt.Errorf("validate file: %w", err)
+		}
+
+		file, err := s.mediaPostgresRepo.CreateFile(ctx, uploadedFile)
+		if err != nil {
+			return domain.File{}, fmt.Errorf("create file at repository: %w", err)
+		}
+
+		key := fmt.Sprintf("%s/%s", file.Tag, file.ID)
+		if err := s.coreS3Repo.PutObject(ctx, key, avatar.Data); err != nil {
+			_ = s.mediaPostgresRepo.DeleteFile(ctx, file.ID)
+			return domain.File{}, fmt.Errorf("put object to S3 repository: %w", err)
+		}
+
+		return file, nil
+	}
+
+	uploadedFile.Size = size
+
+	if err := validateUploadTagAndMime(uploadedFile.Tag, uploadedFile.MimeType); err != nil {
+		return domain.File{}, err
+	}
+	if err := uploadedFile.Validate(); err != nil {
+		return domain.File{}, fmt.Errorf("validate file: %w", err)
+	}
+
+	file, err := s.mediaPostgresRepo.CreateFile(ctx, uploadedFile)
+	if err != nil {
+		return domain.File{}, fmt.Errorf("create file at repository: %w", err)
+	}
+
+	key := fmt.Sprintf("%s/%s", file.Tag, file.ID)
+	if err := s.coreS3Repo.PutObjectStream(ctx, key, content, size); err != nil {
+		_ = s.mediaPostgresRepo.DeleteFile(ctx, file.ID)
+		return domain.File{}, fmt.Errorf("put object to S3 repository: %w", err)
+	}
+
+	return file, nil
+}
+
 func validateUploadTagAndMime(tag domain.FileTag, mime domain.FileMimeType) error {
 	var allowed []domain.FileMimeType
 	switch tag {
 	case domain.FileTagAvatars:
-		allowed = []domain.FileMimeType{domain.FileMimeTypeJpeg, domain.FileMimeTypePng, domain.FileMimeTypeGif, domain.FileMimeTypeWebp}
+		allowed = domain.FileMimeTypesPictures[:4] // JPEG, PNG, WebP, GIF only for avatar
 	case domain.FileTagImages:
-		allowed = []domain.FileMimeType{domain.FileMimeTypeJpeg, domain.FileMimeTypePng, domain.FileMimeTypeWebp}
+		allowed = domain.FileMimeTypesPictures
 	case domain.FileTagVideos:
-		allowed = []domain.FileMimeType{domain.FileMimeTypeMMp4}
+		allowed = domain.FileMimeTypesVideos
 	case domain.FileTagDocs:
 		allowed = domain.FileMimeTypesDocs
 	default:
 		return fmt.Errorf("unsupported file tag %q: %w", tag, media_errors.ErrInvalidFile)
 	}
-	for _, candidate := range allowed {
-		if candidate == mime {
-			return nil
-		}
+
+	if slices.Contains(allowed, mime) {
+		return nil
 	}
+
 	return fmt.Errorf("mime type %q is not allowed for tag %q: %w", mime, tag, media_errors.ErrInvalidFile)
 }
 
@@ -84,16 +161,20 @@ func replaceFileExtension(filename, newExtension string) string {
 	if filename == "" {
 		filename = "file"
 	}
+
 	ext := filepath.Ext(filename)
 	if ext == "." || (strings.HasPrefix(filename, ".") && strings.Count(filename, ".") == 1) {
 		ext = ""
 	}
+
 	base := strings.TrimSuffix(filename, ext)
 	if base == "" {
 		base = "file"
 	}
+
 	if newExtension != "" && !strings.HasPrefix(newExtension, ".") {
 		newExtension = "." + newExtension
 	}
+
 	return base + newExtension
 }

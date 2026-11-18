@@ -117,6 +117,37 @@ func GetDocument(rw http.ResponseWriter, r *http.Request, maxSize int64) (*domai
 	return &file, content, nil
 }
 
+// GetDocumentStream returns the file metadata and a reader for streaming the content
+func GetDocumentStream(r *http.Request, maxSize int64) (*domain.File, io.Reader, int64, error) {
+	uploadedFile, fileHeader, tag, mimeType, err := GetFile(r, maxSize)
+	if err != nil {
+		return nil, nil, 0, fmt.Errorf("get file: %w", err)
+	}
+
+	size := fileHeader.Size
+	if maxSize > 0 && size > maxSize {
+		_ = uploadedFile.Close()
+		return nil, nil, 0, fmt.Errorf("uploaded file size %d exceeds limit %d: %w", size, maxSize, core_errors.ErrInvalidArgument)
+	}
+
+	if size == 0 {
+		_ = uploadedFile.Close()
+		return nil, nil, 0, fmt.Errorf("uploaded file is empty: %w", core_errors.ErrInvalidArgument)
+	}
+
+	file := domain.NewUploadFile(fileHeader.Filename, tag, mimeType, size)
+
+	// Return a limited reader that closes the underlying file when done
+	limitedReader := io.LimitReader(uploadedFile, maxSize+1)
+
+	return &file, limitedReader, size, nil
+}
+
+// GetAvatarStream returns the file metadata and a reader for streaming the avatar content
+func GetAvatarStream(r *http.Request, maxSize int64) (*domain.File, io.Reader, int64, error) {
+	return GetDocumentStream(r, maxSize)
+}
+
 func replaceExtension(filename string, newExtension string) string {
 	filename = strings.TrimSpace(filename)
 	newExtension = strings.TrimSpace(newExtension)
