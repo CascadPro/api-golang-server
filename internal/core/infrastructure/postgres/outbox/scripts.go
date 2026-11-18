@@ -17,7 +17,7 @@ const getPendingQuery = `
 		LIMIT $1
 	)
 	UPDATE infrastructure.outbox_events AS e
-	SET locked_at = NOW(), locked_by = $2, attempts = attempts + 1
+	SET locked_at = CURRENT_TIMESTAMP, locked_by = $2, attempts = attempts + 1
 	FROM events
 	WHERE e.id = events.id
 	RETURNING
