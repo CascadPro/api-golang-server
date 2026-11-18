@@ -51,12 +51,10 @@ func (h *HttpHandler) GetClient(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := getClientResponseFromDomain(client)
-
-	responseHandler.JsonResponse(response, http.StatusOK)
+	responseHandler.JsonResponse(clientResponseFromDomain(client), http.StatusOK)
 }
 
-func getClientResponseFromDomain(client domain.Client) GetClientResponse {
+func clientResponseFromDomain(client domain.Client) GetClientResponse {
 	return GetClientResponse{
 		ID:        client.ID,
 		Company:   client.Company,

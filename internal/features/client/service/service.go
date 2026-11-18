@@ -15,6 +15,8 @@ type ClientPostgresRepository interface {
 	Create(ctx context.Context, client domain.Client) (domain.Client, error)
 	Get(ctx context.Context, id uuid.UUID) (domain.Client, error)
 	Delete(ctx context.Context, id uuid.UUID) error
+
+	GetMany(ctx context.Context, page, limit int64, searchQuery *string) ([]domain.Client, int64, error)
 }
 
 func NewService(clientPostgresRepo ClientPostgresRepository) *Service {

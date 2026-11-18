@@ -8,6 +8,7 @@ import (
 	core_http "github.com/CascadePro/api-golang-server/internal/core/transport/http"
 	core_http_middleware "github.com/CascadePro/api-golang-server/internal/core/transport/http/middleware"
 	core_http_server "github.com/CascadePro/api-golang-server/internal/core/transport/http/server"
+	client_service "github.com/CascadePro/api-golang-server/internal/features/client/service"
 	"github.com/google/uuid"
 )
 
@@ -19,6 +20,8 @@ type HttpHandler struct {
 
 type ClientService interface {
 	Get(context.Context, uuid.UUID) (domain.Client, error)
+
+	GetMany(ctx context.Context, page, limit int64, searchQuery *string) (client_service.GetManyResult, error)
 
 	Create(context.Context, domain.Client) (domain.Client, error)
 
@@ -45,6 +48,12 @@ func (h *HttpHandler) Routes() []core_http_server.Route {
 	)
 
 	return []core_http_server.Route{
+		{
+			Method:     core_http.MethodQuery,
+			Path:       "/",
+			Handler:    h.GetClients,
+			Middleware: defaultMiddlewares,
+		},
 		{
 			Method:     core_http.MethodPost,
 			Path:       "/",

@@ -26,3 +26,12 @@ func domainFromModel(model ClientModel) domain.Client {
 		CreatedAt: model.CreatedAt,
 	}
 }
+
+func domainsFromModels(models []ClientModel) []domain.Client {
+	clients := make([]domain.Client, len(models))
+	for i, model := range models {
+		clients[i] = domainFromModel(model)
+	}
+
+	return clients
+}
