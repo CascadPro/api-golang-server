@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
+	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 	"github.com/google/uuid"
 )
 
@@ -72,11 +73,17 @@ func (m *RequestModel) CalcRequiredEmptyFields() {
 }
 
 func domainToModel(request domain.Request) RequestModel {
+	origin, err := normalizeOrigins(domainOriginsToModel(request.Origin))
+	if err != nil {
+		// This should not happen if domain validation passed, but handle gracefully
+		origin = domainOriginsToModel(request.Origin)
+	}
+
 	model := RequestModel{
 		Version:   request.Version,
 		Status:    request.Status,
 		Title:     request.Title,
-		Origin:    domainOriginsToModel(request.Origin),
+		Origin:    origin,
 		WorkTypes: request.WorkTypes,
 		Geography: request.Geography,
 		Docs: RequestModelDocs{
@@ -112,6 +119,35 @@ func domainOriginsToModel(origin []domain.RequestOrigin) []RequestModelOrigin {
 		slice = append(slice, RequestModelOrigin(j))
 	}
 	return slice
+}
+
+// normalizeOrigins validates and normalizes origin values.
+// Phone numbers are converted to E164 format. Emails are normalized via mail.ParseAddress.
+func normalizeOrigins(origins []RequestModelOrigin) ([]RequestModelOrigin, error) {
+	if len(origins) == 0 {
+		return nil, nil
+	}
+
+	for i, origin := range origins {
+		switch origin.Type {
+		case domain.RequestOriginTypePhone:
+			phone, err := core_validation.ValidatePhoneNumber(origin.Value)
+			if err != nil {
+				return nil, fmt.Errorf("`Value` to phone: %w", err)
+			}
+			origin.Value = phone.E164
+
+		case domain.RequestOriginTypeEmail:
+			email, err := core_validation.ValidateStringEmail(&origin.Value)
+			if err != nil {
+				return nil, fmt.Errorf("`Value` to email: %w", err)
+			}
+			origin.Value = email.String()
+		}
+		origins[i] = origin
+	}
+
+	return origins, nil
 }
 
 func modelToDomain(model RequestModel) (domain.Request, error) {

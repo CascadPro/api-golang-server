@@ -7,14 +7,14 @@ import (
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
-	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // PatchRequest updates selected fields of an existing request using $set.
 // Patched fields: "Title", "Origin", "Docs", "WorkTypes", "Geography", "Deadline", "Contract".
-func (r *Repository) Patch(ctx context.Context, id uuid.UUID, request domain.Request) error {
+// `originSet` indicates whether the origin field was explicitly set in the patch request.
+func (r *Repository) Patch(ctx context.Context, id uuid.UUID, request domain.Request, originSet bool) error {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
@@ -34,11 +34,13 @@ func (r *Repository) Patch(ctx context.Context, id uuid.UUID, request domain.Req
 
 	update = append(update, collectPatchFields(&model)...)
 
-	origin, err := parseOriginValue(model.Origin)
-	if err != nil {
-		return fmt.Errorf("parse origin: %w", err)
+	if originSet {
+		origin, err := normalizeOrigins(model.Origin)
+		if err != nil {
+			return fmt.Errorf("parse origin: %w", err)
+		}
+		update = append(update, bson.E{Key: "origin", Value: origin})
 	}
-	update = append(update, bson.E{Key: "origin", Value: origin})
 
 	model.CalcRequiredEmptyFields()
 	update = append(update, bson.E{Key: "required_empty_fields", Value: model.RequiredEmptyFields})
@@ -70,31 +72,4 @@ func collectPatchFields(model *RequestModel) []bson.E {
 	update = append(update, bson.E{Key: "client", Value: model.ClientID})
 
 	return update
-}
-
-func parseOriginValue(origins []RequestModelOrigin) ([]RequestModelOrigin, error) {
-	if len(origins) == 0 {
-		return nil, nil
-	}
-
-	for i, origin := range origins {
-		switch origin.Type {
-		case domain.RequestOriginTypePhone:
-			phone, err := core_validation.ValidatePhoneNumber(origin.Value)
-			if err != nil {
-				return nil, fmt.Errorf("`Value` to phone: %w", err)
-			}
-			origin.Value = phone.E164
-		case domain.RequestOriginTypeEmail:
-			email, err := core_validation.ValidateStringEmail(&origin.Value)
-			if err != nil {
-				return nil, fmt.Errorf("`Value` to email: %w", err)
-			}
-			origin.Value = email.String()
-		}
-
-		origins[i] = origin
-	}
-
-	return origins, nil
 }
