@@ -96,7 +96,8 @@ func (s *Service) UpdateAvatar(ctx context.Context, userID uuid.UUID, uploadedFi
 
 	if err := s.realtimePublisher.Publish(ctx, realtimeEvent); err != nil {
 		s.logger.Error(
-			"failed to publish user avatar updated event",
+			"failed to publish realtime event",
+			zap.String("type", string(realtimeEvent.Type)),
 			zap.String("user_id", userID.String()),
 			zap.Error(err),
 		)

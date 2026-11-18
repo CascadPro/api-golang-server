@@ -47,7 +47,8 @@ func (s *Service) PatchUserSettings(
 
 	if err := s.realtimePublisher.Publish(ctx, event); err != nil {
 		s.logger.Error(
-			"failed to publish settings updated event",
+			"failed to publish realtime event",
+			zap.String("type", string(event.Type)),
 			zap.String("user_id", userID.String()),
 			zap.Error(err),
 		)
