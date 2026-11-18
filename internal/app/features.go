@@ -123,7 +123,8 @@ func (a *App) initFeatures() error {
 	}
 	requestsRouter := core_http_server.NewRouter("/requests", rootRateLimit.Middleware())
 	requestsMongoRepository := requests_mongo_repository.NewRepository(a.infrastructure.Mongo)
-	requestsService := requests_service.NewService(mediaService, requestsCache, clientService, usersPostgresRepository, requestsMongoRepository)
+	requestsService := requests_service.NewService(mediaService, requestsCache, a.logger, clientService,
+		usersPostgresRepository, requestsMongoRepository, a.infrastructure.Publisher)
 	requestsHttpHandler := requests_transport_http.NewHttpHandler(requestsService, a.infrastructure.TokenIssuer, avatarRateLimiter)
 	requestsRouter.RegisterRoutes(requestsHttpHandler.Routes()...)
 

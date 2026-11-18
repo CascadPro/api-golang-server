@@ -31,6 +31,12 @@ const (
 	RealtimeEventUserUpdated       = RealtimeEventType("user.updated")
 	RealtimeEventUserAvatarUpdated = RealtimeEventType("user.avatar.updated")
 
+	RealtimeEventRequestCreated    = RealtimeEventType("request.created")
+	RealtimeEventRequestUpdated    = RealtimeEventType("request.updated")
+	RealtimeEventRequestStatusChanged = RealtimeEventType("request.status_changed")
+	RealtimeEventRequestFileUploaded = RealtimeEventType("request.file_uploaded")
+	RealtimeEventRequestFileDeleted  = RealtimeEventType("request.file_deleted")
+
 	RealtimeEventNil = RealtimeEventType("")
 )
 
@@ -101,5 +107,80 @@ func NewRealtimeEventSessionRevokeData(sessionID string, reason SessionRevokeDat
 	return RealtimeEventSessionRevokeData{
 		SessionID: sessionID,
 		Reason:    reason,
+	}
+}
+
+type RealtimeEventRequestCreatedData struct {
+	ID          string                 `json:"id"`
+	Title       string                 `json:"title"`
+	Status      RequestStatus          `json:"status"`
+	ClientID    *string                `json:"client_id,omitempty"`
+	CreatedAt   time.Time              `json:"created_at"`
+}
+
+func NewRealtimeEventRequestCreatedData(id string, title string, status RequestStatus, clientID *string, createdAt time.Time) RealtimeEventRequestCreatedData {
+	return RealtimeEventRequestCreatedData{
+		ID:        id,
+		Title:     title,
+		Status:    status,
+		ClientID:  clientID,
+		CreatedAt: createdAt,
+	}
+}
+
+type RealtimeEventRequestUpdatedData struct {
+	ID        string     `json:"id"`
+	Title     *string    `json:"title,omitempty"`
+	Status    *RequestStatus `json:"status,omitempty"`
+	ClientID  *string    `json:"client_id,omitempty"`
+	Deadline  *time.Time `json:"deadline,omitempty"`
+	WorkTypes []string   `json:"work_types,omitempty"`
+	Geography []string   `json:"geography,omitempty"`
+	Origin    []RequestOrigin `json:"origin,omitempty"`
+	UpdatedAt time.Time  `json:"updated_at"`
+}
+
+func NewRealtimeEventRequestUpdatedData(id string, updatedAt time.Time) RealtimeEventRequestUpdatedData {
+	return RealtimeEventRequestUpdatedData{
+		ID:        id,
+		UpdatedAt: updatedAt,
+	}
+}
+
+type RealtimeEventRequestStatusChangedData struct {
+	ID        string       `json:"id"`
+	Status    RequestStatus `json:"status"`
+	StatusBy  string       `json:"status_by"`
+	UpdatedAt time.Time    `json:"updated_at"`
+}
+
+func NewRealtimeEventRequestStatusChangedData(id string, status RequestStatus, statusBy string, updatedAt time.Time) RealtimeEventRequestStatusChangedData {
+	return RealtimeEventRequestStatusChangedData{
+		ID:        id,
+		Status:    status,
+		StatusBy:  statusBy,
+		UpdatedAt: updatedAt,
+	}
+}
+
+type RealtimeEventRequestFileData struct {
+	ID        string    `json:"id"`
+	RequestID string    `json:"request_id"`
+	Slot      int       `json:"slot"`
+	Filename  string    `json:"filename"`
+	Size      int64     `json:"size"`
+	MimeType  string    `json:"mime_type"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func NewRealtimeEventRequestFileData(id, requestID string, slot int, filename string, size int64, mimeType string, createdAt time.Time) RealtimeEventRequestFileData {
+	return RealtimeEventRequestFileData{
+		ID:        id,
+		RequestID: requestID,
+		Slot:      slot,
+		Filename:  filename,
+		Size:      size,
+		MimeType:  mimeType,
+		CreatedAt: createdAt,
 	}
 }

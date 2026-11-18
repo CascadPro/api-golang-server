@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_errors "github.com/CascadePro/api-golang-server/internal/core/errors"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 func (s *Service) DeleteDoc(ctx context.Context, requestID uuid.UUID, index int) error {
@@ -50,7 +52,7 @@ func (s *Service) DeleteDoc(ctx context.Context, requestID uuid.UUID, index int)
 		return fmt.Errorf("apply patch: %w", err)
 	}
 
-	if err := s.requestsMongoRepo.Patch(ctx, requestID, request); err != nil {
+	if err := s.requestsMongoRepo.Patch(ctx, requestID, request, false); err != nil {
 		return fmt.Errorf("patch request: %w", err)
 	}
 
@@ -59,6 +61,30 @@ func (s *Service) DeleteDoc(ctx context.Context, requestID uuid.UUID, index int)
 	}
 
 	_ = s.cache.Delete(ctx, cacheKeyRequest(requestID))
+
+	userID, err := core_context.UserID(ctx)
+	if err != nil {
+		return fmt.Errorf("get user id from context: %w", err)
+	}
+
+	data := domain.NewRealtimeEventRequestFileData(
+		*fileID,
+		request.ID.String(),
+		index,
+		"", 0, "",
+		request.UpdatedAt,
+	)
+
+	event := domain.NewRealtimeEvent(domain.RealtimeEventRequestFileDeleted, &userID, nil, data)
+
+	if err := s.realtimePublisher.Publish(ctx, event); err != nil {
+		s.logger.Error(
+			"failed to publish realtime event",
+			zap.String("type", string(event.Type)),
+			zap.String("user_id", userID.String()),
+			zap.Error(err),
+		)
+	}
 
 	return nil
 }
