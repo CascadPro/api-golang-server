@@ -13,15 +13,23 @@ import (
 	core_logger "github.com/CascadePro/api-golang-server/internal/core/logger"
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
 	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
+	media_errors "github.com/CascadePro/api-golang-server/internal/features/media/errors"
 )
 
 const (
 	// The current upload routes accept avatars up to 10 MiB and request
 	// documents up to 1 MiB. Leave room for multipart boundaries and headers.
 	// This is a request-body limit, not the multipart in-memory threshold.
-	maxMultipartRequestSize int64 = 12 << 20
-	multipartMaxMemory      int64 = 32 << 20
+	maxMultipartRequestSize int64 = 50 << 20
+	multipartMaxMemory      int64 = 128 << 20
 )
+
+var maxFileSizeByTag = map[domain.FileTag]int64{
+	domain.FileTagAvatars: 10 << 20,
+	domain.FileTagImages:  50 << 20,
+	domain.FileTagVideos:  100 << 20,
+	domain.FileTagDocs:    50 << 20,
+}
 
 var (
 	allowedMimes = []domain.FileMimeType{
@@ -100,6 +108,14 @@ func Media() Middleware {
 			// the request. ParseMultipartForm's maxMemory is not a body limit.
 			r.Body = http.MaxBytesReader(rw, r.Body, maxMultipartRequestSize)
 			if err := r.ParseMultipartForm(multipartMaxMemory); err != nil {
+				if err.Error() == "http: request body too large" {
+					responseHandler.ErrorResponse(
+						fmt.Errorf("request body too large: %w", media_errors.ErrFileTooLarge),
+						"request body too large",
+					)
+					return
+				}
+
 				responseHandler.ErrorResponse(
 					fmt.Errorf("parse multipart form: %w", err),
 					"failed to parse multipart form",
@@ -158,6 +174,17 @@ func Media() Middleware {
 				return
 			}
 
+			// Check file size limit for this tag
+			if maxSize, ok := maxFileSizeByTag[tag]; ok {
+				if foundFileHeader.Size > maxSize {
+					responseHandler.ErrorResponse(
+						fmt.Errorf("file size %d exceeds limit %d: %w", foundFileHeader.Size, maxSize, media_errors.ErrFileTooLarge),
+						"file too large",
+					)
+					return
+				}
+			}
+
 			mimeStr := strings.TrimSpace(foundFileHeader.Header.Get("Content-Type"))
 			if mimeStr == "" || strings.EqualFold(mimeStr, "application/octet-stream") {
 				f, err := foundFileHeader.Open()
@@ -191,17 +218,22 @@ func Media() Middleware {
 
 			if err := core_validation.ValidateArray(allowedMimes, mime); err != nil {
 				responseHandler.ErrorResponse(
-					fmt.Errorf("file format '%s': %w", mime, err),
-					"failed to validate file format",
+					fmt.Errorf("file format '%s': %w", mime, media_errors.ErrUnsupportedFormat),
+					"unsupported file format",
 				)
 				return
 			}
 
 			if mimes, exists := allowedMimesByTag[tag]; exists {
 				if err := core_validation.ValidateArray(mimes, mime); err != nil {
+					allowed := make([]string, len(mimes))
+					for i, m := range mimes {
+						allowed[i] = string(m)
+					}
+
 					responseHandler.ErrorResponse(
-						fmt.Errorf("file format '%s' doesn't satisfy file tag '%s': %w", mime, tag, err),
-						"failed to satisfy file tag and file format",
+						fmt.Errorf("file format '%s' not allowed for tag '%s', allowed: %s: %w", mime, tag, strings.Join(allowed, ", "), media_errors.ErrUnsupportedFormat),
+						fmt.Sprintf("unsupported file format for %s, allowed: %s", tag, strings.Join(allowed, ", ")),
 					)
 					return
 				}

@@ -3,6 +3,7 @@ package core_avatar_utils
 import (
 	"bytes"
 	"fmt"
+	"image"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
 	core_media_utils "github.com/CascadePro/api-golang-server/internal/core/utils/media"
@@ -16,6 +17,10 @@ func processStatic(data []byte) (*ProcessedAvatar, error) {
 		return nil, err
 	}
 
+	return processStaticFromImage(img, format)
+}
+
+func processStaticFromImage(img image.Image, format core_media_utils.Format) (*ProcessedAvatar, error) {
 	switch format {
 	case core_media_utils.FormatJPEG, core_media_utils.FormatPNG, core_media_utils.FormatWebP:
 	default:

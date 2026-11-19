@@ -24,7 +24,7 @@ type Config struct {
 	Connection           Connection    `envconfig:"CONNECTION" default:"online"`
 	EnvMode              EnvMode       `envconfig:"ENV_MODE" default:"dev"`
 	AllowedOrigins       string        `envconfig:"ALLOWED_ORIGINS" default:""`
-	ShutdownTimeout      time.Duration `envconfig:"SHUTDOWN_TIMEOUT" default:"1min"`
+	ShutdownTimeout      time.Duration `envconfig:"SHUTDOWN_TIMEOUT" default:"1m"`
 	TrustedProxies       []string      `envconfig:"TRUSTED_PROXIES" default:""`
 	RateLimitFailureMode string        `envconfig:"RATE_LIMIT_FAILURE_MODE" default:"closed"`
 }

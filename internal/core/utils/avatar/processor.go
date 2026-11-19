@@ -2,6 +2,7 @@ package core_avatar_utils
 
 import (
 	"fmt"
+	"image"
 	"io"
 
 	core_media_utils "github.com/CascadePro/api-golang-server/internal/core/utils/media"
@@ -29,6 +30,16 @@ func ProcessAvatar(r io.Reader) (*ProcessedAvatar, error) {
 
 	case core_media_utils.FormatJPEG, core_media_utils.FormatPNG, core_media_utils.FormatWebP:
 		return processStatic(data)
+
+	default:
+		return nil, fmt.Errorf("%w: %s", media_errors.ErrUnsupportedFormat, format)
+	}
+}
+
+func ProcessAvatarDecoded(img image.Image, format core_media_utils.Format) (*ProcessedAvatar, error) {
+	switch format {
+	case core_media_utils.FormatJPEG, core_media_utils.FormatPNG, core_media_utils.FormatWebP:
+		return processStaticFromImage(img, format)
 
 	default:
 		return nil, fmt.Errorf("%w: %s", media_errors.ErrUnsupportedFormat, format)

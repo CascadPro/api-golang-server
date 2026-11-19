@@ -9,7 +9,7 @@ var (
 	ErrFileAccessDenied        = errors.New("file access denied")
 	ErrFileDeleted             = errors.New("file was deleted")
 	ErrFileTooLarge            = errors.New("file too large")
-	ErrUnsupportedFormat       = errors.New("unsupported file")
+	ErrUnsupportedFormat       = errors.New("unsupported_format")
 	ErrInvalidImage            = errors.New("invalid image")
 	ErrInvalidFile             = errors.New("invalid file")
 )

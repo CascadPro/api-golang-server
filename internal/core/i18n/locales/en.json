@@ -71,9 +71,9 @@
     "description": "File access denied",
     "other": "File access denied"
   },
-  "unsupported_file": {
-    "description": "Unsupported file type",
-    "other": "Unsupported file type"
+  "unsupported_format": {
+    "description": "Unsupported file format",
+    "other": "Unsupported file format"
   },
   "file_too_large": {
     "description": "File is too large",

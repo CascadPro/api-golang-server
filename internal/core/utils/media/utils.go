@@ -25,6 +25,10 @@ func DecodeImage(data []byte) (image.Image, Format, error) {
 	return img, Format(format), nil
 }
 
+func DecodeImageWithFormat(data []byte) (image.Image, Format, error) {
+	return DecodeImage(data)
+}
+
 func encodeWebP(w io.Writer, img image.Image, quality int) error {
 	opts := &webp.EncodeOptions{
 		Mode:    webp.EncodeLossy,

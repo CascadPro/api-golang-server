@@ -71,9 +71,9 @@
     "description": "Нет доступа к файлу",
     "other": "Нет доступа к файлу"
   },
-  "unsupported_file": {
-    "description": "Неподдерживаемый тип файла",
-    "other": "Неподдерживаемый тип файла"
+  "unsupported_format": {
+    "description": "Неподдерживаемый формат файла",
+    "other": "Неподдерживаемый формат файла"
   },
   "file_too_large": {
     "description": "Файл слишком большой",

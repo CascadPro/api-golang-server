@@ -53,16 +53,25 @@ func (p *ConnectionPool) PutObject(ctx context.Context, key string, body []byte)
 }
 
 func (p *ConnectionPool) PutObjectStream(ctx context.Context, key string, body io.Reader, size int64) error {
-	ctx, cancel := context.WithTimeout(ctx, p.timeout)
-	defer cancel()
+	var streamCtx context.Context
+	var cancel context.CancelFunc
 
-	_, err := s3.NewFromConfig(*p.client).PutObject(ctx, &s3.PutObjectInput{
+	if p.streamTimeout > 0 {
+		streamCtx, cancel = context.WithTimeout(ctx, p.streamTimeout)
+		defer cancel()
+	} else {
+		streamCtx = ctx
+		cancel = func() { /* No timeout, that's why cancel func is useless */ }
+	}
+
+	_, err := s3.NewFromConfig(*p.streamClient).PutObject(streamCtx, &s3.PutObjectInput{
 		Bucket:        &p.bucket,
 		Key:           &key,
 		Body:          body,
 		ContentLength: &size,
 	})
 
+	cancel()
 	return MapErrors(err)
 }
 
@@ -96,19 +105,19 @@ func (r *cancelReadCloser) Close() error {
 }
 
 // GetObjectStream streams an S3 object (or a single byte range) without
-// buffering the full object in the API process. The returned body owns the
-// request timeout and must be closed by the caller.
+// buffering the full object in the API process. The returned body is tied to
+// the caller's context (typically the HTTP request context) and will be
+// cancelled if the client disconnects. No artificial timeout is applied to
+// the streaming phase, allowing arbitrarily slow downloads to complete.
 func (p *ConnectionPool) GetObjectStream(ctx context.Context, key, byteRange string) (io.ReadCloser, int64, string, error) {
-	requestCtx, cancel := context.WithTimeout(ctx, p.timeout)
 	input := &s3.GetObjectInput{Bucket: &p.bucket, Key: &key}
 
 	if byteRange != "" {
 		input.Range = &byteRange
 	}
 
-	resp, err := s3.NewFromConfig(*p.client).GetObject(requestCtx, input)
+	resp, err := s3.NewFromConfig(*p.streamClient).GetObject(ctx, input)
 	if err != nil {
-		cancel()
 		return nil, 0, "", MapErrors(err)
 	}
 
@@ -122,7 +131,10 @@ func (p *ConnectionPool) GetObjectStream(ctx context.Context, key, byteRange str
 		contentRange = *resp.ContentRange
 	}
 
-	return &cancelReadCloser{ReadCloser: resp.Body, cancel: cancel}, size, contentRange, nil
+	return &cancelReadCloser{
+		ReadCloser: resp.Body,
+		cancel:     func() { /* The cancel function is a no-op since we don't create a timeout context */ },
+	}, size, contentRange, nil
 }
 
 func (p *ConnectionPool) DeleteObject(ctx context.Context, key string) error {

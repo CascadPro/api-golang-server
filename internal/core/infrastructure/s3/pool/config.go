@@ -15,7 +15,8 @@ type Config struct {
 	SecretAccessKey string `envconfig:"S3_SECRET_ACCESS_KEY" required:"true"`
 	SessionToken    string `envconfig:"S3_SESSION_TOKEN" required:"false"`
 
-	Timeout time.Duration `envconfig:"S3_TIMEOUT" required:"true"`
+	Timeout       time.Duration `envconfig:"S3_TIMEOUT" required:"true"`
+	StreamTimeout time.Duration `envconfig:"S3_STREAM_TIMEOUT" default:"5m"`
 }
 
 func NewConfig() (Config, error) {
