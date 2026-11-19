@@ -93,7 +93,7 @@ func registerSessionIDValidation(fl validator.FieldLevel) bool {
 
 func registerPhoneValidation(fl validator.FieldLevel) bool {
 	phone := fl.Field().String()
-	if _, err := core_validation.ValidatePhoneNumber(phone); err != nil {
+	if _, err := domain.ParsePhoneNumber(phone); err != nil {
 		return false
 	}
 
