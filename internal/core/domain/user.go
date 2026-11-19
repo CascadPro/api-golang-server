@@ -31,9 +31,11 @@ type User struct {
 	Version   int64
 	Activated bool `json:"-"`
 
-	Email        *string
-	PasswordHash *string `json:"-"`
-	Role         UserRole
+	Email        *Email       `json:"email,omitempty"`
+	Phone        *PhoneNumber `json:"phone,omitempty"`
+	PasswordHash *string      `json:"-"`
+
+	Role UserRole
 
 	Name     string
 	Surname  string
@@ -63,12 +65,14 @@ func NewRegisterUser(name, surname string, lastName *string) User {
 }
 
 func NewUserLogin(email, passwordHash string) User {
+	e := MustParseEmail(email)
+
 	return User{
 		ID:           UninitializedUUID,
 		Version:      UninitializedVersion,
 		Activated:    true,
 		Role:         UninitializedRole,
-		Email:        &email,
+		Email:        &e,
 		PasswordHash: &passwordHash,
 	}
 }
@@ -95,13 +99,21 @@ func (u *User) Validate() error {
 	}
 
 	if u.Activated {
-		if _, err := core_validation.ValidateStringEmail(u.Email); err != nil {
-			return err
+		if u.Email == nil {
+			return fmt.Errorf("`Email` can't be NULL if `Activated` is true: %w", core_errors.ErrInvalidArgument)
 		}
 
 		if u.PasswordHash == nil {
 			return fmt.Errorf("`PasswordHash` can't be NULL if `Activated` is true: %w", core_errors.ErrInvalidArgument)
 		}
+	}
+
+	if u.Email != nil && u.Email.IsZero() {
+		return fmt.Errorf("`Email` cannot be empty: %w", core_errors.ErrInvalidArgument)
+	}
+
+	if u.Phone != nil && u.Phone.IsZero() {
+		return fmt.Errorf("`Phone` cannot be empty: %w", core_errors.ErrInvalidArgument)
 	}
 
 	if u.CreatedAt.After(u.LastActiveAt) {
@@ -126,6 +138,7 @@ func (u *User) GetFullName() string {
 type UserPatch struct {
 	Activated    Nullable[bool]
 	Email        Nullable[string]
+	Phone        Nullable[string]
 	PasswordHash Nullable[string]
 	Role         Nullable[UserRole]
 
@@ -136,10 +149,19 @@ type UserPatch struct {
 	AvatarFileID Nullable[string]
 }
 
-func NewUserRegisterPatch(email Nullable[string], passwordHash Nullable[string]) UserPatch {
+func NewUserRegisterPatch(email, passwordHash Nullable[string]) UserPatch {
 	return UserPatch{
 		Activated:    NewNullable(true),
 		Email:        email,
+		PasswordHash: passwordHash,
+	}
+}
+
+func NewUserRegisterPatchWithPhone(email, phone, passwordHash Nullable[string]) UserPatch {
+	return UserPatch{
+		Activated:    NewNullable(true),
+		Email:        email,
+		Phone:        phone,
 		PasswordHash: passwordHash,
 	}
 }
@@ -173,6 +195,18 @@ func (p *UserPatch) Validate() error {
 		}
 	}
 
+	if p.Email.Set && p.Email.Value != nil {
+		if _, err := ValidateEmail(p.Email.Value); err != nil {
+			return fmt.Errorf("invalid email: %w", err)
+		}
+	}
+
+	if p.Phone.Set && p.Phone.Value != nil {
+		if _, err := ValidatePhoneNumber(p.Phone.Value); err != nil {
+			return fmt.Errorf("invalid phone number: %w", err)
+		}
+	}
+
 	if p.AvatarFileID.Set && p.AvatarFileID.Value != nil {
 		if err := core_validation.ValidateID(*p.AvatarFileID.Value, FileIDByteLength); err != nil {
 			return fmt.Errorf("validate avatar file id: %w", err)
@@ -192,7 +226,27 @@ func (u *User) ApplyPatch(patch UserPatch) (User, error) {
 	patched.Version = u.Version
 
 	if patch.Email.Set {
-		patched.Email = patch.Email.Value
+		if patch.Email.Value == nil {
+			patched.Email = nil
+		} else {
+			e, err := ValidateEmail(patch.Email.Value)
+			if err != nil {
+				return User{}, fmt.Errorf("parse email: %w", err)
+			}
+			patched.Email = &e
+		}
+	}
+
+	if patch.Phone.Set {
+		if patch.Phone.Value == nil {
+			patched.Phone = nil
+		} else {
+			pn, err := ValidatePhoneNumber(patch.Phone.Value)
+			if err != nil {
+				return User{}, fmt.Errorf("parse phone: %w", err)
+			}
+			patched.Phone = &pn
+		}
 	}
 
 	if patch.PasswordHash.Set {
