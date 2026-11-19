@@ -1,6 +1,7 @@
 package auth_transport_http
 
 import (
+	"fmt"
 	"net/http"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
@@ -12,8 +13,9 @@ import (
 
 type RegisterRequest struct {
 	Email    string `json:"email"    validate:"required,email" example:"test@example.com"`
+	Phone    string `json:"phone,omitempty" validate:"omitempty" example:"+79001234567" swaggertype:"string"`
 	Password string `json:"password" validate:"required,pwd"   example:"Strong_Pwd123"`
-	Token    string `json:"token"    validate:"required,uuid" example:"00000000-000000-000000-000000000000"`
+	Token    string `json:"token"    validate:"required,uuid" example:"00000000-0000-0000-0000-000000000000"`
 }
 
 // Register godoc
@@ -22,6 +24,7 @@ type RegisterRequest struct {
 // @Tags 				auth
 // @Accept 			json
 // @Param 			request body RegisterRequest true "Register body request"
+// @Param			phone query string false "Phone number in E.164 format" example:+79001234567
 // @Success 		204 "Successfully created register token"
 // @Failure 		400 {object} core_http_response.ErrorResponse "Bad request"
 // @Failure 		404 {object} core_http_response.ErrorResponse "Not found"
@@ -43,6 +46,14 @@ func (h *HttpHandler) Register(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate phone if provided
+	if request.Phone != "" {
+		if _, err := domain.ParsePhoneNumber(request.Phone); err != nil {
+			responseHandler.ErrorResponse(fmt.Errorf("invalid phone number: %w", err), "validation failed")
+			return
+		}
+	}
+
 	patch := patchFromRegisterRequest(request)
 
 	if err := h.authService.Register(ctx, patch, request.Token); err != nil {
@@ -55,8 +66,13 @@ func (h *HttpHandler) Register(rw http.ResponseWriter, r *http.Request) {
 }
 
 func patchFromRegisterRequest(request RegisterRequest) domain.UserPatch {
-	return domain.NewUserRegisterPatch(
-		domain.NewNullable(request.Email),
-		domain.NewNullable(request.Password),
-	)
+	email := domain.NewNullable(request.Email)
+	password := domain.NewNullable(request.Password)
+
+	var phone domain.Nullable[string]
+	if request.Phone != "" {
+		phone = domain.NewNullable(request.Phone)
+	}
+
+	return domain.NewUserRegisterPatchWithPhone(email, phone, password)
 }

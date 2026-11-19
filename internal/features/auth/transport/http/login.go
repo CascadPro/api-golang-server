@@ -1,6 +1,7 @@
 package auth_transport_http
 
 import (
+	"fmt"
 	"net/http"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
@@ -11,8 +12,9 @@ import (
 )
 
 type LoginRequest struct {
-	Email    string `json:"email"    validate:"required,email" example:"test@example.com"`
-	Password string `json:"password" validate:"required,pwd"   example:"Strong_Pwd123"`
+	Email    string `json:"email,omitempty"    validate:"omitempty,email" example:"test@example.com" swaggertype:"string"`
+	Phone    string `json:"phone,omitempty"    validate:"omitempty"       example:"+79001234567" swaggertype:"string"`
+	Password string `json:"password"           validate:"required,pwd"    example:"Strong_Pwd123"`
 }
 
 type LoginResponse struct {
@@ -22,7 +24,7 @@ type LoginResponse struct {
 
 // Login godoc
 // @Summary 		Login
-// @Description User login in the system
+// @Description User login in the system using email or phone
 // @Tags 				auth
 // @Accept 			json
 // @Produce 		json
@@ -49,6 +51,24 @@ func (h *HttpHandler) Login(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate that either email or phone is provided
+	if request.Email == "" && request.Phone == "" {
+		responseHandler.ErrorResponse(fmt.Errorf("either email or phone must be provided"), "validation failed")
+		return
+	}
+	if request.Email != "" && request.Phone != "" {
+		responseHandler.ErrorResponse(fmt.Errorf("cannot provide both email and phone"), "validation failed")
+		return
+	}
+
+	// Validate phone if provided
+	if request.Phone != "" {
+		if _, err := domain.ParsePhoneNumber(request.Phone); err != nil {
+			responseHandler.ErrorResponse(fmt.Errorf("invalid phone number: %w", err), "validation failed")
+			return
+		}
+	}
+
 	ip, err := core_context.ClientIP(ctx)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get client ip")
@@ -63,7 +83,22 @@ func (h *HttpHandler) Login(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := domain.NewUserLogin(request.Email, request.Password)
+	var user domain.User
+	if request.Email != "" {
+		user = domain.NewUserLogin(request.Email, request.Password)
+	} else {
+		// Login with phone - we need to look up the user by phone first
+		// This will be handled by the auth service
+		p, _ := domain.ParsePhoneNumber(request.Phone)
+		user = domain.User{
+			ID:           domain.UninitializedUUID,
+			Version:      domain.UninitializedVersion,
+			Activated:    true,
+			Role:         domain.UninitializedRole,
+			Phone:        &p,
+			PasswordHash: &request.Password,
+		}
+	}
 
 	accessToken, refreshToken, err := h.authService.Login(ctx, user, ip, userAgent)
 	if err != nil {

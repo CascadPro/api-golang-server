@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/CascadePro/api-golang-server/internal/core/domain"
-	core_validation "github.com/CascadePro/api-golang-server/internal/core/validation"
 	"github.com/google/uuid"
 )
 
@@ -14,9 +13,9 @@ type RequestModel struct {
 	Version int64                `bson:"v"`
 	Status  domain.RequestStatus `bson:"status"`
 
-	Title    string               `bson:"title"`
-	Origin   []RequestModelOrigin `bson:"origin,omitempty"`
-	ClientID *string              `bson:"client,omitempty"`
+	Title    string                  `bson:"title"`
+	Origin   []RequestModelOrigin    `bson:"origin,omitempty"`
+	ClientID *string                 `bson:"client,omitempty"`
 
 	Docs RequestModelDocs `bson:"docs"`
 
@@ -35,7 +34,9 @@ type RequestModel struct {
 
 type RequestModelOrigin struct {
 	Type  domain.RequestOriginType `bson:"type"`
-	Value string                   `bson:"value"`
+	Email *string                  `bson:"email,omitempty"` // normalized lowercase email
+	Phone *string                  `bson:"phone,omitempty"` // E.164 format
+	Other *string                  `bson:"other,omitempty"`
 }
 
 type RequestModelDocs struct {
@@ -73,11 +74,7 @@ func (m *RequestModel) CalcRequiredEmptyFields() {
 }
 
 func domainToModel(request domain.Request) RequestModel {
-	origin, err := normalizeOrigins(domainOriginsToModel(request.Origin))
-	if err != nil {
-		// This should not happen if domain validation passed, but handle gracefully
-		origin = domainOriginsToModel(request.Origin)
-	}
+	origin := domainOriginsToModel(request.Origin)
 
 	model := RequestModel{
 		Version:   request.Version,
@@ -116,44 +113,43 @@ func domainOriginsToModel(origin []domain.RequestOrigin) []RequestModelOrigin {
 
 	slice := make([]RequestModelOrigin, 0, len(origin))
 	for _, j := range origin {
-		slice = append(slice, RequestModelOrigin(j))
+		var mo RequestModelOrigin
+		mo.Type = j.Type
+		if j.Email != nil {
+			s := j.Email.String()
+			mo.Email = &s
+		}
+		if j.Phone != nil {
+			s := j.Phone.String()
+			mo.Phone = &s
+		}
+		if j.Other != nil {
+			mo.Other = j.Other
+		}
+		slice = append(slice, mo)
 	}
 	return slice
-}
-
-// normalizeOrigins validates and normalizes origin values.
-// Phone numbers are converted to E164 format. Emails are normalized via mail.ParseAddress.
-func normalizeOrigins(origins []RequestModelOrigin) ([]RequestModelOrigin, error) {
-	if len(origins) == 0 {
-		return nil, nil
-	}
-
-	for i, origin := range origins {
-		switch origin.Type {
-		case domain.RequestOriginTypePhone:
-			phone, err := core_validation.ValidatePhoneNumber(origin.Value)
-			if err != nil {
-				return nil, fmt.Errorf("`Value` to phone: %w", err)
-			}
-			origin.Value = phone.E164
-
-		case domain.RequestOriginTypeEmail:
-			email, err := core_validation.ValidateStringEmail(&origin.Value)
-			if err != nil {
-				return nil, fmt.Errorf("`Value` to email: %w", err)
-			}
-			origin.Value = email.String()
-		}
-		origins[i] = origin
-	}
-
-	return origins, nil
 }
 
 func modelToDomain(model RequestModel) (domain.Request, error) {
 	origin := make([]domain.RequestOrigin, 0, len(model.Origin))
 	for _, j := range model.Origin {
-		origin = append(origin, domain.RequestOrigin(j))
+		var o domain.RequestOrigin
+		o.Type = j.Type
+		if j.Email != nil {
+			e := domain.Email(*j.Email)
+			o.Email = &e
+		}
+		if j.Phone != nil {
+			p, err := domain.PhoneNumberFromE164(*j.Phone)
+			if err == nil {
+				o.Phone = &p
+			}
+		}
+		if j.Other != nil {
+			o.Other = j.Other
+		}
+		origin = append(origin, o)
 	}
 
 	id, err := uuid.Parse(model.ID)

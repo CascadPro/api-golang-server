@@ -35,10 +35,7 @@ func (r *Repository) Patch(ctx context.Context, id uuid.UUID, request domain.Req
 	update = append(update, collectPatchFields(&model)...)
 
 	if originSet {
-		origin, err := normalizeOrigins(model.Origin)
-		if err != nil {
-			return fmt.Errorf("parse origin: %w", err)
-		}
+		origin := domainOriginsToModel(request.Origin)
 		update = append(update, bson.E{Key: "origin", Value: origin})
 	}
 

@@ -20,25 +20,27 @@ type GetRequestsResponse struct {
 }
 
 type GetRequestsResponseRequest struct {
-	ID       uuid.UUID            `json:"id"                  example:"00000000-000000-000000-000000000000"`
+	ID       uuid.UUID            `json:"id"                  example:"00000000-0000-0000-0000-000000000000"`
 	Status   domain.RequestStatus `json:"status"              example:"default"`
-	StatusBy *uuid.UUID           `json:"status_by,omitempty" example:"00000000-000000-000000-000000000000"`
+	StatusBy *uuid.UUID           `json:"status_by,omitempty" example:"00000000-0000-0000-0000-000000000000"`
 
 	Title  string                      `json:"title"            example:"New Request"`
 	Origin []GetRequestsResponseOrigin `json:"origin,omitempty"`
 
-	ClientID *uuid.UUID `json:"client,omitempty"           example:"00000000-000000-000000-000000000000"`
+	ClientID *uuid.UUID `json:"client,omitempty"           example:"00000000-0000-0000-0000-000000000000"`
 
 	RequiredEmptyFields int `json:"fields_remaining" example:"3"`
 
-	Deadline  *time.Time `json:"deadline,omitempty"  example:"2006-01-02T15-04-05.000000"`
-	CreatedAt time.Time  `json:"created_at"          example:"2006-01-02T15-04-05.000000"`
-	UpdatedAt time.Time  `json:"updated_at"          example:"2006-01-02T15-04-05.000000"`
+	Deadline  *time.Time `json:"deadline,omitempty"  example:"2006-01-02T15:04:05.000000Z"`
+	CreatedAt time.Time  `json:"created_at"          example:"2006-01-02T15:04:05.000000Z"`
+	UpdatedAt time.Time  `json:"updated_at"          example:"2006-01-02T15:04:05.000000Z"`
 }
 
 type GetRequestsResponseOrigin struct {
 	Type  domain.RequestOriginType `json:"type"  example:"email"`
-	Value string                   `json:"value" example:"test@example.com"`
+	Email *string                  `json:"email,omitempty" example:"test@example.com"`
+	Phone *string                  `json:"phone,omitempty" example:"+79001234567"`
+	Other *string                  `json:"other,omitempty" example:"Telegram: @user"`
 }
 
 func RequestsResponseFromDomain(request domain.Request) GetRequestsResponseRequest {
@@ -57,10 +59,31 @@ func RequestsResponseFromDomain(request domain.Request) GetRequestsResponseReque
 	if len(request.Origin) > 0 {
 		origins := make([]GetRequestsResponseOrigin, len(request.Origin))
 		for i, origin := range request.Origin {
-			origins[i] = GetRequestsResponseOrigin(origin)
+			origins[i] = GetRequestsResponseOriginFromDomain(origin)
 		}
 		response.Origin = origins
 	}
 
 	return response
+}
+
+func GetRequestsResponseOriginFromDomain(origin domain.RequestOrigin) GetRequestsResponseOrigin {
+	resp := GetRequestsResponseOrigin{Type: origin.Type}
+	switch origin.Type {
+	case domain.RequestOriginTypeEmail:
+		if origin.Email != nil {
+			s := origin.Email.String()
+			resp.Email = &s
+		}
+	case domain.RequestOriginTypePhone:
+		if origin.Phone != nil {
+			s := origin.Phone.String()
+			resp.Phone = &s
+		}
+	case domain.RequestOriginTypeOther:
+		if origin.Other != nil {
+			resp.Other = origin.Other
+		}
+	}
+	return resp
 }

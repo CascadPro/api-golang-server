@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// PatchUser, fields to update: "Activated", "Email", "PasswordHash" (provides as string), "Role", "Name", "Surname",
+// PatchUser, fields to update: "Activated", "Email", "Phone", "PasswordHash" (provides as string), "Role", "Name", "Surname",
 // "LastName", "AvatarFileID", "LastActiveAt"
 func (r *Repository) patchUser(
 	ctx context.Context,
@@ -37,6 +37,11 @@ func (r *Repository) patchUser(
 	if user.Email != nil {
 		fmt.Fprintf(&query, ", email = $%d", len(args)+1)
 		args = append(args, user.Email)
+	}
+
+	if user.Phone != nil {
+		fmt.Fprintf(&query, ", phone = $%d", len(args)+1)
+		args = append(args, user.Phone)
 	}
 
 	if user.PasswordHash != nil {
@@ -83,7 +88,7 @@ func (r *Repository) patchUser(
 	args = append(args, id, user.Version)
 
 	query.WriteString(`
-		RETURNING id, version, activated, role, email, name, surname, last_name, avatar_file_id, last_active_at;
+		RETURNING id, version, activated, role, email, phone, name, surname, last_name, avatar_file_id, last_active_at;
 	`)
 
 	row := db.QueryRow(ctx, query.String(), args...)
@@ -95,6 +100,7 @@ func (r *Repository) patchUser(
 		&model.Activated,
 		&model.Role,
 		&model.Email,
+		&model.Phone,
 		&model.Name,
 		&model.Surname,
 		&model.LastName,

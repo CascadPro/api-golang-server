@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Get user: fields: "ID" / "Email"
+// Get user: fields: "ID" / "Email" / "Phone"
 func (r *Repository) GetUser(ctx context.Context, user domain.User) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
@@ -23,7 +23,7 @@ func (r *Repository) GetUser(ctx context.Context, user domain.User) (domain.User
 	var errStr string
 
 	query.WriteString(`
-		SELECT id, version, activated, role, email, password_hash, name, surname, last_name, last_active_at, avatar_file_id
+		SELECT id, version, activated, role, email, phone, password_hash, name, surname, last_name, last_active_at, avatar_file_id
 		FROM base.users
 	`)
 
@@ -35,8 +35,12 @@ func (r *Repository) GetUser(ctx context.Context, user domain.User) (domain.User
 		query.WriteString("WHERE (email = $1)")
 		arg = *user.Email
 		errStr = fmt.Sprintf("user with email=%s", *user.Email)
+	} else if user.Phone != nil {
+		query.WriteString("WHERE (phone = $1)")
+		arg = user.Phone.String()
+		errStr = fmt.Sprintf("user with phone=%s", user.Phone.String())
 	} else {
-		return domain.User{}, fmt.Errorf("insufficient fields (need `ID` OR `Email`): %w", core_errors.ErrInvalidArgument)
+		return domain.User{}, fmt.Errorf("insufficient fields (need `ID` OR `Email` OR `Phone`): %w", core_errors.ErrInvalidArgument)
 	}
 
 	query.WriteString("LIMIT 1;")
@@ -50,6 +54,7 @@ func (r *Repository) GetUser(ctx context.Context, user domain.User) (domain.User
 		&model.Activated,
 		&model.Role,
 		&model.Email,
+		&model.Phone,
 		&model.PasswordHash,
 		&model.Name,
 		&model.Surname,

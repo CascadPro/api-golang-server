@@ -17,14 +17,14 @@ type PatchRequestRequest request_http_dto.PatchRequestRequestSwagger
 // @Summary      Patch request
 // @Description  Patch request by ID
 // @Tags         requests
-// @Accept			 json
+// @Accept       json
 // @Param        id path string true "Request ID"
-// @Param 			 request body PatchRequestRequest true "Patch request body"
+// @Param        request body PatchRequestRequest true "Patch request body"
 // @Success      204 "Patched request"
 // @Failure      400 {object} core_http_response.ErrorResponse "Bad request"
 // @Failure      401 {object} core_http_response.ErrorResponse "Unauthorized"
 // @Failure      404 {object} core_http_response.ErrorResponse "Request not found"
-// @Failure 		 409 {object} core_http_response.ErrorResponse "Conflict error"
+// @Failure      409 {object} core_http_response.ErrorResponse "Conflict error"
 // @Failure      429 {object} core_http_response.ErrorResponse "Too many requests"
 // @Failure      500 {object} core_http_response.ErrorResponse "Internal server error"
 // @Router       /requests/{id} [patch]
@@ -67,9 +67,22 @@ func patchRequestToPatch(request request_http_dto.PatchRequestRequest) domain.Re
 	}
 
 	if request.Origin.Set && request.Origin.Value != nil {
-		origin := make([]domain.RequestOrigin, len(*request.Origin.Value))
+		origin := make([]domain.RequestOriginPatch, len(*request.Origin.Value))
 		for i, j := range *request.Origin.Value {
-			origin[i] = domain.RequestOrigin{Type: j.Type, Value: j.Value}
+			var o domain.RequestOriginPatch
+			if j.Type.Set && j.Type.Value != nil {
+				o.Type = domain.NewNullable(*j.Type.Value)
+			}
+			if j.Email.Set && j.Email.Value != nil {
+				o.Email = domain.NewNullable(*j.Email.Value)
+			}
+			if j.Phone.Set && j.Phone.Value != nil {
+				o.Phone = domain.NewNullable(*j.Phone.Value)
+			}
+			if j.Other.Set && j.Other.Value != nil {
+				o.Other = domain.NewNullable(*j.Other.Value)
+			}
+			origin[i] = o
 		}
 		patch.Origin = domain.NewNullable(origin)
 	}

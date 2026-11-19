@@ -1,6 +1,7 @@
 package client_transport_http
 
 import (
+	"fmt"
 	"net/http"
 
 	core_context "github.com/CascadePro/api-golang-server/internal/core/context"
@@ -10,9 +11,38 @@ import (
 	core_http_response "github.com/CascadePro/api-golang-server/internal/core/transport/http/response"
 )
 
+type CreateClientRequestContact struct {
+	Email *string `json:"email,omitempty" validate:"omitempty,email" example:"test@example.com"`
+	Phone *string `json:"phone,omitempty" validate:"omitempty" example:"+79001234567"`
+}
+
 type CreateClientRequest struct {
-	Company  string   `json:"company"  validate:"required,min=1,max=255"                     example:"CascadePro"`
-	Contacts []string `json:"contacts" validate:"required,min=1,dive,required,min=1,max=255" example:""`
+	Company  string                      `json:"company"  validate:"required,min=1,max=255"                    example:"CascadePro"`
+	Contacts []CreateClientRequestContact `json:"contacts" validate:"required,min=1,dive"                       example:""`
+}
+
+func validateContact(contact CreateClientRequestContact) error {
+	hasEmail := contact.Email != nil && *contact.Email != ""
+	hasPhone := contact.Phone != nil && *contact.Phone != ""
+
+	if !hasEmail && !hasPhone {
+		return fmt.Errorf("contact must have either email or phone")
+	}
+	if hasEmail && hasPhone {
+		return fmt.Errorf("contact cannot have both email and phone")
+	}
+
+	if hasEmail {
+		if _, err := domain.ParseEmail(*contact.Email); err != nil {
+			return fmt.Errorf("invalid email: %w", err)
+		}
+	}
+	if hasPhone {
+		if _, err := domain.ParsePhoneNumber(*contact.Phone); err != nil {
+			return fmt.Errorf("invalid phone: %w", err)
+		}
+	}
+	return nil
 }
 
 // CreateClient godoc
@@ -40,7 +70,26 @@ func (h *HttpHandler) CreateClient(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := domain.NewCreateClient(request.Company, request.Contacts)
+	contacts := make([]domain.ClientContact, 0, len(request.Contacts))
+	for i, c := range request.Contacts {
+		if err := validateContact(c); err != nil {
+			responseHandler.ErrorResponse(fmt.Errorf("contact[%d]: %w", i, err), "invalid contact")
+			return
+		}
+
+		var contact domain.ClientContact
+		if c.Email != nil {
+			e, _ := domain.ParseEmail(*c.Email)
+			contact.Email = &e
+		}
+		if c.Phone != nil {
+			p, _ := domain.ParsePhoneNumber(*c.Phone)
+			contact.Phone = &p
+		}
+		contacts = append(contacts, contact)
+	}
+
+	client := domain.NewCreateClient(request.Company, contacts)
 
 	if _, err := h.clientService.Create(ctx, client); err != nil {
 		responseHandler.ErrorResponse(err, "failed to create client")

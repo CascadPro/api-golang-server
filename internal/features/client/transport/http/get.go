@@ -12,11 +12,16 @@ import (
 	"github.com/google/uuid"
 )
 
+type ClientContactResponse struct {
+	Email *string `json:"email,omitempty" example:"test@example.com"`
+	Phone *string `json:"phone,omitempty" example:"+79001234567"`
+}
+
 type GetClientResponse struct {
-	ID        uuid.UUID `json:"id"         example:"00000000-000000-000000-000000000000"`
-	Company   string    `json:"company"    example:"CascadePro"`
-	Contacts  []string  `json:"contacts"   example:""`
-	CreatedAt time.Time `json:"created_at" example:"2006-01-02T15-04-05.000000"`
+	ID        uuid.UUID              `json:"id"         example:"00000000-0000-0000-0000-000000000000"`
+	Company   string                 `json:"company"    example:"CascadePro"`
+	Contacts  []ClientContactResponse `json:"contacts"`
+	CreatedAt time.Time              `json:"created_at" example:"2006-01-02T15:04:05.000000Z"`
 }
 
 // GetClient godoc
@@ -55,10 +60,24 @@ func (h *HttpHandler) GetClient(rw http.ResponseWriter, r *http.Request) {
 }
 
 func clientResponseFromDomain(client domain.Client) GetClientResponse {
+	contacts := make([]ClientContactResponse, len(client.Contacts))
+	for i, c := range client.Contacts {
+		var cc ClientContactResponse
+		if c.Email != nil {
+			s := c.Email.String()
+			cc.Email = &s
+		}
+		if c.Phone != nil {
+			s := c.Phone.String()
+			cc.Phone = &s
+		}
+		contacts[i] = cc
+	}
+
 	return GetClientResponse{
 		ID:        client.ID,
 		Company:   client.Company,
-		Contacts:  client.Contacts,
+		Contacts:  contacts,
 		CreatedAt: client.CreatedAt,
 	}
 }

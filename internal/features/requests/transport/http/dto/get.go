@@ -19,7 +19,7 @@ type GetRequestResponse struct {
 }
 
 type GetRequestResponseUser struct {
-	ID           uuid.UUID       `json:"id"                       example:"00000000-000000-000000-000000000000"`
+	ID           uuid.UUID       `json:"id"                       example:"00000000-0000-0000-0000-000000000000"`
 	Role         domain.UserRole `json:"role"                     example:"regular"`
 	Name         string          `json:"name"                     example:"John"`
 	Surname      string          `json:"surname"                  example:"Doe"`
@@ -27,9 +27,14 @@ type GetRequestResponseUser struct {
 }
 
 type GetRequestResponseClient struct {
-	ID       uuid.UUID `json:"id"      example:"00000000-000000-000000-000000000000"`
-	Company  string    `json:"company" example:"Cascade Pro"`
-	Contacts []string  `json:"contacts"`
+	ID       uuid.UUID         `json:"id"      example:"00000000-0000-0000-0000-000000000000"`
+	Company  string            `json:"company" example:"Cascade Pro"`
+	Contacts []ClientContactResponse `json:"contacts"`
+}
+
+type ClientContactResponse struct {
+	Email *string `json:"email,omitempty" example:"test@example.com"`
+	Phone *string `json:"phone,omitempty" example:"+79001234567"`
 }
 
 type GetRequestResponseDocs struct {
@@ -44,7 +49,7 @@ type GetRequestResponseDocsFile struct {
 	Tag       domain.FileTag `json:"tag"        example:"avatars"`
 	Filename  string         `json:"filename"   example:"avatar.jpg"`
 	Size      int64          `json:"size"       example:"1024"`
-	CreatedAt time.Time      `json:"created_at" example:"2006-01-02T15-04-05.000000"`
+	CreatedAt time.Time      `json:"created_at" example:"2006-01-02T15:04:05.000000Z"`
 }
 
 func RequestResponseFromDomain(request domain.Request, user domain.User, client domain.Client, files *map[int]domain.File) GetRequestResponse {
@@ -67,19 +72,24 @@ func RequestResponseFromDomain(request domain.Request, user domain.User, client 
 	}
 
 	if request.ClientID != nil && *request.ClientID != uuid.Nil {
+		contacts := make([]ClientContactResponse, len(client.Contacts))
+		for i, c := range client.Contacts {
+			var cc ClientContactResponse
+			if c.Email != nil {
+				s := c.Email.String()
+				cc.Email = &s
+			}
+			if c.Phone != nil {
+				s := c.Phone.String()
+				cc.Phone = &s
+			}
+			contacts[i] = cc
+		}
 		response.Client = &GetRequestResponseClient{
 			ID:       client.ID,
 			Company:  client.Company,
-			Contacts: client.Contacts,
+			Contacts: contacts,
 		}
-	}
-
-	if len(request.Origin) > 0 {
-		origins := make([]GetRequestsResponseOrigin, len(request.Origin))
-		for i, origin := range request.Origin {
-			origins[i] = GetRequestsResponseOrigin(origin)
-		}
-		response.Origin = origins
 	}
 
 	var docs GetRequestResponseDocs

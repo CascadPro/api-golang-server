@@ -61,11 +61,16 @@ func (h *HttpHandler) GetCurrentUser(rw http.ResponseWriter, r *http.Request) {
 }
 
 func currentUserDtoFromDomain(user domain.User, placeholder []byte) GetCurrentUserResponse {
+	email := ""
+	if user.Email != nil {
+		email = user.Email.String()
+	}
+
 	return GetCurrentUserResponse{
 		ID:                user.ID,
 		Version:           user.Version,
 		Role:              user.Role,
-		Email:             *user.Email,
+		Email:             email,
 		Name:              user.Name,
 		Surname:           user.Surname,
 		LastName:          user.LastName,

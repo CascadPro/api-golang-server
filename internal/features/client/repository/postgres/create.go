@@ -19,12 +19,15 @@ func (r *Repository) Create(ctx context.Context, client domain.Client) (domain.C
 		return domain.Client{}, fmt.Errorf("generate ID: %w", err)
 	}
 
-	row := r.pool.QueryRow(ctx, createQuery, id, client.Company, client.Contacts)
+	model := modelFromDomain(client)
+	model.ID = id
 
-	var model ClientModel
-	if err := row.Scan(&model.ID, &model.Version, &model.Company, &model.Contacts, &model.CreatedAt); err != nil {
+	row := r.pool.QueryRow(ctx, createQuery, model.ID, model.Company, model.Contacts)
+
+	var modelResult ClientModel
+	if err := row.Scan(&modelResult.ID, &modelResult.Version, &modelResult.Company, &modelResult.Contacts, &modelResult.CreatedAt); err != nil {
 		return domain.Client{}, fmt.Errorf("scan error: %w", core_postgres_pool.MapErrors(err))
 	}
 
-	return domainFromModel(model), nil
+	return domainFromModel(modelResult), nil
 }
